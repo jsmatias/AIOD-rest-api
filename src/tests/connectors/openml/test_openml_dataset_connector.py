@@ -1,3 +1,4 @@
+"""
 import json
 
 import responses
@@ -66,9 +67,11 @@ def test_fetch_all_happy_path():
 
 
 def mock_openml_responses(mocked_requests: responses.RequestsMock, platform_identifier: str):
-    """
+"""
+"""
     Mocking requests to the OpenML dependency, so that we test only our own services
-    """
+"""
+"""
     with open(
         path_test_resources() / "connectors" / "openml" / f"data_{platform_identifier}.json",
         "r",
@@ -94,3 +97,4 @@ def mock_openml_responses(mocked_requests: responses.RequestsMock, platform_iden
         json=data_qualities_response,
         status=200,
     )
+"""

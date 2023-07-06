@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import pathlib
 from typing import Iterator, TypeVar
@@ -29,9 +30,22 @@ class ExampleConnector(ResourceConnector[RESOURCE]):
     def platform_name(self) -> PlatformName:
         return PlatformName.example
 
-    def fetch_all(self, limit: int | None = None) -> Iterator[RESOURCE]:
+    def retry(self, id: str) -> RESOURCE:
+        """Retrieve information of the resource identified by id"""
         with open(self.json_path) as f:
             json_data = json.load(f)
         pydantic_class = resource_create(self.resource_class)
-        for json_item in json_data[:limit]:
+        for json_item in json_data:
+            if json_item.get("platform_identifier") == id:
+                return pydantic_class(**json_item)
+        raise Exception("No resource associated with the id")
+        return
+
+    def fetch(
+        self, from_incl: datetime | None = None, to_excl: datetime | None = None
+    ) -> Iterator[RESOURCE]:
+        with open(self.json_path) as f:
+            json_data = json.load(f)
+        pydantic_class = resource_create(self.resource_class)
+        for json_item in json_data:
             yield pydantic_class(**json_item)

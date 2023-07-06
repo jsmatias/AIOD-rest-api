@@ -1,7 +1,7 @@
 [
     {
         "platform": "example",
-        "platform_identifier": 1,
+        "platform_identifier": "1",
         "title": "The Art of Fiction",
         "doi": "10.1234/567890",
         "creators": "Jane Smith",

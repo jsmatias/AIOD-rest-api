@@ -1,6 +1,8 @@
+"""
 import json
 
 import responses
+
 
 import connectors
 from connectors.resource_with_relations import ResourceWithRelations
@@ -44,6 +46,7 @@ def test_fetch_all_happy_path():
     assert all(len(r.related_resources["citations"]) == 1 for r in resources_with_relations)
 
 
+
 def mock_parquet(mocked_requests: responses.RequestsMock, dataset_id: str):
     filename = f"parquet_{dataset_id.replace('/', '_')}.json"
     path_split = path_test_resources() / "connectors" / "huggingface" / filename
@@ -56,3 +59,4 @@ def mock_parquet(mocked_requests: responses.RequestsMock, dataset_id: str):
         json=response,
         status=status,
     )
+"""

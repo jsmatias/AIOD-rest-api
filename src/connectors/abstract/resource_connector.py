@@ -1,4 +1,5 @@
 import abc
+from datetime import datetime
 from typing import Generic, TypeVar, Iterator
 
 from sqlmodel import SQLModel
@@ -27,8 +28,13 @@ class ResourceConnector(abc.ABC, Generic[RESOURCE]):
         pass
 
     @abc.abstractmethod
-    def fetch_all(
-        self, limit: int | None = None
+    def retry(self, id: str) -> SQLModel | ResourceWithRelations[SQLModel]:
+        """Retrieve information of the resource identified by id"""
+        pass
+
+    @abc.abstractmethod
+    def fetch(
+        self, from_incl: datetime | None = None, to_excl: datetime | None = None
     ) -> Iterator[SQLModel | ResourceWithRelations[SQLModel]]:
         """Retrieve information of all resources"""
         pass

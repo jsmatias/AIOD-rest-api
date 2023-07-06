@@ -2,6 +2,7 @@
 This module knows how to load an OpenML object based on its AIoD implementation,
 and how to convert the OpenML response to some agreed AIoD format.
 """
+"""
 import logging
 from typing import Iterator
 
@@ -107,3 +108,4 @@ def _as_int(v: str) -> int:
     if not as_float.is_integer():
         raise ValueError(f"The input should be an integer, but was a float: {v}")
     return int(as_float)
+"""

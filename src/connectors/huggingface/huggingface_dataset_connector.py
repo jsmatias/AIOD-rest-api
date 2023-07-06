@@ -1,3 +1,4 @@
+"""
 import itertools
 import logging
 import typing
@@ -27,9 +28,11 @@ class HuggingFaceDatasetConnector(ResourceConnector[Dataset]):
 
     @staticmethod
     def _get(url: str, dataset_id: str) -> typing.List[typing.Dict[str, typing.Any]]:
-        """
+"""
+"""
         Perform a GET request and raise an exception if the response code is not OK.
-        """
+"""
+"""
         response = requests.get(url, params={"dataset": dataset_id})
         response_json = response.json()
         if not response.ok:
@@ -130,3 +133,4 @@ class HuggingFaceDatasetConnector(ResourceConnector[Dataset]):
                 logging.error(
                     f"Error while fetching huggingface dataset with id {dataset.id}: " f"{str(e)}"
                 )
+"""

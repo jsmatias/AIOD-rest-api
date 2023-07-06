@@ -86,7 +86,7 @@ def populate_database(
             # This is a temporary solution. After finishing the Connectors (so that they're
             # synchronizing), we will probably just perform a HTTP POST instead.
 
-            for item in connector.fetch_all(limit=limit):
+            for item in connector.fetch():
                 if isinstance(item, ResourceWithRelations):
                     resource_create_instance = item.resource
                     _create_or_fetch_related_objects(session, item)
