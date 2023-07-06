@@ -4,8 +4,9 @@ import pathlib
 from typing import Iterator, TypeVar
 
 from sqlmodel import SQLModel
+from connectors.abstract.resource_connector_by_date import ResourceConnectorByDate
 
-from connectors import ResourceConnector
+
 from database.model.resource import resource_create
 from database.model.platform.platform_names import PlatformName
 
@@ -13,7 +14,7 @@ from database.model.platform.platform_names import PlatformName
 RESOURCE = TypeVar("RESOURCE", bound=SQLModel)
 
 
-class ExampleConnector(ResourceConnector[RESOURCE]):
+class ExampleConnector(ResourceConnectorByDate[RESOURCE]):
     """
     Creating hardcoded values example values based on json files
     """

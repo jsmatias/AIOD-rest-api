@@ -1,7 +1,8 @@
 from datetime import datetime
 import typing  # noqa:F401 (flake8 raises incorrect 'Module imported but unused' error)
 
-from connectors import ResourceConnector
+
+from connectors.abstract.resource_connector_by_date import ResourceConnectorByDate
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model.dataset.dataset import Dataset
 from database.model.publication.publication import Publication
@@ -9,7 +10,7 @@ from database.model.resource import resource_create
 from database.model.platform.platform_names import PlatformName
 
 
-class ExampleDatasetConnector(ResourceConnector[Dataset]):
+class ExampleDatasetConnector(ResourceConnectorByDate[Dataset]):
     @property
     def resource_class(self) -> type[Dataset]:
         return Dataset

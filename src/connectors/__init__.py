@@ -10,7 +10,7 @@ from database.model.presentation.presentation import Presentation
 from database.model.project.project import Project
 from database.model.publication.publication import Publication
 from database.model.organisation.organisation import Organisation
-from .abstract.resource_connector import ResourceConnector  # noqa:F401
+from .abstract.resource_connector_by_date import ResourceConnectorByDate  # noqa:F401
 from .example.example_connector import ExampleConnector
 from .example.example_dataset_connector import ExampleDatasetConnector
 
@@ -60,4 +60,4 @@ example_connectors = {
     "organisations": ExampleConnector(
         resource_class=Organisation, json_path=_path_example_resources / "organisations.json"
     ),
-}  # type: Dict[str, ResourceConnector]
+}  # type: Dict[str, ResourceConnectorByDate]

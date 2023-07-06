@@ -11,7 +11,7 @@ from database.model.platform.platform_names import PlatformName
 RESOURCE = TypeVar("RESOURCE", bound=SQLModel)
 
 
-class ResourceConnector(abc.ABC, Generic[RESOURCE]):
+class ResourceConnectorByDate(abc.ABC, Generic[RESOURCE]):
     """
     For every platform that offers this resource, this ResourceConnector should be implemented.
     """

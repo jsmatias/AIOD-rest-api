@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import create_engine, Session, select, SQLModel
 
 import routers
-from connectors import ResourceConnector
+from connectors.abstract.resource_connector_by_date import ResourceConnectorByDate
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model.dataset.dataset import Dataset
 from database.model.platform.platform import Platform
@@ -62,7 +62,7 @@ def drop_or_create_database(url: str, delete_first: bool):
 
 def populate_database(
     engine: Engine,
-    connectors: List[ResourceConnector],
+    connectors: List[ResourceConnectorByDate],
     only_if_empty: bool = True,
     limit: int | None = None,
 ):
