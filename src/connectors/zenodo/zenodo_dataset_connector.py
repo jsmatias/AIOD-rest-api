@@ -1,11 +1,11 @@
-"""
 from datetime import datetime
 import logging
 from typing import Iterator
+import requests
 from sickle import Sickle
 import xmltodict
 
-from connectors import ResourceConnector
+from connectors.abstract.resource_connector_by_date import ResourceConnectorByDate
 from database.model.dataset.dataset import Dataset
 from database.model.general.keyword import Keyword
 from database.model.general.license import License
@@ -14,7 +14,7 @@ from database.model.platform.platform_names import PlatformName
 DATE_FORMAT = "%Y-%m-%d"
 
 
-class ZenodoDatasetConnector(ResourceConnector[Dataset]):
+class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
     @property
     def resource_class(self) -> type[Dataset]:
         return Dataset
@@ -22,6 +22,24 @@ class ZenodoDatasetConnector(ResourceConnector[Dataset]):
     @property
     def platform_name(self) -> PlatformName:
         return PlatformName.zenodo
+
+    def retry(self, id: str) -> Dataset:
+        """Retrieve information of the resource identified by id"""
+        record = requests.get(f"https://zenodo.org/api/records/{id}").json()
+
+        creators_list = [item["name"] for item in record["metadata"]["creators"]]
+        creator = "; ".join(creators_list)  # TODO change field to an array
+        return Dataset(
+            platform="zenodo",
+            platform_identifier=id,
+            date_published=record.get("created"),
+            name=record.get("metadata").get("title"),
+            description=record.get("metadata").get("description"),
+            creator=creator,
+            publisher="Zenodo",
+            license=License(name=record.get("metadata").get("license").get("id")),
+            keywords=[Keyword(name=k) for k in record.get("metadata").get("keywords")],
+        )
 
     def _get_record_dictionary(self, record):
         xml_string = record.raw
@@ -132,29 +150,28 @@ class ZenodoDatasetConnector(ResourceConnector[Dataset]):
         return None
 
     def _retrieve_dataset_from_datetime(
-        self,
-        sk: Sickle,
-        dt: datetime,
-        limit: int | None = None,
+        self, sk: Sickle, from_incl: datetime, to_excl: datetime | None = None
     ) -> Iterator[Dataset]:
         records = sk.ListRecords(
             **{
                 "metadataPrefix": "oai_datacite",
-                "from": dt.isoformat(),
+                "from": from_incl.isoformat(),
             }
         )
-        counter = 0
+
         record = next(records, None)
-        while record and (limit is None or counter < limit):
+        last_date = None
+        while record and (to_excl is None or (last_date is not None and last_date < to_excl)):
             if self._get_resource_type(record) == "Dataset":
                 dataset = self._dataset_from_record(record)
                 if dataset is not None:
-                    counter += 1
+                    last_date = dataset.date_published
                     yield dataset
             record = next(records, None)
 
-    def fetch_all(self, limit: int | None = None) -> Iterator[Dataset]:
+    def fetch(
+        self, from_incl: datetime | None = None, to_excl: datetime | None = None
+    ) -> Iterator[Dataset]:
         sickle = Sickle("https://zenodo.org/oai2d")
-        date = datetime(2000, 1, 1, 12, 0, 0)  # this should be a paramater
-        return self._retrieve_dataset_from_datetime(sickle, date, limit)
-"""
+        date = from_incl if from_incl is not None else datetime(2000, 1, 1, 12, 0, 0)
+        return self._retrieve_dataset_from_datetime(sickle, date, to_excl=to_excl)

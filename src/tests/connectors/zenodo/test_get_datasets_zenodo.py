@@ -1,5 +1,4 @@
-"""
-from datetime import datetime
+import datetime
 import responses
 import connectors
 from database.model.platform.platform_names import PlatformName
@@ -12,11 +11,11 @@ def read_file(path):
     return content
 
 
-def test_fetch_all_happy_path():
+def test_fetch_happy_path():
     connector = connectors.dataset_connectors[PlatformName.zenodo]
     with responses.RequestsMock() as mocked_requests:
         mock_zenodo_responses(mocked_requests)
-        datasets = list(connector.fetch_all())
+        datasets = list(connector.fetch())
     assert len(datasets) == 1
     dataset = datasets[0]
     assert dataset.name == "THE FIELD'S MALL MASS SHOOTING: EMERGENCY MEDICAL SERVICES RESPONSE"
@@ -25,10 +24,46 @@ def test_fetch_all_happy_path():
         dataset.creator
         == "Hansen, Peter Martin; Alstrøm, henrik; Damm-Hejmdal, Anders; Mikkelsen, Søren"
     )
-    assert dataset.date_published == datetime(2023, 5, 6)
+    assert dataset.date_published == datetime.datetime(2023, 5, 6)
     assert dataset.license.name == "https://creativecommons.org/licenses/by/4.0/legalcode"
     assert dataset.platform == "zenodo"
     assert dataset.platform_identifier == "zenodo.org:7961614"
+    assert dataset.publisher == "Zenodo"
+    assert len(dataset.keywords) == 5
+    assert {k.name for k in dataset.keywords} == {
+        "Mass casualty",
+        "Major incident",
+        "Management and leadership",
+        "Disaster",
+        "Mass shooting",
+    }
+
+
+def test_retry_happy_path():
+    connector = connectors.dataset_connectors[PlatformName.zenodo]
+    with responses.RequestsMock() as mocked_requests:
+        with open(path_test_resources() / "connectors" / "zenodo" / "dataset.json", "r") as f:
+            dataset = f.read()
+        mocked_requests.add(
+            responses.GET,
+            "https://zenodo.org/api/records/7902672",  # noqa E501
+            body=dataset,
+            status=200,
+        )
+        id = "7902672"
+        dataset = connector.retry(id)
+    assert dataset.name == "THE FIELD'S MALL MASS SHOOTING: EMERGENCY MEDICAL SERVICES RESPONSE"
+    assert dataset.description == "This is a description paragraph"
+    assert (
+        dataset.creator
+        == "Hansen, Peter Martin; Alstrøm, henrik; Damm-Hejmdal, Anders; Mikkelsen, Søren; Rehn, Marius; Berlac, Peter Anthony"  # noqa E501
+    )
+    assert dataset.date_published == datetime.datetime(
+        2023, 5, 23, 7, 56, 17, 414652, tzinfo=datetime.timezone.utc
+    )
+    assert dataset.license.name == "CC-BY-4.0"
+    assert dataset.platform == "zenodo"
+    assert dataset.platform_identifier == "7902672"
     assert dataset.publisher == "Zenodo"
     assert len(dataset.keywords) == 5
     assert {k.name for k in dataset.keywords} == {
@@ -52,4 +87,3 @@ def mock_zenodo_responses(mocked_requests: responses.RequestsMock):
         body=records_list,
         status=200,
     )
-"""
