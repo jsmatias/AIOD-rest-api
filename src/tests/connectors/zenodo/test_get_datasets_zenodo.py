@@ -1,7 +1,8 @@
 import datetime
 import responses
-import connectors
-from database.model.platform.platform_names import PlatformName
+from connectors.zenodo.zenodo_dataset_connector import ZenodoDatasetConnector
+
+
 from tests.testutils.paths import path_test_resources
 
 
@@ -12,7 +13,7 @@ def read_file(path):
 
 
 def test_fetch_happy_path():
-    connector = connectors.dataset_connectors[PlatformName.zenodo]
+    connector = ZenodoDatasetConnector()
     with responses.RequestsMock() as mocked_requests:
         mock_zenodo_responses(mocked_requests)
         datasets = list(connector.fetch())
@@ -40,7 +41,7 @@ def test_fetch_happy_path():
 
 
 def test_retry_happy_path():
-    connector = connectors.dataset_connectors[PlatformName.zenodo]
+    connector = ZenodoDatasetConnector()
     with responses.RequestsMock() as mocked_requests:
         with open(path_test_resources() / "connectors" / "zenodo" / "dataset.json", "r") as f:
             dataset = f.read()

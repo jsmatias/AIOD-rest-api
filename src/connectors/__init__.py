@@ -15,20 +15,6 @@ from .example.example_connector import ExampleConnector
 from .example.example_dataset_connector import ExampleDatasetConnector
 
 
-# from .huggingface.huggingface_dataset_connector import HuggingFaceDatasetConnector
-# from .openml.openml_dataset_connector import OpenMlDatasetConnector
-from .zenodo.zenodo_dataset_connector import ZenodoDatasetConnector
-
-dataset_connectors = {
-    c.platform_name: c
-    for c in (
-        #       OpenMlDatasetConnector(),
-        #       HuggingFaceDatasetConnector(),
-        ZenodoDatasetConnector(),
-    )
-}
-
-
 _path_example_resources = pathlib.Path(__file__).parent / "example" / "resources"
 
 example_connectors = {

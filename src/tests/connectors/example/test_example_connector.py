@@ -1,6 +1,6 @@
 import pytest
 
-import connectors
+from connectors import example_connectors
 
 
 @pytest.mark.parametrize(
@@ -18,7 +18,7 @@ import connectors
     ],
 )
 def test_fetch_happy_path(datatype: str):
-    connector = connectors.example_connectors[datatype]
+    connector = example_connectors[datatype]
     resources = list(connector.fetch())
     assert len(resources) >= 1
     resource = resources[0]
@@ -41,7 +41,7 @@ def test_fetch_happy_path(datatype: str):
     ],
 )
 def test_retry_happy_path(datatype: str):
-    connector = connectors.example_connectors[datatype]
+    connector = example_connectors[datatype]
     resource = connector.retry("1")
     if hasattr(resource, "keywords"):  # otherwise, only tested that connector can run
         assert set(resource.keywords) == {"keyword1", "keyword2"}

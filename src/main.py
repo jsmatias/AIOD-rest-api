@@ -6,20 +6,19 @@ Note: order matters for overloaded paths
 """
 import argparse
 import logging
-from typing import Dict
+
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import Json
 from sqlalchemy.engine import Engine
-from starlette.status import HTTP_400_BAD_REQUEST, HTTP_501_NOT_IMPLEMENTED
+from starlette.status import HTTP_501_NOT_IMPLEMENTED
 
 import connectors
 import routers
 from authentication import get_current_user
 from config import DB_CONFIG, KEYCLOAK_CONFIG
-from database.model.platform.platform_names import PlatformName
 from database.setup import connect_to_database, populate_database
 
 
@@ -33,13 +32,14 @@ def _parse_args() -> argparse.Namespace:
         choices=["no", "only-if-empty", "always"],
         help="Determines if the database is recreated.",
     )
+    """
     parser.add_argument(
         "--populate-datasets",
         default=[],
         nargs="+",
         choices=[p.name for p in PlatformName],
         help="Zero, one or more platforms with which the datasets should get populated.",
-    )
+    )"""
     parser.add_argument(
         "--fill-with-examples",
         default=[],
@@ -47,13 +47,7 @@ def _parse_args() -> argparse.Namespace:
         choices=connectors.example_connectors.keys(),
         help="Zero, one or more resources with which the database will have examples.",
     )
-    parser.add_argument(
-        "--limit",
-        type=int,
-        default=None,
-        help="Limit the number of initial resources with which the database is populated, "
-        "per resource and per platform.",
-    )
+
     parser.add_argument(
         "--reload",
         action="store_true",
@@ -79,8 +73,12 @@ def _engine(rebuild_db: str) -> Engine:
     return connect_to_database(db_url, delete_first=delete_before_create)
 
 
+"""
+****IMPORTANT****
+Connector will be removed from the api
+*****************
 def _connector_from_platform_name(connector_type: str, connector_dict: Dict, platform_name: str):
-    """Get the connector from the connector_dict, identified by its platform name."""
+    #Get the connector from the connector_dict, identified by its platform name.
     try:
         platform = PlatformName(platform_name)
     except ValueError:
@@ -97,6 +95,8 @@ def _connector_from_platform_name(connector_type: str, connector_dict: Dict, pla
         )
         raise HTTPException(status_code=HTTP_501_NOT_IMPLEMENTED, detail=msg)
     return connector
+
+"""
 
 
 def _connector_example_from_resource(resource):
@@ -158,20 +158,15 @@ def create_app() -> FastAPI:
         },
     )
 
-    dataset_connectors = [
-        _connector_from_platform_name("dataset", connectors.dataset_connectors, platform_name)
-        for platform_name in args.populate_datasets
-    ]
-
     examples_connectors = [
         _connector_example_from_resource(resource) for resource in args.fill_with_examples
     ]
-    connectors_ = dataset_connectors + examples_connectors
+
     engine = _engine(args.rebuild_db)
-    if len(connectors_) > 0:
+    if len(examples_connectors) > 0:
         populate_database(
             engine,
-            connectors=connectors_,
+            connectors=examples_connectors,
             only_if_empty=True,
             limit=args.limit,
         )
