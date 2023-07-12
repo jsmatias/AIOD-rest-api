@@ -1,15 +1,12 @@
-"""
 import json
-
 import responses
 
-import connectors
-from database.model.platform.platform_names import PlatformName
+
+from connectors.openml.openml_dataset_connector import OpenMlDatasetConnector
 from tests.testutils.paths import path_test_resources
 
 OPENML_URL = "https://www.openml.org/api/v1/json"
-
-
+"""
 def test_fetch_happy_path():
     connector = connectors.dataset_connectors[PlatformName.openml]
     id_ = "2"
@@ -49,29 +46,25 @@ def test_fetch_happy_path():
         "uci",
     }
 
+"""
 
-def test_fetch_all_happy_path():
-    connector = connectors.dataset_connectors[PlatformName.openml]
+
+def test_fetch_happy_path():
+    connector = OpenMlDatasetConnector()
     with responses.RequestsMock() as mocked_requests:
-        with open(path_test_resources() / "connectors" / "openml" / "data_list.json", "r") as f:
-            response = json.load(f)
-        mocked_requests.add(
-            responses.GET, f"{OPENML_URL}/data/list/limit/3", json=response, status=200
-        )
         for i in range(2, 5):
             mock_openml_responses(mocked_requests, str(i))
-        datasets = list(connector.fetch_all(limit=3))
+        datasets = list(connector.fetch(2, 5))
 
     assert len(datasets) == 3
     assert {len(d.citations) for d in datasets} == {0}
 
 
 def mock_openml_responses(mocked_requests: responses.RequestsMock, platform_identifier: str):
-"""
-"""
+    """
     Mocking requests to the OpenML dependency, so that we test only our own services
-"""
-"""
+    """
+
     with open(
         path_test_resources() / "connectors" / "openml" / f"data_{platform_identifier}.json",
         "r",
@@ -97,4 +90,3 @@ def mock_openml_responses(mocked_requests: responses.RequestsMock, platform_iden
         json=data_qualities_response,
         status=200,
     )
-"""
