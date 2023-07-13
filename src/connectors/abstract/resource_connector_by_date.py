@@ -1,6 +1,7 @@
 import abc
 from datetime import datetime
 from typing import Generic, TypeVar, Iterator
+from connectors.record_error import RecordError
 
 from sqlmodel import SQLModel
 
@@ -35,6 +36,6 @@ class ResourceConnectorByDate(abc.ABC, Generic[RESOURCE]):
     @abc.abstractmethod
     def fetch(
         self, from_incl: datetime | None = None, to_excl: datetime | None = None
-    ) -> Iterator[SQLModel | ResourceWithRelations[SQLModel]]:
+    ) -> Iterator[SQLModel | ResourceWithRelations[SQLModel] | RecordError]:
         """Retrieve information of all resources"""
         pass
