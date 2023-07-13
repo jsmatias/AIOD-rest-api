@@ -16,6 +16,7 @@ from database.model.dataset.data_download import DataDownload
 from database.model.dataset.dataset import Dataset
 from database.model.resource import resource_create
 from database.model.platform.platform_names import PlatformName
+from connectors.record_error import RecordError
 
 
 class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
@@ -82,14 +83,20 @@ class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
             measured_values=[],
         )
 
-    def fetch(self, from_id: int | None = None, to_id: int | None = None) -> Iterator[SQLModel]:
+    def fetch(
+        self, from_id: int | None = None, to_id: int | None = None
+    ) -> Iterator[SQLModel | RecordError]:
         if from_id is None:
             from_id = 1
         if to_id is None:
             to_id = from_id + 10
 
         for id in range(from_id, to_id):
-            yield self.retry(id)
+            try:
+                dataset = self.retry(id)
+                yield dataset
+            except Exception as e:
+                return RecordError(id=id, platform="openml", type="dataset", error=e)
 
 
 def _as_int(v: str) -> int:

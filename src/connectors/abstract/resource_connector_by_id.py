@@ -5,6 +5,7 @@ from sqlmodel import SQLModel
 
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model.platform.platform_names import PlatformName
+from connectors.record_error import RecordError
 
 
 RESOURCE = TypeVar("RESOURCE", bound=SQLModel)
@@ -34,6 +35,6 @@ class ResourceConnectorById(abc.ABC, Generic[RESOURCE]):
     @abc.abstractmethod
     def fetch(
         self, from_id: int | None = None, to_id: int | None = None
-    ) -> Iterator[SQLModel | ResourceWithRelations[SQLModel]]:
+    ) -> Iterator[SQLModel | ResourceWithRelations[SQLModel] | RecordError]:
         """Retrieve information of all resources"""
         pass
