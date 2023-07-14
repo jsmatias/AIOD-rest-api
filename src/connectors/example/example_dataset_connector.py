@@ -75,7 +75,6 @@ class ExampleDatasetConnector(ResourceConnectorByDate[Dataset]):
             if dataset.resource.platform_identifier == id:
                 return dataset
         raise Exception("No resource associated with the id")
-        return None
 
     def fetch(
         self, from_incl: datetime | None = None, to_excl: datetime | None = None
