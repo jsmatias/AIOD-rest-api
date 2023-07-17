@@ -69,7 +69,7 @@ class ExampleDatasetConnector(ResourceConnectorByDate[Dataset]):
                     has_parts=[],
                     keywords=[],
                     measured_values=[],
-                    date_published=datetime.now(),
+                    date_published=datetime.min,
                 )
             ),
         ]
@@ -90,7 +90,7 @@ class ExampleDatasetConnector(ResourceConnectorByDate[Dataset]):
                 to_excl = datetime.max
             if (
                 dataset.resource.date_published is not None
-                and dataset.resource.date_published > from_incl
+                and dataset.resource.date_published >= from_incl
                 and dataset.resource.date_published < to_excl
             ):
                 yield dataset
