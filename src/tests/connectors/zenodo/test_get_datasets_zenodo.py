@@ -51,8 +51,8 @@ def test_retry_happy_path():
             body=dataset,
             status=200,
         )
-        id = "7902672"
-        dataset = connector.retry(id)
+        id_ = "7902672"
+        dataset = connector.retry(id_)
     assert dataset.name == "THE FIELD'S MALL MASS SHOOTING: EMERGENCY MEDICAL SERVICES RESPONSE"
     assert dataset.description == "This is a description paragraph"
     assert (
