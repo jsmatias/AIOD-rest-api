@@ -42,14 +42,15 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             keywords=[Keyword(name=k) for k in record.get("metadata").get("keywords")],
         )
 
-    def _get_record_dictionary(self, record):
+    @staticmethod
+    def _get_record_dictionary(record):
         xml_string = record.raw
         xml_dict = xmltodict.parse(xml_string)
-        id = xml_dict["record"]["header"]["identifier"]
-        if id.startswith("oai:"):
-            id = id.replace("oai:", "")
+        id_ = xml_dict["record"]["header"]["identifier"]
+        if id_.startswith("oai:"):
+            id_ = id_.replace("oai:", "")
         resource = xml_dict["record"]["metadata"]["oai_datacite"]["payload"]["resource"]
-        return id, resource
+        return id_, resource
 
     def _bad_record_format(self, dataset_id, field):
         logging.error(
@@ -57,7 +58,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
         )
 
     def _dataset_from_record(self, record_raw) -> Dataset | RecordError:
-        id_, record = self._get_record_dictionary(record_raw)
+        id_, record = ZenodoDatasetConnector._get_record_dictionary(record_raw)
         if isinstance(record["creators"]["creator"], list):
             creators_list = [item["creatorName"] for item in record["creators"]["creator"]]
             creator = "; ".join(creators_list)  # TODO change field to an array
@@ -160,7 +161,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             end = xml_string.find('"', start)
             if end != -1:
                 return xml_string[start:end]
-        id_, _ = self._get_record_dictionary(record)
+        id_, _ = ZenodoDatasetConnector._get_record_dictionary(record)
         logging.error(f"Error while getting the resource type of the record {id_}")
         # Can return an RecordError Because we dont know the type
         return None
