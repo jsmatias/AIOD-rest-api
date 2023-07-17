@@ -38,6 +38,7 @@ class ExampleDatasetConnector(ResourceConnectorByDate[Dataset]):
                     has_parts=[],
                     keywords=["keyword1", "keyword2"],
                     measured_values=[],
+                    date_published=datetime.now(),
                 ),
                 related_resources={
                     "citations": [
@@ -68,6 +69,7 @@ class ExampleDatasetConnector(ResourceConnectorByDate[Dataset]):
                     has_parts=[],
                     keywords=[],
                     measured_values=[],
+                    date_published=datetime.now(),
                 )
             ),
         ]
@@ -81,4 +83,14 @@ class ExampleDatasetConnector(ResourceConnectorByDate[Dataset]):
     ) -> typing.Iterator[ResourceWithRelations[Dataset]]:
         id_list = ["42769", "42742"]
         for id_ in id_list:
-            yield self.retry(id_)
+            dataset = self.retry(id_)
+            if from_incl is None:
+                from_incl = datetime.min
+            if to_excl is None:
+                to_excl = datetime.max
+            if (
+                dataset.resource.date_published is not None
+                and dataset.resource.date_published > from_incl
+                and dataset.resource.date_published < to_excl
+            ):
+                yield dataset
