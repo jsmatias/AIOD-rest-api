@@ -73,32 +73,6 @@ def _engine(rebuild_db: str) -> Engine:
     return connect_to_database(db_url, delete_first=delete_before_create)
 
 
-"""
-****IMPORTANT****
-Connector will be removed from the api
-*****************
-def _connector_from_platform_name(connector_type: str, connector_dict: Dict, platform_name: str):
-    #Get the connector from the connector_dict, identified by its platform name.
-    try:
-        platform = PlatformName(platform_name)
-    except ValueError:
-        raise HTTPException(
-            status_code=HTTP_400_BAD_REQUEST,
-            detail=f"platform " f"'{platform_name}' not recognized.",
-        )
-    connector = connector_dict.get(platform, None)
-    if connector is None:
-        possibilities = ", ".join(f"`{c}`" for c in connectors.dataset_connectors.keys())
-        msg = (
-            f"No {connector_type} connector for platform '{platform_name}' available. Possible "
-            f"values: {possibilities}"
-        )
-        raise HTTPException(status_code=HTTP_501_NOT_IMPLEMENTED, detail=msg)
-    return connector
-
-"""
-
-
 def _connector_example_from_resource(resource):
     connector_dict = connectors.example_connectors
     connector = connector_dict.get(resource, None)
