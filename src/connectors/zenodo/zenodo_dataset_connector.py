@@ -78,8 +78,8 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
                 id=id_, platform="zenodo", type="dataset", error="error decoding title"
             )
         number_str = id_.rsplit("/", 1)[-1]
-        idNumber = "".join(filter(str.isdigit, number_str))
-        same_as = f"https://zenodo.org/api/records/{idNumber}"
+        id_number = "".join(filter(str.isdigit, number_str))
+        same_as = f"https://zenodo.org/api/records/{id_number}"
 
         description_raw = record["descriptions"]["description"]
         if isinstance(description_raw, list):
