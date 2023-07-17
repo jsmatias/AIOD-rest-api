@@ -39,8 +39,7 @@ class ExampleConnector(ResourceConnectorByDate[RESOURCE]):
         for json_item in json_data:
             if json_item.get("platform_identifier") == id:
                 return pydantic_class(**json_item)
-        raise Exception("No resource associated with the id")
-        return
+        raise ValueError("No resource associated with the id")
 
     def fetch(
         self, from_incl: datetime | None = None, to_excl: datetime | None = None
