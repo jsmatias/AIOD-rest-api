@@ -17,7 +17,7 @@ class ResourceConnectorByDate(ResourceConnector, Generic[RESOURCE]):
     """
 
     @abc.abstractmethod
-    def retry(self, id: str) -> SQLModel | ResourceWithRelations[SQLModel]:
+    def retry(self, id: str) -> SQLModel | ResourceWithRelations[SQLModel] | RecordError:
         """Retrieve information of the resource identified by id"""
         pass
 
