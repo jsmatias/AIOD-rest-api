@@ -20,6 +20,12 @@ from connectors.record_error import RecordError
 
 
 class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
+    """ "
+    Openml orders its records with a numeric id in ascendent order but does not allow
+    gather them from a certain date. This is the reason why the ResourceConnectorById
+    is needed
+    """
+
     @property
     def resource_class(self) -> type[Dataset]:
         return Dataset
