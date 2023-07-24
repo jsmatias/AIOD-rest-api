@@ -1,5 +1,5 @@
 import pytest
-
+from datetime import datetime
 from connectors import example_connectors
 
 
@@ -19,7 +19,7 @@ from connectors import example_connectors
 )
 def test_fetch_happy_path(datatype: str):
     connector = example_connectors[datatype]
-    resources = list(connector.fetch())
+    resources = list(connector.fetch(from_incl=datetime.min, to_excl=datetime.max))
     assert len(resources) >= 1
     resource = resources[0]
     if hasattr(resource, "keywords"):  # otherwise, only tested that connector can run
