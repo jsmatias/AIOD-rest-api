@@ -17,13 +17,13 @@ class ResourceConnectorByDate(ResourceConnector, Generic[RESOURCE]):
     """
 
     @abc.abstractmethod
-    def retry(self, id: str) -> SQLModel | ResourceWithRelations[SQLModel] | RecordError:
+    def retry(self, _id: str) -> SQLModel | ResourceWithRelations[SQLModel] | RecordError:
         """Retrieve information of the resource identified by id"""
         pass
 
     @abc.abstractmethod
     def fetch(
-        self, from_incl: datetime | None = None, to_excl: datetime | None = None
+        self, from_incl: datetime, to_excl: datetime
     ) -> Iterator[SQLModel | ResourceWithRelations[SQLModel] | RecordError]:
         """Retrieve information of all resources"""
         pass

@@ -34,23 +34,26 @@ class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
     def platform_name(self) -> PlatformName:
         return PlatformName.openml
 
-    def retry(self, id: int) -> SQLModel:
-        url_data = f"https://www.openml.org/api/v1/json/data/{id}"
+    def retry(self, _id: int) -> SQLModel:
+        url_data = f"https://www.openml.org/api/v1/json/data/{_id}"
         response = requests.get(url_data)
         if not response.ok:
             code = response.status_code
             if code == 412 and response.json()["error"]["message"] == "Unknown dataset":
                 code = 404
             msg = response.json()["error"]["message"]
-            raise HTTPException(
-                status_code=code,
-                detail=f"Error while fetching data from OpenML: '{msg}'.",
+
+            return RecordError(
+                platform="openml",
+                _id=str(_id),
+                error=f"Error while fetching data from OpenML: '{msg}'.",
+                type="dataset",
             )
         dataset_json = response.json()["data_set_description"]
 
         # Here we can format the response into some standardized way, maybe this includes some
         # dataset characteristics. These need to be retrieved separately from OpenML:
-        url_qual = f"https://www.openml.org/api/v1/json/data/qualities/{id}"
+        url_qual = f"https://www.openml.org/api/v1/json/data/qualities/{_id}"
         response = requests.get(url_qual)
         if not response.ok:
             msg = response.json()["error"]["message"]
@@ -66,7 +69,7 @@ class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
         pydantic_class = resource_create(Dataset)
         return pydantic_class(
             platform=self.platform_name,
-            platform_identifier=id,
+            platform_identifier=_id,
             name=dataset_json["name"],
             same_as=url_data,
             description=dataset_json["description"],
@@ -89,20 +92,13 @@ class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
             measured_values=[],
         )
 
-    def fetch(
-        self, from_id: int | None = None, to_id: int | None = None
-    ) -> Iterator[SQLModel | RecordError]:
-        if from_id is None:
-            from_id = 1
-        if to_id is None:
-            to_id = from_id + 10
-
-        for id in range(from_id, to_id):
+    def fetch(self, from_id: int, to_id: int) -> Iterator[SQLModel | RecordError]:
+        for _id in range(from_id, to_id):
             try:
-                dataset = self.retry(id)
+                dataset = self.retry(_id)
                 yield dataset
             except Exception as e:
-                return RecordError(id=id, platform="openml", type="dataset", error=e)
+                return RecordError(_id=str(_id), platform="openml", type="dataset", error=str(e))
 
 
 def _as_int(v: str) -> int:

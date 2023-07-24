@@ -16,7 +16,12 @@ def test_fetch_happy_path():
     connector = ZenodoDatasetConnector()
     with responses.RequestsMock() as mocked_requests:
         mock_zenodo_responses(mocked_requests)
-        datasets = list(connector.fetch())
+
+        datasets = list(
+            connector.fetch(
+                from_incl=datetime.datetime(2000, 1, 1, 12, 0, 0), to_excl=datetime.datetime.max
+            )
+        )
     assert len(datasets) == 1
     dataset = datasets[0]
     assert dataset.name == "THE FIELD'S MALL MASS SHOOTING: EMERGENCY MEDICAL SERVICES RESPONSE"

@@ -4,6 +4,6 @@ import dataclasses
 @dataclasses.dataclass
 class RecordError:
     platform: str
-    id: str
+    _id: str
     type: str
     error: str

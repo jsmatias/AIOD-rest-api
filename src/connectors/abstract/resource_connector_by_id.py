@@ -17,13 +17,13 @@ class ResourceConnectorById(ResourceConnector, Generic[RESOURCE]):
     """
 
     @abc.abstractmethod
-    def retry(self, id: int) -> SQLModel | ResourceWithRelations[SQLModel] | RecordError:
+    def retry(self, _id: int) -> SQLModel | ResourceWithRelations[SQLModel] | RecordError:
         """Retrieve information of the resource identified by id"""
         pass
 
     @abc.abstractmethod
     def fetch(
-        self, from_id: int | None = None, to_id: int | None = None
+        self, from_id: int, to_id: int
     ) -> Iterator[SQLModel | ResourceWithRelations[SQLModel] | RecordError]:
         """Retrieve information of all resources"""
         pass

@@ -31,13 +31,13 @@ class ExampleConnector(ResourceConnectorByDate[RESOURCE]):
     def platform_name(self) -> PlatformName:
         return PlatformName.example
 
-    def retry(self, id: str) -> RESOURCE:
+    def retry(self, _id: str) -> RESOURCE:
         """Retrieve information of the resource identified by id"""
         with open(self.json_path) as f:
             json_data = json.load(f)
         pydantic_class = resource_create(self.resource_class)
         for json_item in json_data:
-            if json_item.get("platform_identifier") == id:
+            if json_item.get("platform_identifier") == _id:
                 return pydantic_class(**json_item)
         raise ValueError("No resource associated with the id")
 

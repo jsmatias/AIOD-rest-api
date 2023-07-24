@@ -19,7 +19,7 @@ class ExampleDatasetConnector(ResourceConnectorByDate[Dataset]):
     def platform_name(self) -> PlatformName:
         return PlatformName.example
 
-    def retry(self, id_: str) -> ResourceWithRelations[Dataset]:
+    def retry(self, _id: str) -> ResourceWithRelations[Dataset]:
         """Retrieve information of the resource identified by id"""
         pydantic_class = resource_create(Dataset)
         pydantic_class_publication = resource_create(Publication)
@@ -74,7 +74,7 @@ class ExampleDatasetConnector(ResourceConnectorByDate[Dataset]):
             ),
         ]
         for dataset in datasets:
-            if dataset.resource.platform_identifier == id_:
+            if dataset.resource.platform_identifier == _id:
                 return dataset
         raise ValueError("No resource associated with the id")
 
