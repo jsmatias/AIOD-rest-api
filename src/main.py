@@ -32,14 +32,7 @@ def _parse_args() -> argparse.Namespace:
         choices=["no", "only-if-empty", "always"],
         help="Determines if the database is recreated.",
     )
-    """
-    parser.add_argument(
-        "--populate-datasets",
-        default=[],
-        nargs="+",
-        choices=[p.name for p in PlatformName],
-        help="Zero, one or more platforms with which the datasets should get populated.",
-    )"""
+
     parser.add_argument(
         "--fill-with-examples",
         default=[],
