@@ -3,7 +3,7 @@ This module knows how to load an OpenML object based on its AIoD implementation,
 and how to convert the OpenML response to some agreed AIoD format.
 """
 
-from typing import Iterator
+from typing import Iterator, List
 
 import dateutil.parser
 import requests
@@ -92,13 +92,34 @@ class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
             measured_values=[],
         )
 
+    def check_valid_id(self, from_id: int, to_id: int) -> List[int]:
+        url = f"https://www.openml.org/api/v1/json/data/list/data_id/{','.join(map(str, range(from_id, to_id)))}"  # noqa E501
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            data = response.json()
+            existing_ids = [int(item["did"]) for item in data.get("data", {}).get("dataset", [])]
+            return existing_ids
+        elif response.status_code == 412:
+            return [-1]
+        else:
+            raise ValueError()
+
     def fetch(self, from_id: int, to_id: int) -> Iterator[SQLModel | RecordError]:
-        for _id in range(from_id, to_id):
+        valid_ids = self.check_valid_id(from_id, to_id)
+        if valid_ids[0] == -1:
+            return RecordError(
+                _id=str(from_id),
+                platform="openml",
+                type="datset",
+                error="No more datasets to retrieve",
+            )
+        for _id in valid_ids:
             try:
                 dataset = self.retry(_id)
                 yield dataset
             except Exception as e:
-                return RecordError(_id=str(_id), platform="openml", type="dataset", error=str(e))
+                yield RecordError(_id=str(_id), platform="openml", type="dataset", error=str(e))
 
 
 def _as_int(v: str) -> int:

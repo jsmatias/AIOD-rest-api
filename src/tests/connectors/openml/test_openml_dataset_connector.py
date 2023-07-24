@@ -52,8 +52,20 @@ def test_fetch_happy_path():
 def test_fetch_happy_path():
     connector = OpenMlDatasetConnector()
     with responses.RequestsMock() as mocked_requests:
+        with open(
+            path_test_resources() / "connectors" / "openml" / "data_list.json",
+            "r",
+        ) as f:
+            data_list = json.load(f)
+            mocked_requests.add(
+                responses.GET,
+                f"{OPENML_URL}/data/list/data_id/2,3,4",
+                json=data_list,
+                status=200,
+            )
         for i in range(2, 5):
             mock_openml_responses(mocked_requests, str(i))
+
         datasets = list(connector.fetch(2, 5))
 
     assert len(datasets) == 3
@@ -78,6 +90,7 @@ def mock_openml_responses(mocked_requests: responses.RequestsMock, platform_iden
         "r",
     ) as f:
         data_qualities_response = json.load(f)
+
     mocked_requests.add(
         responses.GET,
         f"{OPENML_URL}/data/{platform_identifier}",
