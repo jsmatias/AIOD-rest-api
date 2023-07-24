@@ -24,10 +24,19 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
     def platform_name(self) -> PlatformName:
         return PlatformName.zenodo
 
-    def retry(self, _id: str) -> Dataset:
+    def retry(self, _id: str) -> Dataset | RecordError:
         """Retrieve information of the resource identified by id"""
-        record = requests.get(f"https://zenodo.org/api/records/{_id}").json()
 
+        response = requests.get(f"https://zenodo.org/api/records/{_id}")
+        if not response.ok:
+            msg = response.json()["error"]["message"]
+            return RecordError(
+                platform="zenodo",
+                _id=str(_id),
+                error=f"Error while fetching data from OpenML: '{msg}'.",
+                type="dataset",
+            )
+        record = response.json()
         creators_list = [item["name"] for item in record["metadata"]["creators"]]
         creator = "; ".join(creators_list)  # TODO change field to an array
         return Dataset(
