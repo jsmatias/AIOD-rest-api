@@ -5,6 +5,7 @@ import logging
 from typing import List
 
 from sqlalchemy import text, and_
+from datetime import datetime
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import create_engine, Session, select, SQLModel
@@ -64,7 +65,6 @@ def populate_database(
     engine: Engine,
     connectors: List[ResourceConnectorByDate],
     only_if_empty: bool = True,
-    limit: int | None = None,
 ):
     """Add some data to the Dataset and Publication tables."""
 
@@ -86,7 +86,7 @@ def populate_database(
             # This is a temporary solution. After finishing the Connectors (so that they're
             # synchronizing), we will probably just perform a HTTP POST instead.
 
-            for item in connector.fetch():
+            for item in connector.fetch(from_incl=datetime.min, to_excl=datetime.max):
                 if isinstance(item, ResourceWithRelations):
                     resource_create_instance = item.resource
                     _create_or_fetch_related_objects(session, item)
