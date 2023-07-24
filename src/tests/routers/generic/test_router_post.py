@@ -61,7 +61,7 @@ def test_posting_same_item_twice(client_test_resource: TestClient, mocked_privil
     assert response.status_code == 200, response.json()
     body = {"title": "title2", "platform": "example", "platform_identifier": "1"}
     response = client_test_resource.post("/test_resources/v0", json=body, headers=headers)
-    assert response.status_code == 409
+    assert response.status_code == 409, response.json()
     assert (
         response.json()["detail"] == "There already exists a test_resource with the same "
         "platform and platform_identifier, with identifier=1."
