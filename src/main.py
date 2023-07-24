@@ -135,7 +135,6 @@ def create_app() -> FastAPI:
             engine,
             connectors=examples_connectors,
             only_if_empty=True,
-            limit=args.limit,
         )
 
     add_routes(app, engine, url_prefix=args.url_prefix)
