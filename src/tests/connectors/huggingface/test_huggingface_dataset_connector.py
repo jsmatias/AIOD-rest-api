@@ -1,12 +1,10 @@
-"""
 import json
 
 import responses
+from connectors.huggingface.huggingface_dataset_connector import HuggingFaceDatasetConnector
 
 
-import connectors
 from connectors.resource_with_relations import ResourceWithRelations
-from database.model.platform.platform_names import PlatformName
 from tests.testutils.paths import path_test_resources
 
 HUGGINGFACE_URL = "https://datasets-server.huggingface.co"
@@ -20,7 +18,7 @@ def test_fetch_all_happy_path():
         "acronym_identification",
         "air_dialogue",
     }
-    connector = connectors.dataset_connectors[PlatformName.huggingface]
+    connector = HuggingFaceDatasetConnector()
     with responses.RequestsMock() as mocked_requests:
         path_data_list = path_test_resources() / "connectors" / "huggingface" / "data_list.json"
         with open(path_data_list, "r") as f:
@@ -46,7 +44,6 @@ def test_fetch_all_happy_path():
     assert all(len(r.related_resources["citations"]) == 1 for r in resources_with_relations)
 
 
-
 def mock_parquet(mocked_requests: responses.RequestsMock, dataset_id: str):
     filename = f"parquet_{dataset_id.replace('/', '_')}.json"
     path_split = path_test_resources() / "connectors" / "huggingface" / filename
@@ -59,4 +56,3 @@ def mock_parquet(mocked_requests: responses.RequestsMock, dataset_id: str):
         json=response,
         status=status,
     )
-"""
