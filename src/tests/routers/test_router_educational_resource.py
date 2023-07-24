@@ -46,10 +46,10 @@ def test_happy_path(client: TestClient, mocked_privileged_token: Mock):
     response = client.post(
         "/educational_resources/v0", json=body, headers={"Authorization": "Fake token"}
     )
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
 
     response = client.get("/educational_resources/v0/1")
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
 
     response_json = response.json()
     assert response_json["identifier"] == 1
@@ -94,4 +94,4 @@ def test_happy_path(client: TestClient, mocked_privileged_token: Mock):
     }
 
     response = client.delete("/educational_resources/v0/1", headers={"Authorization": "Fake token"})
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
