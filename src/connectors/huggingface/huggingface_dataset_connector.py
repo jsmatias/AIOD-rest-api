@@ -17,6 +17,11 @@ from database.model.platform.platform_names import PlatformName
 
 
 class HuggingFaceDatasetConnector(ResourceConnector[Dataset]):
+    """
+    This must be only runned on the startu due to there is no way to
+    retrieve data from huggingface filtering by time creation
+    """
+
     @property
     def resource_class(self) -> type[Dataset]:
         return Dataset
