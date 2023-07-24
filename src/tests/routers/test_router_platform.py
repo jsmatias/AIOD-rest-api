@@ -23,5 +23,5 @@ def test_happy_path(client: TestClient, mocked_privileged_token: Mock):
 )
 def test_get_platform_of_platform(client: TestClient, url: str):
     response = client.get(url)
-    assert response.status_code == 404
+    assert response.status_code == 404, response.json()
     assert response.json()["detail"] == "Not Found"

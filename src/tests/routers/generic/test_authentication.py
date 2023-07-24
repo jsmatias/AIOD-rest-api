@@ -11,14 +11,14 @@ def test_get_all_unauthenticated(
 ):
     """You don't need authentication for GET"""
     response = client_test_resource.get("/test_resources/v0")
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     assert len(response.json()) == 1
 
 
 def test_get_unauthenticated(client_test_resource: TestClient, engine_test_resource_filled: Engine):
     """You don't need authentication for GET"""
     response = client_test_resource.get("/test_resources/v0/1")
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
 
 
 def test_platform_get_all_unauthenticated(
@@ -26,7 +26,7 @@ def test_platform_get_all_unauthenticated(
 ):
     """You don't need authentication for GET"""
     response = client_test_resource.get("/platforms/example/test_resources/v0")
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     assert len(response.json()) == 1
 
 
@@ -35,7 +35,7 @@ def test_platform_get_unauthenticated(
 ):
     """You don't need authentication for GET"""
     response = client_test_resource.get("/platforms/example/test_resources/v0")
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     assert len(response.json()) == 1
 
 

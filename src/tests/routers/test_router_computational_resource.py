@@ -116,7 +116,9 @@ def test_happy_path(client: TestClient, engine: Engine, mocked_privileged_token:
     response = client.delete(
         "/computational_resources/v0/3", headers={"Authorization": "Fake token"}
     )
-    assert response.status_code == 400  # you cannot delete the parent of other resources
+    assert (
+        response.status_code == 400
+    ), response.json()  # you cannot delete the parent of other resources
     body["hasPart"] = []
     body["isPartOf"] = []
     response = client.put(

@@ -99,7 +99,7 @@ def test_happy_path(client: TestClient, engine: Engine, mocked_privileged_token:
     }
 
     response = client.delete("/events/v0/2", headers={"Authorization": "Fake token"})
-    assert response.status_code == 400
+    assert response.status_code == 400, response.json()
     assert (
         response.json()["detail"] == "This resource cannot be deleted, because other resources "
         "are related to it."
