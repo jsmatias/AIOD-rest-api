@@ -95,6 +95,7 @@ class Synchronization:
 
         # init the database with all connectors
         for connector in connectors_:
+            # This is a unique type of connector due to Huggingface API
             if isinstance(connector, HuggingFaceDatasetConnector):
                 records = connector.fetch_all()
                 self.store_records(engine, records)
