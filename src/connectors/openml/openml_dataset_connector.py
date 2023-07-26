@@ -7,7 +7,6 @@ from typing import Iterator, List
 
 import dateutil.parser
 import requests
-from fastapi import HTTPException
 from sqlmodel import SQLModel
 
 
@@ -57,9 +56,11 @@ class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
         response = requests.get(url_qual)
         if not response.ok:
             msg = response.json()["error"]["message"]
-            raise HTTPException(
-                status_code=response.status_code,
-                detail=f"Error while fetching data qualities from OpenML: '{msg}'.",
+            return RecordError(
+                platform="openml",
+                _id=str(_id),
+                error=f"Error while fetching data from OpenML: '{msg}'.",
+                type="dataset",
             )
 
         qualities_json = {
