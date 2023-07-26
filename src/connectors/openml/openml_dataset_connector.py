@@ -34,7 +34,7 @@ class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
     def platform_name(self) -> PlatformName:
         return PlatformName.openml
 
-    def retry(self, _id: int) -> SQLModel:
+    def retry(self, _id: int) -> SQLModel | RecordError:
         url_data = f"https://www.openml.org/api/v1/json/data/{_id}"
         response = requests.get(url_data)
         if not response.ok:
