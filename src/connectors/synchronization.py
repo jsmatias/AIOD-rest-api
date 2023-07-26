@@ -85,7 +85,6 @@ class Synchronization:
         """
         This function store on the database all the items using the engine
         """
-        items
         pass
 
     def start(self):
