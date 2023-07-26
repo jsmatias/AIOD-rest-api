@@ -32,10 +32,6 @@ class HuggingFaceDatasetConnector(ResourceConnector[Dataset]):
 
     @staticmethod
     def _get(url: str, dataset_id: str) -> typing.List[typing.Dict[str, typing.Any]]:
-        """
-        Perform a GET request and raise an exception if the response code is not OK.
-        resultaod
-        """
 
         response = requests.get(url, params={"dataset": dataset_id})
         response_json = response.json()
