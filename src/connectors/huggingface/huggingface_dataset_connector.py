@@ -7,7 +7,7 @@ import datasets
 import dateutil.parser
 import requests
 
-from connectors.abstract.resource_connector import ResourceConnector
+from connectors.abstract.resource_connector_on_start_up import ResourceConnectorOnStartUp
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model.dataset.data_download import DataDownload
 from database.model.dataset.dataset import Dataset
@@ -16,7 +16,7 @@ from database.model.resource import resource_create
 from database.model.platform.platform_names import PlatformName
 
 
-class HuggingFaceDatasetConnector(ResourceConnector[Dataset]):
+class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
     """
     This must be only runned on the startu due to there is no way to
     retrieve data from huggingface filtering by time creation
@@ -43,9 +43,7 @@ class HuggingFaceDatasetConnector(ResourceConnector[Dataset]):
             return []
         return response_json["parquet_files"]
 
-    def fetch_all(
-        self, limit: int | None = None
-    ) -> typing.Iterator[ResourceWithRelations[Dataset]]:
+    def fetch(self, limit: int | None = None) -> typing.Iterator[ResourceWithRelations[Dataset]]:
         pydantic_class = resource_create(Dataset)
         pydantic_class_publication = resource_create(Publication)
         for dataset in itertools.islice(datasets.list_datasets(with_details=True), limit):

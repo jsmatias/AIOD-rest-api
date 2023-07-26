@@ -10,7 +10,7 @@ from tests.testutils.paths import path_test_resources
 HUGGINGFACE_URL = "https://datasets-server.huggingface.co"
 
 
-def test_fetch_all_happy_path():
+def test_fetch_happy_path():
     ids_expected = {
         "0n1xus/codexglue",
         "04-07-22/wep-probes",
@@ -31,7 +31,7 @@ def test_fetch_all_happy_path():
         )
         for dataset_id in ids_expected:
             mock_parquet(mocked_requests, dataset_id)
-        resources_with_relations = list(connector.fetch_all(limit=None))
+        resources_with_relations = list(connector.fetch())
 
     assert len(resources_with_relations) == 5
     assert all(type(r) == ResourceWithRelations for r in resources_with_relations)
