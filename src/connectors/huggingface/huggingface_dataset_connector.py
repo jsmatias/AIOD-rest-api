@@ -8,6 +8,7 @@ import dateutil.parser
 import requests
 
 from connectors.abstract.resource_connector_on_start_up import ResourceConnectorOnStartUp
+from connectors.record_error import RecordError
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model.dataset.data_download import DataDownload
 from database.model.dataset.dataset import Dataset
@@ -32,7 +33,6 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
 
     @staticmethod
     def _get(url: str, dataset_id: str) -> typing.List[typing.Dict[str, typing.Any]]:
-
         response = requests.get(url, params={"dataset": dataset_id})
         response_json = response.json()
         if not response.ok:
@@ -43,7 +43,9 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
             return []
         return response_json["parquet_files"]
 
-    def fetch(self, limit: int | None = None) -> typing.Iterator[ResourceWithRelations[Dataset]]:
+    def fetch(
+        self, limit: int | None = None
+    ) -> typing.Iterator[ResourceWithRelations[Dataset] | RecordError]:
         pydantic_class = resource_create(Dataset)
         pydantic_class_publication = resource_create(Publication)
         for dataset in itertools.islice(datasets.list_datasets(with_details=True), limit):
@@ -128,6 +130,6 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                     related_resources={"citations": citations},
                 )
             except Exception as e:
-                logging.error(
-                    f"Error while fetching huggingface dataset with id {dataset.id}: " f"{str(e)}"
+                yield RecordError(
+                    platform="huggingface", _id=dataset.id, type="dataset", error=e.args[0]
                 )
