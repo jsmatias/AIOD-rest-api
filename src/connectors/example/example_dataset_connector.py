@@ -2,7 +2,7 @@ from datetime import datetime
 import typing  # noqa:F401 (flake8 raises incorrect 'Module imported but unused' error)
 
 
-from connectors.abstract.resource_connector_by_date import ResourceConnectorByDate
+from connectors.abstract.resource_connector_on_start_up import ResourceConnectorOnStartUp
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model.dataset.dataset import Dataset
 from database.model.publication.publication import Publication
@@ -10,7 +10,7 @@ from database.model.resource import resource_create
 from database.model.platform.platform_names import PlatformName
 
 
-class ExampleDatasetConnector(ResourceConnectorByDate[Dataset]):
+class ExampleDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
     @property
     def resource_class(self) -> type[Dataset]:
         return Dataset
@@ -19,7 +19,7 @@ class ExampleDatasetConnector(ResourceConnectorByDate[Dataset]):
     def platform_name(self) -> PlatformName:
         return PlatformName.example
 
-    def retry(self, _id: str) -> ResourceWithRelations[Dataset]:
+    def get(self, _id: str) -> ResourceWithRelations[Dataset]:
         """Retrieve information of the resource identified by id"""
         pydantic_class = resource_create(Dataset)
         pydantic_class_publication = resource_create(Publication)
@@ -78,19 +78,8 @@ class ExampleDatasetConnector(ResourceConnectorByDate[Dataset]):
                 return dataset
         raise ValueError("No resource associated with the id")
 
-    def fetch(
-        self, from_incl: datetime | None = None, to_excl: datetime | None = None
-    ) -> typing.Iterator[ResourceWithRelations[Dataset]]:
+    def fetch(self, limit: int | None = None) -> typing.Iterator[ResourceWithRelations[Dataset]]:
         id_list = ["42769", "42742"]
-        for id_ in id_list:
-            dataset = self.retry(id_)
-            if from_incl is None:
-                from_incl = datetime.min
-            if to_excl is None:
-                to_excl = datetime.max
-            if (
-                dataset.resource.date_published is not None
-                and dataset.resource.date_published >= from_incl
-                and dataset.resource.date_published < to_excl
-            ):
-                yield dataset
+        for id_ in id_list[:limit]:
+            dataset = self.get(id_)
+            yield dataset
