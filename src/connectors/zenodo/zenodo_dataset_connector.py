@@ -24,7 +24,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
     def platform_name(self) -> PlatformName:
         return PlatformName.zenodo
 
-    def retry(self, _id: str) -> Dataset | RecordError:
+    def retry(self, _id: int) -> Dataset | RecordError:
         """Retrieve information of the resource identified by id"""
 
         response = requests.get(f"https://zenodo.org/api/records/{_id}")
