@@ -1,8 +1,10 @@
 from typing import Dict, List
 import argparse
 from sqlmodel import SQLModel
-from config import DB_CONFIG
+import logging
+
 from connectors.record_error import RecordError
+from connectors.config import DB_CONFIG
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model.platform.platform_names import PlatformName
 from datetime import datetime
@@ -16,6 +18,8 @@ from database.setup import (
     connect_to_database,
 )
 from sqlalchemy.engine import Engine
+
+logging.basicConfig(filename="example.log", encoding="utf-8", level=logging.DEBUG)
 
 
 class Synchronization:
@@ -76,11 +80,12 @@ class Synchronization:
         return connect_to_database(db_url, delete_first=delete_before_create)
 
     def store_records(
-        self, engine: Engine, items: List["SQLModel" | "ResourceWithRelations[SQLModel]"]
+        self, engine: Engine, items: List["SQLModel | ResourceWithRelations[SQLModel]"]
     ):
         """
         This function store on the database all the items using the engine
         """
+        items
         pass
 
     def start(self):
