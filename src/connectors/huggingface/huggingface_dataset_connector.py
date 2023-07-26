@@ -18,7 +18,7 @@ from database.model.platform.platform_names import PlatformName
 
 class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
     """
-    This must be only runned on the startu due to there is no way to
+    This must be only runned on the startup due to there is no way to
     retrieve data from huggingface filtering by time creation
     """
 
