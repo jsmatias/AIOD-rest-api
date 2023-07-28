@@ -50,6 +50,19 @@ This repository contains two systems; the database and the REST API.
 As a database we use a containerized MySQL server (through Docker), the REST API can be run locally or containerized.
 Information on how to install Docker is found in [their documentation](https://docs.docker.com/desktop/).
 
+### Using docker compose
+```bash
+docker compose up
+```
+starts the MYSQL Server, the REST API, Keycloak for Identy and access management and Nginx for reverse proxing. \
+Once started, you should be able to visit the REST API server at: http://localhost and Keycloak at http://localhost/aiod-auth \
+To authenticate to the REST API swagger interface the predefined user is: user, and password: password \
+To authenticate as admin to Keycloak the predefined user is: admin and password: password \
+To use a different DNS hostname replace localhost with it in .env and src/config.toml \
+This configuration is intended for development, DO NOT use it in production. 
+
+Use the following instructions if you prefer to use Docker instead of Docker Compose.
+
 ### Starting a MySQL Server
 
 We use the default [MySQL Docker image](https://hub.docker.com/_/mysql).
