@@ -89,7 +89,7 @@ def mock_zenodo_responses(mocked_requests: responses.RequestsMock):
         records_list = f.read()
     mocked_requests.add(
         responses.GET,
-        "https://zenodo.org/oai2d?metadataPrefix=oai_datacite&from=2000-01-01T12%3A00%3A00&verb=ListRecords",  # noqa E501
+        "https://zenodo.org/oai2d?metadataPrefix=oai_datacite&from=2000-01-01T12%3A00%3A00&until=9999-12-31T23%3A59%3A59.999999&verb=ListRecords",  # noqa E501
         body=records_list,
         status=200,
     )

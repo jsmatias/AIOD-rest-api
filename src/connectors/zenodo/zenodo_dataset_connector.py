@@ -191,17 +191,15 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             **{
                 "metadataPrefix": "oai_datacite",
                 "from": from_incl.isoformat(),
+                "until": to_excl.isoformat(),
             }
         )
 
         record = next(records, None)
-        last_date = datetime.min
-        while record and last_date < to_excl:
+
+        while record:
             if self._get_resource_type(record) == "Dataset":
                 dataset = self._dataset_from_record(record)
-                if not isinstance(dataset, RecordError):
-                    if dataset.date_published is not None:
-                        last_date = dataset.date_published
                 yield dataset
             record = next(records, None)
 
