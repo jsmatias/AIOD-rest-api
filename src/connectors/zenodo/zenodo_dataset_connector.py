@@ -24,6 +24,15 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
     def platform_name(self) -> PlatformName:
         return PlatformName.zenodo
 
+    """
+    This function fetches only one record from Zenodo using the Rest API instead of
+    the OAI-PMH one. When querying using the OAI protocol, we always receive all the
+    records, making it really inefficient to filter through all of them until we get
+    the one we want. Apart from using different protocols, they also employ different
+    serialization methods. The Rest API uses JSON, while OAI uses XML, which is why the
+    code shows no similarities.
+    """
+
     def retry(self, _id: int) -> Dataset | RecordError:
         """Retrieve information of the resource identified by id"""
 
