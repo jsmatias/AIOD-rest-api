@@ -33,7 +33,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             return RecordError(
                 platform="zenodo",
                 _id=str(_id),
-                error=f"Error while fetching data from OpenML: '{msg}'.",
+                error=f"Error while fetching data from Zenodo: '{msg}'.",
                 type="dataset",
             )
         record = response.json()
