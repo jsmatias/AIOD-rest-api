@@ -52,6 +52,6 @@ def test_deprecated_router(
         kwargs["headers"] = {"Authorization": "fake-token"}
 
     response = getattr(client, verb)(url, **kwargs)
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     assert "deprecated" in response.headers
     assert response.headers.get("deprecated") == "Thu, 21 Apr 2022 00:00:00 GMT"

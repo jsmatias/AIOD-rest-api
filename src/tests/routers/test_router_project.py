@@ -31,10 +31,10 @@ def test_happy_path(client: TestClient, mocked_privileged_token: Mock):
     }
 
     response = client.post("/projects/v0", json=body, headers={"Authorization": "Fake token"})
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
 
     response = client.get("/projects/v0/1")
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
 
     response_json = response.json()
     assert response_json["platform_identifier"] == "1"
@@ -46,4 +46,4 @@ def test_happy_path(client: TestClient, mocked_privileged_token: Mock):
     assert set(response_json["keywords"]) == {"keyword1", "keyword2"}
 
     response = client.delete("/projects/v0/1", headers={"Authorization": "Fake token"})
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()

@@ -47,10 +47,10 @@ def test_happy_path(client: TestClient, engine: Engine, mocked_privileged_token:
     }
 
     response = client.post("/organisations/v0", json=body, headers={"Authorization": "Fake token"})
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
 
     response = client.get("/organisations/v0/2")
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
 
     response_json = response.json()
     assert response_json["identifier"] == 2
@@ -70,9 +70,11 @@ def test_happy_path(client: TestClient, engine: Engine, mocked_privileged_token:
     assert set(response_json["departments"]) == {1}
 
     response = client.delete("/organisations/v0/2", headers={"Authorization": "Fake token"})
-    assert response.status_code == 400  # you cannot delete the parent of other resources
+    assert (
+        response.status_code == 400
+    ), response.json()  # you cannot delete the parent of other resources
     body["departments"] = []
     response = client.put("organisations/v0/2", json=body, headers={"Authorization": "Fake token"})
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     response = client.delete("/organisations/v0/2", headers={"Authorization": "Fake token"})
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()

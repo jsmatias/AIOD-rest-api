@@ -18,7 +18,7 @@ def test_get_count_happy_path(client_test_resource: TestClient, engine_test_reso
         )
         session.commit()
     response = client_test_resource.get("/counts/test_resources/v0")
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     response_json = response.json()
 
     assert response_json == 2

@@ -56,7 +56,7 @@ def test_happy_path_new_repository(
             headers={"Authorization": "Fake token"},
             files=files,
         )
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     id_response = response.json()
     assert id_response == dataset_id
 
@@ -106,7 +106,7 @@ def test_repo_already_exists(client: TestClient, engine: Engine, mocked_privileg
             headers={"Authorization": "Fake token"},
             files=files,
         )
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     id_response = response.json()
     assert id_response == dataset_id
 

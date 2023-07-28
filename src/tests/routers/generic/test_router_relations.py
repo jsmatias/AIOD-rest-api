@@ -159,7 +159,7 @@ def client_with_testobject(engine_test_resource) -> TestClient:
 
 def test_get_happy_path(client_with_testobject: TestClient):
     response = client_with_testobject.get("/test_resources/v0/1")
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     response_json = response.json()
 
     assert response_json["identifier"] == 1
@@ -171,7 +171,7 @@ def test_get_happy_path(client_with_testobject: TestClient):
 
 def test_get_all_happy_path(client_with_testobject: TestClient):
     response = client_with_testobject.get("/test_resources/v0")
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     response_json = response.json()
     assert "deprecated" not in response.headers
 
@@ -201,7 +201,7 @@ def test_post_happy_path(client_with_testobject: TestClient, mocked_privileged_t
         },
         headers={"Authorization": "Fake token"},
     )
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     objects = client_with_testobject.get("/test_resources/v0").json()
     obj = objects[-1]
     assert obj["identifier"] == 5
@@ -232,7 +232,7 @@ def test_put_happy_path(client_with_testobject: TestClient, mocked_privileged_to
         },
         headers={"Authorization": "Fake token"},
     )
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     changed_resource = client_with_testobject.get("/test_resources/v0/4").json()
     assert changed_resource["title"] == "new title"
     assert changed_resource["named_string"] == "new_string"
