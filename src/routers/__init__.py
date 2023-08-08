@@ -1,5 +1,6 @@
 import typing  # noqa:F401
 
+from .dataset_router_new import DatasetRouterNew
 from .resource_router import ResourceRouter  # noqa:F401
 from .case_study_router import CaseStudyRouter
 from .computational_resource_router import ComputationalResourceRouter
@@ -16,6 +17,7 @@ from .upload_router_huggingface import UploadRouterHuggingface
 
 resource_routers = [
     PlatformRouter(),
+    DatasetRouterNew(),
     CaseStudyRouter(),
     ComputationalResourceRouter(),
     DatasetRouter(),

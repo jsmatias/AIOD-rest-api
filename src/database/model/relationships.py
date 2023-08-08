@@ -37,6 +37,8 @@ class ResourceRelationshipInfo(abc.ABC, Representation):
     serializer: Serializer | None = None
     deserializer: DeSerializer | None = None
     description: str | None = None
+    include_in_create: bool = True
+    default_factory: Any | None = None
 
     def field(self):
         return Field(description=self.description, schema_extra={"example": self.example})

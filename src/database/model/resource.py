@@ -6,6 +6,7 @@ from sqlalchemy.util import classproperty
 from sqlmodel import SQLModel, Field, UniqueConstraint
 from sqlmodel.main import FieldInfo
 
+from database.model.new.helper_functions import _get_relationships, _all_annotations
 from database.model.relationships import ResourceRelationshipInfo
 from serialization import create_getter_dict
 from database.model.platform.platform_names import PlatformName
@@ -51,26 +52,20 @@ class Resource(SQLModel):
         )
 
 
-def _get_relationships(resource_class: Type[SQLModel]) -> dict[str, ResourceRelationshipInfo]:
-    if not hasattr(resource_class, "RelationshipConfig"):
-        return {}
-
-    return {
-        k: v for k, v in vars(resource_class.RelationshipConfig).items() if not k.startswith("_")
-    }
-
-
 def _get_field_definitions(
-    resource_class: Type[Resource], relationships: dict[str, ResourceRelationshipInfo]
+    resource_class: Type[Resource],
+    relationships: dict[str, ResourceRelationshipInfo],
+    filter_create: bool = False,
 ) -> dict[str, Tuple[Type, FieldInfo]]:
     if not hasattr(resource_class, "RelationshipConfig"):
         return {}
     return {
         attribute_name: (
-            resource_class.RelationshipConfig.__annotations__[attribute_name],  # the type
+            _all_annotations(resource_class.RelationshipConfig)[attribute_name],  # the type
             relationshipConfig.field(),  # The Field()
         )
         for attribute_name, relationshipConfig in relationships.items()
+        if not filter_create or relationshipConfig.include_in_create
     }
 
 
@@ -87,7 +82,7 @@ def resource_create(resource_class: Type[Resource]) -> Type[SQLModel]:
     See https://sqlmodel.tiangolo.com/tutorial/fastapi/multiple-models/ for background.
     """
     relationships = _get_relationships(resource_class)
-    field_definitions = _get_field_definitions(resource_class, relationships)
+    field_definitions = _get_field_definitions(resource_class, relationships, filter_create=True)
 
     model = create_model(
         resource_class.__name__ + "Create", __base__=resource_class.__base__, **field_definitions
