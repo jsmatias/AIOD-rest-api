@@ -563,8 +563,9 @@ class ResourceRouter(abc.ABC):
             error_msg = error.split("constraint failed: ")[-1]
             status_code = status.HTTP_400_BAD_REQUEST
         else:
-            error_msg = "Unexpected exception."
-            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+            raise e
+            # error_msg = "Unexpected exception."
+            # status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         raise HTTPException(status_code=status_code, detail=error_msg) from e
 
 

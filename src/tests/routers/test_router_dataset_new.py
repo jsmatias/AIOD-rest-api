@@ -14,6 +14,7 @@ def test_happy_path(client: TestClient, engine: Engine, mocked_privileged_token:
         "keyword": ["keyword1", "keyword2"],
         "version": "1.a",
         "distribution": [{"content_url": "example url"}],
+        "aiod_entry": {"status": "draft"},
     }
     response = client.post("/datasets/v0", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
@@ -29,6 +30,7 @@ def test_happy_path(client: TestClient, engine: Engine, mocked_privileged_token:
     (distribution,) = response_json["distribution"]
     assert distribution == {"content_url": "example url"}
     assert set(response_json["keyword"]) == {"keyword1", "keyword2"}
+    assert response_json["aiod_entry"]["status"] == "draft"
 
     body_put = {
         "name": "Changed name",
@@ -37,6 +39,7 @@ def test_happy_path(client: TestClient, engine: Engine, mocked_privileged_token:
         "resource_identifier": 1,
         "version": "1.b",
         "distribution": [],
+        "aiod_entry": {"status": "published"},
     }
     response = client.put("/datasets/v0/1", json=body_put, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
@@ -50,5 +53,6 @@ def test_happy_path(client: TestClient, engine: Engine, mocked_privileged_token:
     assert response_json["resource_identifier"] == 1
     assert response_json["version"] == "1.b"
     assert len(response_json["distribution"]) == 0
+    assert response_json["aiod_entry"]["status"] == "published"
 
     # TODO: test delete

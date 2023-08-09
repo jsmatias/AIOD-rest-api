@@ -26,19 +26,14 @@ class Resource(SQLModel):
         foreign_key="platform.name",
     )
     platform_identifier: str | None = Field(
-        description="A unique identifier issued by an external platform. Leave empty if this item "
-        "is not part of an external platform.",
+        description="A unique identifier issued by the external platform that's specified in "
+        "'platform'. Leave empty if this item is not part of an external platform.",
         default=None,
         schema_extra={"example": "1"},
     )
 
     @classproperty
     def __table_args__(cls) -> Tuple:
-        # Note to developer: this won't work if we'll add another resource, similar to
-        # Dataset, which has extra constraints, because for each such case, we now use
-        # "__table_args__ = Resource.__table_args__", which will set the
-        # cls.__name__ to "Resource", leading to a duplicate check constraint name.
-        # TODO: solve it when this becomes a problem.
         return (
             UniqueConstraint(
                 "platform",

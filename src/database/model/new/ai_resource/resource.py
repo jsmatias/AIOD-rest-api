@@ -30,7 +30,7 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             )
         cls.__sqlmodel_relationships__.update(relationships)
 
-    class RelationshipConfig:
+    class RelationshipConfig(AIoDConcept.RelationshipConfig):
         resource_identifier: int | None = ResourceRelationshipSingle(
             identifier_name="resource_id",
             serializer=AttributeSerializer("identifier"),

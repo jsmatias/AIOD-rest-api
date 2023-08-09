@@ -175,7 +175,7 @@ def deserialize_resource_relationships(
             if new_value is not None:
                 if relationship.deserializer is not None:
                     new_value = relationship.deserializer.deserialize(session, new_value)
-                if hasattr(relationship, "identifier_name"):
+                if hasattr(relationship, "identifier_name") and relationship.identifier_name:
                     # a `ResourceRelationshipSingleInfo`, so a many-to-one relationship
                     setattr(resource, relationship.identifier_name, new_value)
                 else:
