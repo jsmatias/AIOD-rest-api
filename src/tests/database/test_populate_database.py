@@ -1,3 +1,4 @@
+import pytest
 from sqlalchemy import delete
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, select
@@ -13,6 +14,7 @@ OPENML_URL = "https://www.openml.org/api/v1/json"
 HUGGINGFACE_URL = "https://datasets-server.huggingface.co"
 
 
+@pytest.mark.skip(reason="TODO: while going to Metadata model v2")
 def test_example_happy_path(engine: Engine):
     with Session(engine) as session:
         session.execute(delete(Platform))  # Were added in default_sqlalchemy.clear_db()

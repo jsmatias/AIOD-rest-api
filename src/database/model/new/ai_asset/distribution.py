@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, ForeignKey
 from sqlmodel import Field
 
-from database.model.new.concept import AIoDConceptBase
+from database.model.new.concept.concept import AIoDConceptBase
 
 
 class DistributionBase(AIoDConceptBase):
@@ -35,6 +35,8 @@ def distribution_for_table(table_name: str):
         #         deserializer=CastDeserializer(ChecksumORM)
         #     )
 
+    # Renaming the class. This is not necessary, but useful for debuggin
+    DistributionORM.__name__ = DistributionORM.__qualname__ = "DistributionORM" + table_name
     return DistributionORM
 
 

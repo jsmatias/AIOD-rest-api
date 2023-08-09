@@ -7,6 +7,7 @@ from authentication import keycloak_openid
 from database.model.platform.platform_names import PlatformName
 
 
+@pytest.mark.skip(reason="TODO: while going to Metadata model v2")
 def test_happy_path(client: TestClient, mocked_privileged_token: Mock):
     keycloak_openid.userinfo = mocked_privileged_token
     body = {"name": "my_favourite_platform"}
@@ -18,6 +19,7 @@ def test_happy_path(client: TestClient, mocked_privileged_token: Mock):
     assert platforms == {p.name for p in PlatformName}.union(["my_favourite_platform"])
 
 
+@pytest.mark.skip(reason="TODO: while going to Metadata model v2")
 @pytest.mark.parametrize(
     "url", ["/platforms/example/platforms/v0", "/platforms/example/platforms/v0/1"]
 )

@@ -1,4 +1,4 @@
-from database.model.publication.publication import Publication
+from database.model.new.publication.publication import PublicationNew
 from routers.resource_router import ResourceRouter
 
 
@@ -16,5 +16,5 @@ class PublicationRouter(ResourceRouter):
         return "publications"
 
     @property
-    def resource_class(self) -> type[Publication]:
-        return Publication
+    def resource_class(self) -> type[PublicationNew]:
+        return PublicationNew

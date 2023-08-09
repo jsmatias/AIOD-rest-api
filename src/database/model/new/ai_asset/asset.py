@@ -28,6 +28,7 @@ class AIAsset(AIAssetBase, AIResource, metaclass=abc.ABCMeta):
         relationships["keyword"].link_model = ai_resource_keyword_link(table_name=cls.__tablename__)
         distribution = distribution_for_table(cls.__tablename__)
         cls.__annotations__["distribution"] = list[distribution]
+        cls.RelationshipConfig.distribution = copy.copy(cls.RelationshipConfig.distribution)
         cls.RelationshipConfig.distribution.deserializer = CastDeserializer(distribution)
         cls.__sqlmodel_relationships__.update(relationships)
 

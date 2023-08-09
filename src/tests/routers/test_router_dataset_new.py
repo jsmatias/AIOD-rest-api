@@ -15,10 +15,10 @@ def test_happy_path(client: TestClient, engine: Engine, mocked_privileged_token:
         "version": "1.a",
         "distribution": [{"content_url": "example url"}],
     }
-    response = client.post("/datasets_new/v0", json=body, headers={"Authorization": "Fake token"})
+    response = client.post("/datasets/v0", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
 
-    response = client.get("/datasets_new/v0/1")
+    response = client.get("/datasets/v0/1")
     assert response.status_code == 200, response.json()
 
     response_json = response.json()
@@ -38,12 +38,10 @@ def test_happy_path(client: TestClient, engine: Engine, mocked_privileged_token:
         "version": "1.b",
         "distribution": [],
     }
-    response = client.put(
-        "/datasets_new/v0/1", json=body_put, headers={"Authorization": "Fake token"}
-    )
+    response = client.put("/datasets/v0/1", json=body_put, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
 
-    response = client.get("/datasets_new/v0/1")
+    response = client.get("/datasets/v0/1")
     response_json = response.json()
     assert response.status_code == 200, response.json()
     assert response_json["identifier"] == 1

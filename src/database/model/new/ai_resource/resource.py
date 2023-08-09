@@ -6,7 +6,7 @@ from sqlmodel import Field, Relationship
 from database.model.general.keyword import Keyword
 from database.model.new.ai_resource.resource_links import ai_resource_keyword_link
 from database.model.new.ai_resource.resource_table import AIResourceTable
-from database.model.new.concept import AIoDConceptBase, AIoDConcept
+from database.model.new.concept.concept import AIoDConceptBase, AIoDConcept
 from database.model.relationships import ResourceRelationshipSingle, ResourceRelationshipList
 from serialization import AttributeSerializer, FindByNameDeserializer
 

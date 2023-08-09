@@ -10,11 +10,11 @@ class DatasetRouterNew(ResourceRouter):
 
     @property
     def resource_name(self) -> str:
-        return "dataset_new"
+        return "dataset"
 
     @property
     def resource_name_plural(self) -> str:
-        return "datasets_new"
+        return "datasets"
 
     @property
     def resource_class(self) -> type[DatasetNew]:
