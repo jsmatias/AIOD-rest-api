@@ -7,7 +7,7 @@ import xmltodict
 from connectors import ResourceConnector
 from database.model.dataset.dataset import Dataset
 from database.model.general.keyword import KeywordOld
-from database.model.general.license import License
+from database.model.general.license import LicenseOld
 from database.model.platform.platform_names import PlatformName
 
 DATE_FORMAT = "%Y-%m-%d"
@@ -113,7 +113,7 @@ class ZenodoDatasetConnector(ResourceConnector[Dataset]):
             description=description[:500],
             date_published=date_published,
             publisher=publisher,
-            license=License(name=license_) if license_ is not None else None,
+            license=LicenseOld(name=license_) if license_ is not None else None,
             keywords=[KeywordOld(name=k) for k in keywords],
         )
         return dataset

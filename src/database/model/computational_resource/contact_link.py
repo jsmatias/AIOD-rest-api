@@ -11,4 +11,4 @@ class ComputationalResourceContactLink(SQLModel, table=True):  # type: ignore [c
             primary_key=True,
         )
     )
-    agent_identifier: int = Field(foreign_key="agent.identifier", primary_key=True)
+    agent_identifier: int = Field(foreign_key="agent_old.identifier", primary_key=True)

@@ -1,6 +1,10 @@
 import copy
+import time
+from datetime import datetime
 from unittest.mock import Mock
 
+import dateutil.parser
+import pytz
 from sqlalchemy.engine import Engine
 from starlette.testclient import TestClient
 
@@ -12,6 +16,8 @@ def test_happy_path(
 ):
     keycloak_openid.userinfo = mocked_privileged_token
     body = copy.copy(body_asset)
+
+    datetime_create_request = datetime.utcnow().replace(tzinfo=pytz.utc)
     response = client.post("/datasets/v0", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
 
@@ -26,6 +32,10 @@ def test_happy_path(
     assert response_json["aiod_entry"]["platform"] == "example"
     assert response_json["aiod_entry"]["platform_identifier"] == "1"
     assert response_json["aiod_entry"]["status"] == "draft"
+    date_created = dateutil.parser.parse(response_json["aiod_entry"]["date_created"] + "Z")
+    date_modified = dateutil.parser.parse(response_json["aiod_entry"]["date_modified"] + "Z")
+    assert 0 < (date_created - datetime_create_request).total_seconds() < 0.1
+    assert 0 < (date_modified - datetime_create_request).total_seconds() < 0.1
 
     assert response_json["name"] == "The name"
     assert response_json["description"] == "A description."
@@ -45,6 +55,8 @@ def test_happy_path(
     assert distribution["name"] == "downloadable instance of this resource"
     assert distribution["content_url"] == "https://www.example.com/resource.pdf"
 
+    assert response_json["date_published"] == "2022-01-01T15:15:00"
+    assert response_json["license"] == "https://creativecommons.org/licenses/by/4.0/"
     assert response_json["version"] == "1.a"
 
     body["aiod_entry"]["platform_identifier"] = "2"
@@ -57,6 +69,8 @@ def test_happy_path(
         }
     ]
 
+    time.sleep(0.5)
+    datetime_update_request = datetime.utcnow().replace(tzinfo=pytz.utc)
     response = client.put("/datasets/v0/1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
 
@@ -65,6 +79,11 @@ def test_happy_path(
     assert response_json["identifier"] == 1
     assert response_json["resource_identifier"] == 1
     assert response_json["asset_identifier"] == 1
+
+    date_created = dateutil.parser.parse(response_json["aiod_entry"]["date_created"] + "Z")
+    date_modified = dateutil.parser.parse(response_json["aiod_entry"]["date_modified"] + "Z")
+    assert 0 < (date_created - datetime_create_request).total_seconds() < 0.1
+    assert 0 < (date_modified - datetime_update_request).total_seconds() < 0.1
 
     assert response_json["aiod_entry"]["platform"] == "example"
     assert response_json["aiod_entry"]["platform_identifier"] == "2"

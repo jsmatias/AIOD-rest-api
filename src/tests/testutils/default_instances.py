@@ -16,7 +16,7 @@ from database.model.dataset.checksum_algorithm import ChecksumAlgorithm
 from database.model.dataset.data_download import DataDownloadORM
 from database.model.dataset.measured_value import MeasuredValueORM
 from database.model.general.keyword import KeywordOld
-from database.model.general.license import License
+from database.model.general.license import LicenseOld
 from tests.testutils.paths import path_test_resources
 
 
@@ -65,7 +65,7 @@ def dataset() -> Dataset:
         temporal_coverage_from=datetime.datetime(2000, 1, 1),
         temporal_coverage_to=datetime.datetime(2000, 1, 2, 6),
         version="version1",
-        license=License(name="license.name"),
+        license=LicenseOld(name="license.name"),
         has_parts=[],
         is_part=[],
         alternate_names=[

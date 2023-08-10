@@ -63,7 +63,7 @@ class OrganisationBase(Agent):
 class Organisation(OrganisationBase, table=True):  # type: ignore
     __tablename__ = "organisation"
 
-    identifier: int = Field(primary_key=True, foreign_key="agent.identifier")
+    identifier: int = Field(primary_key=True, foreign_key="agent_old.identifier")
 
     parent_organisation_id: int | None = Field(foreign_key="organisation.identifier", default=None)
     parent_organisation: Optional["Organisation"] = Relationship(

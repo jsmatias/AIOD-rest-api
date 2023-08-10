@@ -15,7 +15,7 @@ from database.model.dataset.measured_value import (
 )
 from database.model.dataset.publication_link import DatasetPublicationLink
 from database.model.general.keyword import KeywordOld
-from database.model.general.license import License
+from database.model.general.license import LicenseOld
 from database.model.publication.publication import Publication
 from database.model.relationships import ResourceRelationshipList, ResourceRelationshipSingle
 from database.model.resource import Resource
@@ -94,8 +94,8 @@ class Dataset(DatasetBase, table=True):  # type: ignore [call-arg]
 
     identifier: int = Field(primary_key=True, foreign_key="ai_asset.identifier")
 
-    license_identifier: int | None = Field(foreign_key="license.identifier")
-    license: Optional[License] = Relationship(back_populates="datasets")
+    license_identifier: int | None = Field(foreign_key="license_old.identifier")
+    license: Optional[LicenseOld] = Relationship(back_populates="datasets")
     alternate_names: List[DatasetAlternateName] = Relationship(
         back_populates="datasets", link_model=DatasetAlternateNameLink
     )
@@ -156,7 +156,7 @@ class Dataset(DatasetBase, table=True):  # type: ignore [call-arg]
         license: Optional[str] = ResourceRelationshipSingle(
             identifier_name="license_identifier",
             serializer=AttributeSerializer("name"),
-            deserializer=FindByNameDeserializer(License),
+            deserializer=FindByNameDeserializer(LicenseOld),
             example="https://creativecommons.org/share-your-work/public-domain/cc0/",
         )
         keywords: List[str] = ResourceRelationshipList(

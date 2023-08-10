@@ -398,6 +398,8 @@ class ResourceRouter(abc.ABC):
             try:
                 with Session(engine) as session:
                     resource = self._retrieve_resource(session, identifier)
+                    if hasattr(resource, "aiod_entry"):
+                        datetime_created = resource.aiod_entry.date_created  # TODO(jos): clean up
                     for attribute_name in resource.schema()["properties"]:
                         if hasattr(resource_create_instance, attribute_name):
                             new_value = getattr(resource_create_instance, attribute_name)
@@ -405,6 +407,8 @@ class ResourceRouter(abc.ABC):
                     deserialize_resource_relationships(
                         session, self.resource_class, resource, resource_create_instance
                     )
+                    if hasattr(resource, "aiod_entry"):
+                        resource.aiod_entry.date_created = datetime_created
                     try:
                         session.merge(resource)
                         session.commit()

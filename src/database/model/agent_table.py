@@ -2,7 +2,7 @@ from sqlmodel import SQLModel, Field
 
 
 class AgentTable(SQLModel, table=True):  # type: ignore [call-arg]
-    __tablename__ = "agent"
+    __tablename__ = "agent_old"
 
     """
     Many resources, such as organisation and member, are a type of Agent

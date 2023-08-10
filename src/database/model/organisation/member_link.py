@@ -11,6 +11,6 @@ class OrganisationMemberLink(SQLModel, table=True):  # type: ignore [call-arg]
     )
     member_identifier: int = Field(
         sa_column=Column(
-            Integer, ForeignKey("agent.identifier", ondelete="CASCADE"), primary_key=True
+            Integer, ForeignKey("agent_old.identifier", ondelete="CASCADE"), primary_key=True
         )
     )

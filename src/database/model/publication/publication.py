@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from sqlmodel import Field, Relationship
 
 from database.model.dataset.publication_link import DatasetPublicationLink
-from database.model.general.license import License
+from database.model.general.license import LicenseOld
 from database.model.general.resource_type import ResourceType
 from database.model.relationships import ResourceRelationshipList, ResourceRelationshipSingle
 from serialization import (
@@ -43,8 +43,8 @@ class Publication(PublicationBase, table=True):  # type: ignore [call-arg]
 
     identifier: int = Field(primary_key=True, foreign_key="ai_asset.identifier")
 
-    license_identifier: int | None = Field(foreign_key="license.identifier")
-    license: Optional[License] = Relationship(back_populates="publications")
+    license_identifier: int | None = Field(foreign_key="license_old.identifier")
+    license: Optional[LicenseOld] = Relationship(back_populates="publications")
 
     datasets: List["Dataset"] = Relationship(
         back_populates="citations", link_model=DatasetPublicationLink
@@ -59,7 +59,7 @@ class Publication(PublicationBase, table=True):  # type: ignore [call-arg]
         license: Optional[str] = ResourceRelationshipSingle(
             identifier_name="license_identifier",
             serializer=AttributeSerializer("name"),
-            deserializer=FindByNameDeserializer(License),
+            deserializer=FindByNameDeserializer(LicenseOld),
             example="https://creativecommons.org/share-your-work/public-domain/cc0/",
         )
         resource_type: Optional[str] = ResourceRelationshipSingle(

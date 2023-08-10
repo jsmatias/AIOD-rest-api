@@ -11,4 +11,4 @@ class ComputationalResourceManagedByLink(SQLModel, table=True):  # type: ignore 
             primary_key=True,
         )
     )
-    agent_identifier: int = Field(foreign_key="agent.identifier", primary_key=True)
+    agent_identifier: int = Field(foreign_key="agent_old.identifier", primary_key=True)

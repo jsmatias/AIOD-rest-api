@@ -3,6 +3,7 @@ from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship
 
 from database.model.new.concept.status import Status
+from database.model.new.field_length import SHORT, NORMAL
 from database.model.platform.platform_names import PlatformName
 from database.model.relationships import ResourceRelationshipSingle
 from serialization import AttributeSerializer, FindByNameDeserializer, create_getter_dict
@@ -13,6 +14,7 @@ class AIoDEntryBase(SQLModel):
     known on other platforms, etc."""
 
     platform: str | None = Field(
+        max_length=SHORT,
         default=None,
         description="The external platform from which this resource originates. Leave empty if "
         "this item originates from AIoD. If platform is not None, the "
@@ -21,20 +23,23 @@ class AIoDEntryBase(SQLModel):
         foreign_key="platform.name",
     )
     platform_identifier: str | None = Field(
+        max_length=NORMAL,
         description="A unique identifier issued by the external platform that's specified in "
         "'platform'. Leave empty if this item is not part of an external platform.",
         default=None,
         schema_extra={"example": "1"},
     )
     date_modified: datetime | None = Field(
-        description="The datetime on which the metadata was last updated in the AIoD platform.",
-        default=None,
-        schema_extra={"example": "2023-01-01T15:15:00.000Z"},
+        description="The datetime on which the metadata was last updated in the AIoD platform,"
+        "in UTC.",
+        schema_extra={"example": "2023-01-01T15:15:00.000"},
+        default_factory=datetime.utcnow,  # Updated in the resource_router
     )  # TODO(jos): it would be nice to hide the dates in the CREATE classes
     date_created: datetime | None = Field(
-        description="The datetime on which the metadata was first published on the AIoD platform.",
-        default=None,
-        schema_extra={"example": "2022-01-01T15:15:00.000Z"},
+        description="The datetime on which the metadata was first published on the AIoD platform, "
+        "in UTC.",
+        default_factory=datetime.utcnow,
+        schema_extra={"example": "2022-01-01T15:15:00.000"},
     )
     # TODO(jos): editor --> Person
 

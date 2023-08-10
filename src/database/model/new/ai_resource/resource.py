@@ -13,7 +13,7 @@ from database.model.new.ai_resource.research_area import ResearchArea
 from database.model.new.ai_resource.resource_table import AIResourceTable
 from database.model.new.ai_resource.scientific_domain import ScientificDomain
 from database.model.new.concept.concept import AIoDConceptBase, AIoDConcept
-from database.model.new.field_length import SHORT, DESCRIPTION, NORMAL
+from database.model.new.field_length import DESCRIPTION, NORMAL
 from database.model.new.helper_functions import link_factory
 from database.model.relationships import ResourceRelationshipSingle, ResourceRelationshipList
 from serialization import (
@@ -25,7 +25,7 @@ from serialization import (
 
 
 class AIResourceBase(AIoDConceptBase, metaclass=abc.ABCMeta):
-    name: str = Field(max_length=SHORT, schema_extra={"example": "The name of this resource"})
+    name: str = Field(max_length=NORMAL, schema_extra={"example": "The name of this resource"})
     description: str = Field(max_length=DESCRIPTION, schema_extra={"example": "A description."})
     same_as: str | None = Field(
         description="Url of a reference Web page that unambiguously indicates this resource's "
