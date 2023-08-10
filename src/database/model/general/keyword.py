@@ -22,12 +22,12 @@ if TYPE_CHECKING:  # avoid circular imports; only import while type checking
     from database.model.project.project import Project
 
 
-class Keyword(NamedRelation, table=True):  # type: ignore [call-arg]
+class KeywordOld(NamedRelation, table=True):  # type: ignore [call-arg]
     """
     Keywords or tags used to describe some item
     """
 
-    __tablename__ = "keyword"
+    __tablename__ = "keyword_old"
 
     case_studies: List["CaseStudy"] = Relationship(
         back_populates="keywords", link_model=CaseStudyKeywordLink

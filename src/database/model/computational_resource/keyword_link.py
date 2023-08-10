@@ -1,10 +1,5 @@
-from typing import TYPE_CHECKING
-
 from sqlalchemy import Column, ForeignKey, Integer
 from sqlmodel import SQLModel, Field
-
-if TYPE_CHECKING:  # avoid circular imports; only import while type checking
-    pass
 
 
 class ComputationalResourceKeywordLink(SQLModel, table=True):  # type: ignore [call-arg]
@@ -16,4 +11,4 @@ class ComputationalResourceKeywordLink(SQLModel, table=True):  # type: ignore [c
             primary_key=True,
         )
     )
-    keyword_identifier: int = Field(foreign_key="keyword.identifier", primary_key=True)
+    keyword_identifier: int = Field(foreign_key="keyword_old.identifier", primary_key=True)

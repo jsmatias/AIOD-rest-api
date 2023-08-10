@@ -9,4 +9,6 @@ class EventResearchAreaLink(SQLModel, table=True):  # type: ignore [call-arg]
             Integer, ForeignKey("event.identifier", ondelete="CASCADE"), primary_key=True
         )
     )
-    research_area_identifier: int = Field(foreign_key="research_area.identifier", primary_key=True)
+    research_area_identifier: int = Field(
+        foreign_key="research_area_old.identifier", primary_key=True
+    )

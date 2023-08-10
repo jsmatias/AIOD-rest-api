@@ -14,7 +14,7 @@ from serialization import (
     FindByNameDeserializer,
 )
 
-from database.model.general.keyword import Keyword
+from database.model.general.keyword import KeywordOld
 from database.model.case_study.keyword_link import CaseStudyKeywordLink
 
 from database.model.general.business_category import BusinessCategory
@@ -56,7 +56,7 @@ class CaseStudy(CaseStudyBase, table=True):  # type: ignore [call-arg]
     alternate_names: List[CaseStudyAlternateName] = Relationship(
         back_populates="case_studies", link_model=CaseStudyAlternateNameLink
     )
-    keywords: List[Keyword] = Relationship(
+    keywords: List[KeywordOld] = Relationship(
         back_populates="case_studies", link_model=CaseStudyKeywordLink
     )
     business_categories: List[BusinessCategory] = Relationship(
@@ -74,7 +74,7 @@ class CaseStudy(CaseStudyBase, table=True):  # type: ignore [call-arg]
         )
         keywords: List[str] = ResourceRelationshipList(
             serializer=AttributeSerializer("name"),
-            deserializer=FindByNameDeserializer(Keyword),
+            deserializer=FindByNameDeserializer(KeywordOld),
             example=["keyword1", "keyword2"],
         )
         business_categories: List[str] = ResourceRelationshipList(

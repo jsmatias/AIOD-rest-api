@@ -38,10 +38,15 @@ class ResourceRelationshipInfo(abc.ABC, Representation):
     deserializer: DeSerializer | None = None
     description: str | None = None
     include_in_create: bool = True
-    default_factory: Any | None = None
+    default_factory_orm: Any | None = None
+    default_factory_pydantic: Any | None = None
 
     def field(self):
-        return Field(description=self.description, schema_extra={"example": self.example})
+        return Field(
+            description=self.description,
+            schema_extra={"example": self.example},
+            default_factory=self.default_factory_pydantic,
+        )
 
     @property
     @abc.abstractmethod

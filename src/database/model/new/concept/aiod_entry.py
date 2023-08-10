@@ -37,7 +37,6 @@ class AIoDEntryBase(SQLModel):
         schema_extra={"example": "2022-01-01T15:15:00.000Z"},
     )
     # TODO(jos): editor --> Person
-    # TODO(jos): body
 
 
 class AIoDEntryORM(AIoDEntryBase, table=True):  # type: ignore [call-arg]

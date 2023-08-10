@@ -9,7 +9,7 @@ from serialization import (
     FindByNameDeserializer,
 )
 
-from database.model.general.keyword import Keyword
+from database.model.general.keyword import KeywordOld
 from database.model.project.keyword_link import ProjectKeywordLink
 
 from database.model.resource import Resource
@@ -67,11 +67,13 @@ class Project(ProjectBase, table=True):  # type: ignore [call-arg]
     __tablename__ = "project"
 
     identifier: int = Field(default=None, primary_key=True)
-    keywords: List[Keyword] = Relationship(back_populates="projects", link_model=ProjectKeywordLink)
+    keywords: List[KeywordOld] = Relationship(
+        back_populates="projects", link_model=ProjectKeywordLink
+    )
 
     class RelationshipConfig:
         keywords: List[str] = ResourceRelationshipList(
             serializer=AttributeSerializer("name"),
-            deserializer=FindByNameDeserializer(Keyword),
+            deserializer=FindByNameDeserializer(KeywordOld),
             example=["keyword1", "keyword2"],
         )

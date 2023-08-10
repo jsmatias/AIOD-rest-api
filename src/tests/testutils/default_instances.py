@@ -3,9 +3,9 @@ Fixtures that provide default instances for AIoD and ORM classes.
 
 This way you have easy access to, for instance, an AIoDDataset filled with default values.
 """
-
-
+import copy
 import datetime
+import json
 
 import pytest
 
@@ -15,8 +15,33 @@ from database.model.dataset.checksum import ChecksumORM
 from database.model.dataset.checksum_algorithm import ChecksumAlgorithm
 from database.model.dataset.data_download import DataDownloadORM
 from database.model.dataset.measured_value import MeasuredValueORM
-from database.model.general.keyword import Keyword
+from database.model.general.keyword import KeywordOld
 from database.model.general.license import License
+from tests.testutils.paths import path_test_resources
+
+
+@pytest.fixture(scope="session")
+def body_concept() -> dict:
+    with open(path_test_resources() / "schemes" / "aiod" / "aiod_concept.json", "r") as f:
+        return json.load(f)
+
+
+@pytest.fixture(scope="session")
+def body_resource(body_concept: dict) -> dict:
+    body = copy.copy(body_concept)
+    with open(path_test_resources() / "schemes" / "aiod" / "ai_resource.json", "r") as f:
+        resource = json.load(f)
+    body.update(resource)
+    return body
+
+
+@pytest.fixture(scope="session")
+def body_asset(body_resource: dict) -> dict:
+    body = copy.copy(body_resource)
+    with open(path_test_resources() / "schemes" / "aiod" / "ai_asset.json", "r") as f:
+        asset = json.load(f)
+    body.update(asset)
+    return body
 
 
 @pytest.fixture(scope="session")
@@ -58,6 +83,6 @@ def dataset() -> Dataset:
                 checksum=[ChecksumORM(algorithm=ChecksumAlgorithm(name="md5"), value="md5hash")],
             )
         ],
-        keywords=[Keyword(name="a"), Keyword(name="b"), Keyword(name="c")],
+        keywords=[KeywordOld(name="a"), KeywordOld(name="b"), KeywordOld(name="c")],
         measured_values=[MeasuredValueORM(variable="variable", technique="technique")],
     )

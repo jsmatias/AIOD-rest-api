@@ -19,7 +19,7 @@ class ResearchArea(NamedRelation, table=True):  # type: ignore [call-arg]
     Research area used to describe some item
     """
 
-    __tablename__ = "research_area"
+    __tablename__ = "research_area_old"
 
     events: List["Event"] = Relationship(
         back_populates="research_areas", link_model=EventResearchAreaLink

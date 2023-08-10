@@ -11,4 +11,4 @@ class EducationalResourceKeywordLink(SQLModel, table=True):  # type: ignore [cal
             primary_key=True,
         )
     )
-    keyword_identifier: int = Field(foreign_key="keyword.identifier", primary_key=True)
+    keyword_identifier: int = Field(foreign_key="keyword_old.identifier", primary_key=True)

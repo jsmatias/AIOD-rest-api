@@ -11,4 +11,6 @@ class ComputationalResourceResearchAreaLink(SQLModel, table=True):  # type: igno
             primary_key=True,
         )
     )
-    research_area_identifier: int = Field(foreign_key="research_area.identifier", primary_key=True)
+    research_area_identifier: int = Field(
+        foreign_key="research_area_old.identifier", primary_key=True
+    )

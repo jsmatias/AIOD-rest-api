@@ -12,5 +12,5 @@ class ComputationalResourceApplicationAreaLink(SQLModel, table=True):  # type: i
         )
     )
     application_area_identifier: int = Field(
-        foreign_key="application_area.identifier", primary_key=True
+        foreign_key="application_area_old.identifier", primary_key=True
     )

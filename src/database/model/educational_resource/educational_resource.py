@@ -13,7 +13,7 @@ from database.model.educational_resource.technical_categories_link import (
     EducationalResourceTechnicalCategoryLink,
 )
 from database.model.general.business_category import BusinessCategory
-from database.model.general.keyword import Keyword
+from database.model.general.keyword import KeywordOld
 from database.model.general.language import Language
 from database.model.general.target_audience import TargetAudience
 from database.model.general.technical_category import TechnicalCategory
@@ -99,7 +99,7 @@ class EducationalResource(EducationalResourceBase, table=True):  # type: ignore 
     target_audience: List[TargetAudience] = Relationship(
         back_populates="educational_resources", link_model=EducationalResourceTargetAudienceLink
     )
-    keywords: List[Keyword] = Relationship(
+    keywords: List[KeywordOld] = Relationship(
         back_populates="educational_resources", link_model=EducationalResourceKeywordLink
     )
 
@@ -123,7 +123,7 @@ class EducationalResource(EducationalResourceBase, table=True):  # type: ignore 
         )
         keywords: List[str] = ResourceRelationshipList(
             serializer=AttributeSerializer("name"),
-            deserializer=FindByNameDeserializer(Keyword),
+            deserializer=FindByNameDeserializer(KeywordOld),
             example=["keyword1", "keyword2"],
         )
         business_categories: List[str] = ResourceRelationshipList(

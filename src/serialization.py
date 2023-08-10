@@ -8,7 +8,7 @@ from sqlmodel import SQLModel, Session, select
 from starlette.status import HTTP_404_NOT_FOUND
 
 from database.model.named_relation import NamedRelation
-from database.model.new.helper_functions import _get_relationships
+from database.model.new.helper_functions import get_relationships
 
 MODEL = TypeVar("MODEL", bound=SQLModel)
 
@@ -150,7 +150,7 @@ def deserialize_resource_relationships(
     """After deserialization of a resource, this function will deserialize all it's related
     objects."""
     if hasattr(resource_class, "RelationshipConfig"):
-        relationships = _get_relationships(resource_class)
+        relationships = get_relationships(resource_class)
         for attribute, relationship in relationships.items():
             if relationship.include_in_create:
                 new_value = getattr(resource_create_instance, attribute)
@@ -162,13 +162,13 @@ def deserialize_resource_relationships(
                 if getattr(resource, attribute) is not None:
                     # The attribute is already set (so this is a PUT request). Keep existing value
                     new_value = None
-                elif relationship.default_factory is None:
+                elif relationship.default_factory_orm is None:
                     raise ValueError(
                         "If a relationship is not included in create, it should "
-                        "contain a default_factory"
+                        "contain a default_factory_orm"
                     )
                 else:
-                    parent = relationship.default_factory(type_=resource_class.__tablename__)
+                    parent = relationship.default_factory_orm(type_=resource_class.__tablename__)
                     session.add(parent)
                     session.flush()
                     new_value = parent.identifier

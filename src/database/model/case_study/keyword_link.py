@@ -9,4 +9,4 @@ class CaseStudyKeywordLink(SQLModel, table=True):  # type: ignore [call-arg]
             Integer, ForeignKey("case_study.identifier", ondelete="CASCADE"), primary_key=True
         )
     )
-    keyword_identifier: int = Field(foreign_key="keyword.identifier", primary_key=True)
+    keyword_identifier: int = Field(foreign_key="keyword_old.identifier", primary_key=True)

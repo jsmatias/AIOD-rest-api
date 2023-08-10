@@ -20,7 +20,7 @@ class ApplicationArea(NamedRelation, table=True):  # type: ignore [call-arg]
     Application area used to describe some item
     """
 
-    __tablename__ = "application_area"
+    __tablename__ = "application_area_old"
 
     events: List["Event"] = Relationship(
         back_populates="application_areas", link_model=EventApplicationAreaLink

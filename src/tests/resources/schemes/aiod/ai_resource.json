@@ -1,0 +1,18 @@
+{
+    "name": "The name",
+    "description": "A description.",
+    "same_as": "https://www.example.com/resource",
+    "alternate_name": ["alias1", "alias2"],
+    "keyword": ["tag1", "tag2"],
+
+    "application_area": ["Voice Assistance"],
+    "industrial_sector": ["eCommerce"],
+    "research_area": ["Explainable AI"],
+    "scientific_domain": ["Voice Recognition"],
+    "media": [
+        {
+            "name": "Resource logo",
+            "content_url": "https://www.example.com/resource.png"
+        }
+    ]
+}

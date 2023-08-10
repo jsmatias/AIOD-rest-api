@@ -6,7 +6,7 @@ from sqlalchemy.util import classproperty
 from sqlmodel import SQLModel, Field, UniqueConstraint
 from sqlmodel.main import FieldInfo
 
-from database.model.new.helper_functions import _get_relationships, _all_annotations
+from database.model.new.helper_functions import get_relationships, all_annotations
 from database.model.relationships import ResourceRelationshipInfo
 from serialization import create_getter_dict
 from database.model.platform.platform_names import PlatformName
@@ -56,7 +56,7 @@ def _get_field_definitions(
         return {}
     return {
         attribute_name: (
-            _all_annotations(resource_class.RelationshipConfig)[attribute_name],  # the type
+            all_annotations(resource_class.RelationshipConfig)[attribute_name],  # the type
             relationshipConfig.field(),  # The Field()
         )
         for attribute_name, relationshipConfig in relationships.items()
@@ -76,7 +76,7 @@ def resource_create(resource_class: Type[Resource]) -> Type[SQLModel]:
 
     See https://sqlmodel.tiangolo.com/tutorial/fastapi/multiple-models/ for background.
     """
-    relationships = _get_relationships(resource_class)
+    relationships = get_relationships(resource_class)
     field_definitions = _get_field_definitions(resource_class, relationships, filter_create=True)
 
     model = create_model(
@@ -97,7 +97,7 @@ def resource_read(resource_class: Type[Resource]) -> Type[SQLModel]:
 
     See https://sqlmodel.tiangolo.com/tutorial/fastapi/multiple-models/ for background.
     """
-    relationships = _get_relationships(resource_class)
+    relationships = get_relationships(resource_class)
     field_definitions = _get_field_definitions(resource_class, relationships)
     field_definitions.update({"identifier": (int, Field())})
     resource_class_read = create_model(
@@ -114,7 +114,7 @@ def _update_model_serialization(resource_class: Type[SQLModel], resource_class_r
     a newly created GetterDict (this is Pydantic functionality) and put in on the config of this
     resource.
     """
-    relationships = _get_relationships(resource_class)
+    relationships = get_relationships(resource_class)
     if hasattr(resource_class, "RelationshipConfig"):
         getter_dict = create_getter_dict(
             {

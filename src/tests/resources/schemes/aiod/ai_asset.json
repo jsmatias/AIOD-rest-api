@@ -1,0 +1,9 @@
+{
+    "version": "1.a",
+    "distribution": [
+        {
+            "name": "downloadable instance of this resource",
+            "content_url": "https://www.example.com/resource.pdf"
+        }
+    ]
+}

@@ -9,4 +9,4 @@ class NewsKeywordLink(SQLModel, table=True):  # type: ignore [call-arg]
             Integer, ForeignKey("news.identifier", ondelete="CASCADE"), primary_key=True
         )
     )
-    keyword_identifier: int = Field(foreign_key="keyword.identifier", primary_key=True)
+    keyword_identifier: int = Field(foreign_key="keyword_old.identifier", primary_key=True)

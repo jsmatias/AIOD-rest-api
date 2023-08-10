@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 from sqlmodel import Field, Relationship
-from database.model.general.keyword import Keyword
+from database.model.general.keyword import KeywordOld
 from database.model.general.business_category import BusinessCategory
 from database.model.general.media import Media
 from database.model.general.news_category import NewsCategory
@@ -43,7 +43,7 @@ class News(NewsBase, table=True):  # type: ignore [call-arg]
         back_populates="news", link_model=NewsCategoryNewsLink
     )
     media: List[Media] = Relationship(back_populates="news", link_model=NewsMediaLink)
-    keywords: List[Keyword] = Relationship(back_populates="news", link_model=NewsKeywordLink)
+    keywords: List[KeywordOld] = Relationship(back_populates="news", link_model=NewsKeywordLink)
     business_categories: List[BusinessCategory] = Relationship(
         back_populates="news", link_model=NewsBusinessCategoryLink
     )
@@ -61,7 +61,7 @@ class News(NewsBase, table=True):  # type: ignore [call-arg]
         )
         keywords: List[str] = ResourceRelationshipList(
             serializer=AttributeSerializer("name"),
-            deserializer=FindByNameDeserializer(Keyword),
+            deserializer=FindByNameDeserializer(KeywordOld),
             example=["keyword1", "keyword2"],
         )
         business_categories: List[str] = ResourceRelationshipList(

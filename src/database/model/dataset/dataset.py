@@ -14,7 +14,7 @@ from database.model.dataset.measured_value import (
     MeasuredValue,
 )
 from database.model.dataset.publication_link import DatasetPublicationLink
-from database.model.general.keyword import Keyword
+from database.model.general.keyword import KeywordOld
 from database.model.general.license import License
 from database.model.publication.publication import Publication
 from database.model.relationships import ResourceRelationshipList, ResourceRelationshipSingle
@@ -124,7 +124,9 @@ class Dataset(DatasetBase, table=True):  # type: ignore [call-arg]
             cascade="all, delete",
         ),
     )
-    keywords: List[Keyword] = Relationship(back_populates="datasets", link_model=DatasetKeywordLink)
+    keywords: List[KeywordOld] = Relationship(
+        back_populates="datasets", link_model=DatasetKeywordLink
+    )
     measured_values: List[MeasuredValueORM] = Relationship(
         back_populates="datasets", link_model=DatasetMeasuredValueNameLink
     )
@@ -159,7 +161,7 @@ class Dataset(DatasetBase, table=True):  # type: ignore [call-arg]
         )
         keywords: List[str] = ResourceRelationshipList(
             serializer=AttributeSerializer("name"),
-            deserializer=FindByNameDeserializer(Keyword),
+            deserializer=FindByNameDeserializer(KeywordOld),
             example=["keyword1", "keyword2"],
         )
         measured_values: List[MeasuredValue] = ResourceRelationshipList(

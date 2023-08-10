@@ -51,7 +51,7 @@ from database.model.computational_resource.uri import (
     ComputationalResourceUriOrm,
 )
 from database.model.general.application_areas import ApplicationArea
-from database.model.general.keyword import Keyword
+from database.model.general.keyword import KeywordOld
 from database.model.general.research_areas import ResearchArea
 from database.model.relationships import ResourceRelationshipList
 from serialization import (
@@ -138,7 +138,7 @@ class ComputationalResource(ComputationalResourceBase, table=True):  # type: ign
         link_model=ComputationalResourceHasEndpointLink,
     )
 
-    keyword: list[Keyword] = Relationship(
+    keyword: list[KeywordOld] = Relationship(
         back_populates="computational_resources", link_model=ComputationalResourceKeywordLink
     )
     otherInfo: list[ComputationalResourceOtherInfo] = Relationship(
@@ -195,7 +195,7 @@ class ComputationalResource(ComputationalResourceBase, table=True):  # type: ign
         )
         keyword: list[str] = ResourceRelationshipList(
             serializer=AttributeSerializer("name"),
-            deserializer=FindByNameDeserializer(Keyword),
+            deserializer=FindByNameDeserializer(KeywordOld),
             description="terms or phrases providing additional context for the AI asset.",
             example=["keyword1", "keyword2"],
         )
