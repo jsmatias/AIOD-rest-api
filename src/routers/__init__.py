@@ -1,6 +1,7 @@
 import typing  # noqa:F401
 
 from .dataset_router_new import DatasetRouterNew
+from .organisation_router import OrganisationRouter
 from .platform_router import PlatformRouter
 from .publication_router import PublicationRouter
 from .resource_router import ResourceRouter  # noqa:F401
@@ -15,7 +16,7 @@ resource_routers = [
     # EducationalResourceRouter(),
     # EventRouter(),
     # NewsRouter(),
-    # OrganisationRouter(),
+    OrganisationRouter(),
     PublicationRouter(),
     # ProjectRouter(),
     # PresentationRouter(),

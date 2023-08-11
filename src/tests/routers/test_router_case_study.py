@@ -6,7 +6,7 @@ from starlette.testclient import TestClient
 from authentication import keycloak_openid
 
 
-@pytest.mark.skip("TODO(jos): skipped while implementing metadata model v2.0")
+@pytest.mark.skip(reason="TODO: while going to Metadata model v2")
 def test_happy_path(client: TestClient, mocked_privileged_token: Mock):
     keycloak_openid.userinfo = mocked_privileged_token
 

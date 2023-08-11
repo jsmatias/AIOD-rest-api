@@ -1,5 +1,5 @@
-from database.model.organisation.organisation import Organisation
-from routers import ResourceRouter
+from database.model.new.agent.organisation import Organisation
+from routers.resource_router import ResourceRouter
 
 
 class OrganisationRouter(ResourceRouter):

@@ -16,8 +16,6 @@ from starlette.responses import JSONResponse
 from authentication import get_current_user
 from config import KEYCLOAK_CONFIG
 from converters.schema_converters.schema_converter import SchemaConverter
-from database.model.agent import Agent
-from database.model.agent_table import AgentTable
 from database.model.ai_asset import AIAsset
 from database.model.ai_asset_table import AIAssetTable
 from database.model.platform.platform import Platform
@@ -356,9 +354,6 @@ class ResourceRouter(abc.ABC):
         if issubclass(self.resource_class, AIAsset):
             # example - datasets, publications, etc.
             parent = AIAssetTable(type=self.resource_class.__tablename__)
-        elif issubclass(self.resource_class, Agent):
-            # example - organisations
-            parent = AgentTable(type=self.resource_class.__tablename__)
         if parent:
             session.add(parent)
             session.flush()

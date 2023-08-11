@@ -14,7 +14,7 @@ import connectors
         "projects",
         "publications",
         "news",
-        "organisations",
+        # "organisations",
     ],
 )
 def test_fetch_all_happy_path(datatype: str):

@@ -57,7 +57,7 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         # TODO(Jos): describe what's going on here
         cls.__annotations__.update(AIResource.__annotations__)
         relationships = copy.deepcopy(AIResource.__sqlmodel_relationships__)
-        if cls.__tablename__ != "aiasset":
+        if cls.__tablename__ not in ("aiasset", "agent"):
             cls.update_relationships(relationships)
         cls.__sqlmodel_relationships__.update(relationships)
 
