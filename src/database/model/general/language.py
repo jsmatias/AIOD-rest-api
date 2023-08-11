@@ -10,12 +10,12 @@ if TYPE_CHECKING:  # avoid circular imports; only import while type checking
 from database.model.named_relation import NamedRelation
 
 
-class Language(NamedRelation, table=True):  # type: ignore [call-arg]
+class LanguageOld(NamedRelation, table=True):  # type: ignore [call-arg]
     """
     Keywords or tags used to describe some item
     """
 
-    __tablename__ = "language"
+    __tablename__ = "language_old"
 
     educational_resources: List["EducationalResource"] = Relationship(
         back_populates="languages", link_model=EducationalResourceLanguageLink

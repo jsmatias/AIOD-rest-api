@@ -14,7 +14,7 @@ from database.model.educational_resource.technical_categories_link import (
 )
 from database.model.general.business_category import BusinessCategory
 from database.model.general.keyword import KeywordOld
-from database.model.general.language import Language
+from database.model.general.language import LanguageOld
 from database.model.general.target_audience import TargetAudience
 from database.model.general.technical_category import TechnicalCategory
 from database.model.relationships import ResourceRelationshipList
@@ -93,7 +93,7 @@ class EducationalResourceBase(AIAsset):
 class EducationalResource(EducationalResourceBase, table=True):  # type: ignore [call-arg]
     __tablename__ = "educational_resource"
     identifier: int = Field(primary_key=True, foreign_key="ai_asset.identifier")
-    languages: List[Language] = Relationship(
+    languages: List[LanguageOld] = Relationship(
         back_populates="educational_resources", link_model=EducationalResourceLanguageLink
     )
     target_audience: List[TargetAudience] = Relationship(
@@ -114,7 +114,7 @@ class EducationalResource(EducationalResourceBase, table=True):  # type: ignore 
         languages: List[str] = ResourceRelationshipList(
             example=["language 1", "language 2"],
             serializer=AttributeSerializer("name"),
-            deserializer=FindByNameDeserializer(Language),
+            deserializer=FindByNameDeserializer(LanguageOld),
         )
         target_audience: List[str] = ResourceRelationshipList(
             example=["target audience 1", "target audience 2"],

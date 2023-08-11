@@ -11,4 +11,4 @@ class EducationalResourceLanguageLink(SQLModel, table=True):  # type: ignore [ca
             primary_key=True,
         )
     )
-    language_identifier: int = Field(foreign_key="language.identifier", primary_key=True)
+    language_identifier: int = Field(foreign_key="language_old.identifier", primary_key=True)
