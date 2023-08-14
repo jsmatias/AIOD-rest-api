@@ -45,6 +45,5 @@ def link_factory(table_from: str, table_to: str, table_prefix=None):
         )
         linked_identifier: int = Field(foreign_key=table_to + ".identifier", primary_key=True)
 
-    # Renaming the class. This is not necessary, but useful for debugging
     LinkTable.__name__ = LinkTable.__qualname__ = LinkTable.__tablename__
     return LinkTable

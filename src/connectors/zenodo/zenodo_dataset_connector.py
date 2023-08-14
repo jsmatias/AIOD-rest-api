@@ -5,9 +5,9 @@ from sickle import Sickle
 import xmltodict
 
 from connectors import ResourceConnector
-from database.model.dataset.dataset import Dataset
 from database.model.general.keyword import KeywordOld
 from database.model.general.license import LicenseOld
+from database.model.new.dataset.dataset import Dataset
 from database.model.platform.platform_names import PlatformName
 
 DATE_FORMAT = "%Y-%m-%d"

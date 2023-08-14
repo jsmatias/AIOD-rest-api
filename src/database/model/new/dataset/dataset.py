@@ -1,6 +1,6 @@
 from sqlmodel import Field
 
-from database.model.new.ai_asset.asset import AIAssetBase, AIAsset
+from database.model.new.ai_asset.ai_asset import AIAssetBase, AIAsset
 
 
 class DatasetBase(AIAssetBase):
@@ -9,8 +9,8 @@ class DatasetBase(AIAssetBase):
     )
 
 
-class DatasetNew(DatasetBase, AIAsset, table=True):  # type: ignore [call-arg]
-    __tablename__ = "dataset_new"
+class Dataset(DatasetBase, AIAsset, table=True):  # type: ignore [call-arg]
+    __tablename__ = "dataset"
 
     class RelationshipConfig(AIAsset.RelationshipConfig):
         pass

@@ -1,22 +1,15 @@
 from datetime import datetime
 from typing import Optional, List
-from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship
 
-from database.model.dataset.publication_link import DatasetPublicationLink
-from database.model.general.license import LicenseOld
+from database.model.ai_asset import AIAsset
 from database.model.general.resource_type import ResourceType
 from database.model.relationships import ResourceRelationshipList, ResourceRelationshipSingle
 from serialization import (
     AttributeSerializer,
     FindByNameDeserializer,
 )
-
-if TYPE_CHECKING:
-    from database.model.dataset.dataset import Dataset
-
-from database.model.ai_asset import AIAsset
 
 
 class PublicationBase(AIAsset):
@@ -38,17 +31,17 @@ class PublicationBase(AIAsset):
     )
 
 
-class Publication(PublicationBase, table=True):  # type: ignore [call-arg]
-    __tablename__ = "publication"
+class PublicationOld(PublicationBase, table=True):  # type: ignore [call-arg]
+    __tablename__ = "publication_old"
 
     identifier: int = Field(primary_key=True, foreign_key="ai_asset.identifier")
 
-    license_identifier: int | None = Field(foreign_key="license_old.identifier")
-    license: Optional[LicenseOld] = Relationship(back_populates="publications")
+    # license_identifier: int | None = Field(foreign_key="license_old.identifier")
+    # license: Optional[LicenseOld] = Relationship(back_populates="publications")
 
-    datasets: List["Dataset"] = Relationship(
-        back_populates="citations", link_model=DatasetPublicationLink
-    )
+    # datasets: List["DatasetOld"] = Relationship(
+    #     back_populates="citations", link_model=DatasetPublicationLink
+    # )
     resource_type_identifier: int | None = Field(foreign_key="resource_type.identifier")
     resource_type: Optional[ResourceType] = Relationship(back_populates="publications")
 
@@ -56,12 +49,12 @@ class Publication(PublicationBase, table=True):  # type: ignore [call-arg]
         datasets: List[int] = ResourceRelationshipList(
             serializer=AttributeSerializer("identifier"), example=[1]
         )
-        license: Optional[str] = ResourceRelationshipSingle(
-            identifier_name="license_identifier",
-            serializer=AttributeSerializer("name"),
-            deserializer=FindByNameDeserializer(LicenseOld),
-            example="https://creativecommons.org/share-your-work/public-domain/cc0/",
-        )
+        # license: Optional[str] = ResourceRelationshipSingle(
+        #     identifier_name="license_identifier",
+        #     serializer=AttributeSerializer("name"),
+        #     deserializer=FindByNameDeserializer(LicenseOld),
+        #     example="https://creativecommons.org/share-your-work/public-domain/cc0/",
+        # )
         resource_type: Optional[str] = ResourceRelationshipSingle(
             identifier_name="resource_type_identifier",
             serializer=AttributeSerializer("name"),

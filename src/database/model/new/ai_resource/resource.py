@@ -4,7 +4,7 @@ from typing import Any
 
 from sqlmodel import Field, Relationship
 
-from database.model.new.ai_asset.distribution import Distribution, distribution_for_table
+from database.model.new.ai_asset.distribution import Distribution, distribution_factory
 from database.model.new.ai_resource.alternate_name import AlternateName
 from database.model.new.ai_resource.application_area import ApplicationArea
 from database.model.new.ai_resource.industrial_sector import IndustrialSector
@@ -22,6 +22,11 @@ from serialization import (
     CastDeserializer,
     FindByIdentifierDeserializer,
 )
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from database.model.new.agent.person import Person
 
 
 class AIResourceBase(AIoDConceptBase, metaclass=abc.ABCMeta):
@@ -48,6 +53,8 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
     research_area: list[ResearchArea] = Relationship()
     scientific_domain: list[ScientificDomain] = Relationship()
 
+    contact: list["Person"] = Relationship()
+
     is_part_of: list[AIResourceTable] = Relationship()
     has_part: list[AIResourceTable] = Relationship()
 
@@ -57,7 +64,7 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         # TODO(Jos): describe what's going on here
         cls.__annotations__.update(AIResource.__annotations__)
         relationships = copy.deepcopy(AIResource.__sqlmodel_relationships__)
-        if cls.__tablename__ not in ("aiasset", "agent"):
+        if cls.__tablename__ not in ("aiasset", "agent", "knowledgeasset"):
             cls.update_relationships(relationships)
         cls.__sqlmodel_relationships__.update(relationships)
 
@@ -117,8 +124,13 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             example=["Anomaly Detection", "Voice Recognition", "Computer Vision."],
             default_factory_pydantic=list,
         )
-        # TODO(jos): documentedIn - KnowledgeAsset
-        # TODO(jos): contact - Person
+        # TODO(jos): documentedIn - KnowledgeAsset. This should probably be defined on ResourceTable
+        contact: list[int] = ResourceRelationshipList(
+            description="Links to identifiers of persons that can be contacted for this resource.",
+            serializer=AttributeSerializer("identifier"),
+            default_factory_pydantic=list,
+            example=[],
+        )
         # decided to remove Location here. What does it mean for e.g. a dataset to reside at an
         # address of at a geographical location?
         media: list[Distribution] = ResourceRelationshipList(
@@ -144,7 +156,7 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
 
     @classmethod
     def update_relationships(cls, relationships: dict[str, Any]):
-        distribution: Any = distribution_for_table(
+        distribution: Any = distribution_factory(
             table_from=cls.__tablename__, distribution_name="media"
         )
         cls.__annotations__["media"] = list[distribution]
@@ -161,6 +173,26 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         ):
             relationships[table_to].link_model = link_factory(
                 table_from=cls.__tablename__, table_to=table_to
+            )
+        relationships["contact"].link_model = link_factory(
+            table_from=cls.__tablename__,
+            table_to="person",
+            table_prefix="contact",
+        )
+
+        if cls.__tablename__ == "person":
+
+            def get_identifier():
+                from database.model.new.agent.person import Person
+
+                return Person.identifier
+
+            relationships["contact"].sa_relationship_kwargs = dict(
+                primaryjoin=lambda: get_identifier()
+                == relationships["contact"].link_model.from_identifier,
+                secondaryjoin=lambda: get_identifier()
+                == relationships["contact"].link_model.linked_identifier,
+                cascade="all, delete",
             )
         relationships["has_part"].link_model = link_factory(
             table_from=cls.__tablename__,

@@ -6,16 +6,34 @@ from unittest.mock import Mock
 import dateutil.parser
 import pytz
 from sqlalchemy.engine import Engine
+from sqlmodel import Session
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
+from database.model.new.agent.person import Person
+from database.model.new.knowledge_asset.publication import Publication
 
 
 def test_happy_path(
-    client: TestClient, engine: Engine, mocked_privileged_token: Mock, body_asset: dict
+    client: TestClient,
+    engine: Engine,
+    mocked_privileged_token: Mock,
+    body_asset: dict,
+    person: Person,
+    publication: Publication,
 ):
     keycloak_openid.userinfo = mocked_privileged_token
-    body = copy.copy(body_asset)
+
+    with Session(engine) as session:
+        session.add(person)
+        session.merge(publication)
+        session.commit()
+
+    body = copy.deepcopy(body_asset)
+    body["aiod_entry"]["editor"] = [1]
+    body["contact"] = [1]
+    body["creator"] = [1]
+    body["citation"] = [1]
 
     datetime_create_request = datetime.utcnow().replace(tzinfo=pytz.utc)
     response = client.post("/datasets/v0", json=body, headers={"Authorization": "Fake token"})
@@ -26,11 +44,12 @@ def test_happy_path(
 
     response_json = response.json()
     assert response_json["identifier"] == 1
-    assert response_json["resource_identifier"] == 1
-    assert response_json["asset_identifier"] == 1
+    assert response_json["resource_identifier"] == 3
+    assert response_json["asset_identifier"] == 2
 
     assert response_json["aiod_entry"]["platform"] == "example"
     assert response_json["aiod_entry"]["platform_identifier"] == "1"
+    assert response_json["aiod_entry"]["editor"] == [1]
     assert response_json["aiod_entry"]["status"] == "draft"
     date_created = dateutil.parser.parse(response_json["aiod_entry"]["date_created"] + "Z")
     date_modified = dateutil.parser.parse(response_json["aiod_entry"]["date_modified"] + "Z")
@@ -46,13 +65,16 @@ def test_happy_path(
     assert response_json["industrial_sector"] == ["eCommerce"]
     assert response_json["research_area"] == ["Explainable AI"]
     assert response_json["scientific_domain"] == ["Voice Recognition"]
+    assert response_json["contact"] == [1]
+    assert response_json["creator"] == [1]
+    assert response_json["citation"] == [1]
 
     (media,) = response_json["media"]
     assert media["name"] == "Resource logo"
     assert media["content_url"] == "https://www.example.com/resource.png"
 
     (distribution,) = response_json["distribution"]
-    assert distribution["name"] == "downloadable instance of this resource"
+    assert distribution["name"] == "resource.pdf"
     assert distribution["content_url"] == "https://www.example.com/resource.pdf"
 
     assert response_json["date_published"] == "2022-01-01T15:15:00"
@@ -77,8 +99,8 @@ def test_happy_path(
     response = client.get("/datasets/v0/1")
     response_json = response.json()
     assert response_json["identifier"] == 1
-    assert response_json["resource_identifier"] == 1
-    assert response_json["asset_identifier"] == 1
+    assert response_json["resource_identifier"] == 3
+    assert response_json["asset_identifier"] == 2
 
     date_created = dateutil.parser.parse(response_json["aiod_entry"]["date_created"] + "Z")
     date_modified = dateutil.parser.parse(response_json["aiod_entry"]["date_modified"] + "Z")

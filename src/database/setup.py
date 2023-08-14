@@ -12,11 +12,11 @@ from sqlmodel import create_engine, Session, select, SQLModel
 import routers
 from connectors import ResourceConnector
 from connectors.resource_with_relations import ResourceWithRelations
-from database.model.dataset.dataset import Dataset
+from database.model.new.dataset.dataset import Dataset
+from database.model.new.knowledge_asset.publication import Publication
 from database.model.platform.platform import Platform
-from database.model.publication.publication import Publication
-from database.model.resource import Resource
 from database.model.platform.platform_names import PlatformName
+from database.model.resource import Resource
 
 
 def connect_to_database(

@@ -1,21 +1,20 @@
-from database.model.new.dataset.dataset import DatasetNew
-
+from database.model.new.service.service import Service
 from routers.resource_router import ResourceRouter
 
 
-class DatasetRouterNew(ResourceRouter):
+class ServiceRouter(ResourceRouter):
     @property
     def version(self) -> int:
         return 0
 
     @property
     def resource_name(self) -> str:
-        return "dataset"
+        return "service"
 
     @property
     def resource_name_plural(self) -> str:
-        return "datasets"
+        return "services"
 
     @property
-    def resource_class(self) -> type[DatasetNew]:
-        return DatasetNew
+    def resource_class(self) -> type[Service]:
+        return Service

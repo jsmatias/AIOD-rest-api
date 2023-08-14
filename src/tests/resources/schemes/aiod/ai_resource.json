@@ -9,6 +9,9 @@
     "industrial_sector": ["eCommerce"],
     "research_area": ["Explainable AI"],
     "scientific_domain": ["Voice Recognition"],
+
+    "contact": [],
+
     "media": [
         {
             "name": "Resource logo",

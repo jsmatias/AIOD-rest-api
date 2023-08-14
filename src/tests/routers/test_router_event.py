@@ -7,8 +7,8 @@ from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
 from database.model.ai_asset_table import AIAssetTable
-from database.model.dataset.dataset import Dataset
 from database.model.event.event import Event
+from database.model.new.dataset.dataset import Dataset
 
 
 @pytest.mark.skip(reason="TODO: while going to Metadata model v2")

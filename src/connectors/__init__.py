@@ -8,7 +8,7 @@ from database.model.event.event import Event
 from database.model.news.news import News
 from database.model.presentation.presentation import Presentation
 from database.model.project.project import Project
-from database.model.publication.publication import Publication
+from database.model.publication.publication import PublicationOld
 from .abstract.resource_connector import ResourceConnector  # noqa:F401
 from .example.example_connector import ExampleConnector
 from .example.example_dataset_connector import ExampleDatasetConnector
@@ -51,7 +51,7 @@ example_connectors = {
         resource_class=Project, json_path=_path_example_resources / "projects.json"
     ),
     "publications": ExampleConnector(
-        resource_class=Publication, json_path=_path_example_resources / "publications.json"
+        resource_class=PublicationOld, json_path=_path_example_resources / "publications.json"
     ),
     # "organisations": ExampleConnector(
     #     resource_class=OrganisationOld, json_path=_path_example_resources / "organisations.json"

@@ -1,12 +1,17 @@
 from datetime import datetime
 
 from sqlmodel import SQLModel, Field, Relationship
-
 from database.model.new.concept.status import Status
 from database.model.new.field_length import SHORT, NORMAL
 from database.model.platform.platform_names import PlatformName
-from database.model.relationships import ResourceRelationshipSingle
+from database.model.relationships import ResourceRelationshipSingle, ResourceRelationshipList
 from serialization import AttributeSerializer, FindByNameDeserializer, create_getter_dict
+
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from database.model.new.agent.person import Person
 
 
 class AIoDEntryBase(SQLModel):
@@ -41,7 +46,6 @@ class AIoDEntryBase(SQLModel):
         default_factory=datetime.utcnow,
         schema_extra={"example": "2022-01-01T15:15:00.000"},
     )
-    # TODO(jos): editor --> Person
 
 
 class AIoDEntryORM(AIoDEntryBase, table=True):  # type: ignore [call-arg]
@@ -51,10 +55,12 @@ class AIoDEntryORM(AIoDEntryBase, table=True):  # type: ignore [call-arg]
     __tablename__ = "aiod_entry"
 
     identifier: int = Field(default=None, primary_key=True)
+    editor: list["Person"] = Relationship()
     status_identifier: int | None = Field(foreign_key=Status.__tablename__ + ".identifier")
     status: Status = Relationship()
 
     class RelationshipConfig:
+        editor: list[int] = ResourceRelationshipList()
         status: str = ResourceRelationshipSingle(
             example="draft",
             identifier_name="status_identifier",
@@ -63,10 +69,16 @@ class AIoDEntryORM(AIoDEntryBase, table=True):  # type: ignore [call-arg]
 
 
 class AIoDEntry(AIoDEntryBase):
+    editor: list[int] = Field(
+        description="Links to identifiers of persons responsible for maintaining the entry.",
+        default_factory=list,
+    )
     status: str = Field(
         description="Status of the entry (published, draft, rejected)",
         schema_extra={"example": "draft"},
     )
 
     class Config:
-        getter_dict = create_getter_dict({"status": AttributeSerializer("name")})
+        getter_dict = create_getter_dict(
+            {"editor": AttributeSerializer("identifier"), "status": AttributeSerializer("name")}
+        )

@@ -16,8 +16,6 @@ from starlette.responses import JSONResponse
 from authentication import get_current_user
 from config import KEYCLOAK_CONFIG
 from converters.schema_converters.schema_converter import SchemaConverter
-from database.model.ai_asset import AIAsset
-from database.model.ai_asset_table import AIAssetTable
 from database.model.platform.platform import Platform
 from database.model.platform.platform_names import PlatformName
 from database.model.resource import (
@@ -350,18 +348,7 @@ class ResourceRouter(abc.ABC):
 
     def create_resource(self, session: Session, resource_create_instance: SQLModel):
         # Store a resource in the database
-        parent = None
-        if issubclass(self.resource_class, AIAsset):
-            # example - datasets, publications, etc.
-            parent = AIAssetTable(type=self.resource_class.__tablename__)
-        if parent:
-            session.add(parent)
-            session.flush()
-            resource = self.resource_class.from_orm(
-                resource_create_instance, update={"identifier": parent.identifier}
-            )
-        else:
-            resource = self.resource_class.from_orm(resource_create_instance)
+        resource = self.resource_class.from_orm(resource_create_instance)
 
         deserialize_resource_relationships(
             session, self.resource_class, resource, resource_create_instance

@@ -10,8 +10,10 @@ import pytest
 from sqlalchemy.engine import Engine
 from sqlmodel import Session
 
-from database.model.dataset.dataset import Dataset
 from database.model.new.agent.organisation import Organisation
+from database.model.new.agent.person import Person
+from database.model.new.dataset.dataset import Dataset
+from database.model.new.knowledge_asset.publication import Publication
 from database.model.resource import resource_create
 from serialization import deserialize_resource_relationships
 from tests.testutils.paths import path_test_resources
@@ -50,18 +52,37 @@ def body_agent(body_resource: dict) -> dict:
     return body
 
 
-@pytest.fixture(scope="session")
-def dataset() -> Dataset:
-    raise NotImplementedError()
+@pytest.fixture
+def publication(body_asset: dict, engine: Engine) -> Publication:
+    body = copy.copy(body_asset)
+    body["permanent_identifier"] = "http://dx.doi.org/10.1093/ajae/aaq063"
+    body["isbn"] = "9783161484100"
+    body["issn"] = "20493630"
+    body["type"] = "journal"
+    return _create_class_with_body(Publication, body, engine)
 
 
-@pytest.fixture()
+@pytest.fixture
+def dataset(body_asset: dict, engine: Engine) -> Dataset:
+    body = copy.copy(body_asset)
+    return _create_class_with_body(Dataset, body, engine)
+
+
+@pytest.fixture
 def organisation(body_agent, engine: Engine) -> Organisation:
     body = copy.copy(body_agent)
     body["date_founded"] = "2022-01-01"
     body["legal_name"] = "Legal Name"
     body["ai_relevance"] = "Description of relevance in AI"
     return _create_class_with_body(Organisation, body, engine)
+
+
+@pytest.fixture
+def person(body_agent, engine: Engine) -> Person:
+    body = copy.copy(body_agent)
+    body["expertise"] = ["machine learning"]
+    body["language"] = ["eng", "nld"]
+    return _create_class_with_body(Person, body, engine)
 
 
 def _create_class_with_body(clz, body: dict, engine: Engine):

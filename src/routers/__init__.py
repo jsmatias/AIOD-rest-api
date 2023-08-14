@@ -1,19 +1,19 @@
 import typing  # noqa:F401
 
-from .dataset_router_new import DatasetRouterNew
+from .dataset_router import DatasetRouter
 from .organisation_router import OrganisationRouter
 from .person_router import PersonRouter
 from .platform_router import PlatformRouter
 from .publication_router import PublicationRouter
 from .resource_router import ResourceRouter  # noqa:F401
+from .service_router import ServiceRouter
 from .upload_router_huggingface import UploadRouterHuggingface
 
 resource_routers = [
     PlatformRouter(),
-    DatasetRouterNew(),
     # CaseStudyRouter(),
     # ComputationalResourceRouter(),
-    # DatasetRouter(),
+    DatasetRouter(),
     # EducationalResourceRouter(),
     # EventRouter(),
     # NewsRouter(),
@@ -22,6 +22,7 @@ resource_routers = [
     PublicationRouter(),
     # ProjectRouter(),
     # PresentationRouter(),
+    ServiceRouter(),
 ]  # type: typing.List[ResourceRouter]
 
 other_routers = [UploadRouterHuggingface()]

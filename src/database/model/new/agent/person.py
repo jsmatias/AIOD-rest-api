@@ -3,9 +3,11 @@ from sqlmodel import Relationship
 from database.model.new.agent.agent import AgentBase, Agent
 from database.model.new.agent.expertise import Expertise
 from database.model.new.agent.language import Language
+from database.model.new.ai_resource.resource import AIResource
+from database.model.new.concept.aiod_entry import AIoDEntryORM
 from database.model.new.helper_functions import link_factory
 from database.model.relationships import ResourceRelationshipList
-from serialization import AttributeSerializer, FindByNameDeserializer
+from serialization import AttributeSerializer, FindByNameDeserializer, FindByIdentifierDeserializer
 
 
 class PersonBase(AgentBase):
@@ -38,3 +40,8 @@ class Person(PersonBase, Agent, table=True):  # type: ignore [call-arg]
             example=["eng", "fra", "spa"],
             default_factory_pydantic=list,
         )
+
+
+deserializer = FindByIdentifierDeserializer(Person)
+AIResource.RelationshipConfig.contact.deserializer = deserializer  # type: ignore
+AIoDEntryORM.RelationshipConfig.editor.deserializer = deserializer  # type: ignore
