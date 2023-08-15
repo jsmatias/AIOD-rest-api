@@ -26,7 +26,7 @@ class PublicationBase(KnowledgeAssetBase):
         schema_extra={"example": "9783161484100"},
     )
     issn: str | None = Field(
-        description="The International Standard Serial Number, ISSN, an identifer for serial "
+        description="The International Standard Serial Number, ISSN, an identifier for serial "
         "publications.",
         min_length=8,
         max_length=8,

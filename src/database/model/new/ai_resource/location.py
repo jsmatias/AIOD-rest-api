@@ -2,36 +2,9 @@ from typing import Optional
 
 from sqlmodel import SQLModel, Field, Relationship
 
-from database.model.new.ai_resource.country import Country
 from database.model.new.field_length import NORMAL, SHORT
 from database.model.relationships import ResourceRelationshipSingle
-from serialization import AttributeSerializer, FindByNameDeserializer
-
-
-# TODO(jos) --> this is not tested yet
-
-
-class LocationBase(SQLModel):
-    pass
-
-
-class LocationORM(LocationBase, table=True):  # type: ignore [call-arg]
-    __tablename__ = "location"
-
-    identifier: int | None = Field(primary_key=True)
-    address_identifier: int | None = Field(foreign_key="address.identifier")
-    address: Optional["AddressORM"] = Relationship(
-        sa_relationship_kwargs={"cascade": "all, delete"}
-    )
-    geo_identifier: int | None = Field(foreign_key="geo.identifier")
-    geo: Optional["GeoORM"] = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
-
-
-class Location(LocationBase):
-    """A physical location"""
-
-    address: Optional["Address"] = Field(default=None)
-    geo: Optional["Geo"] = Field(default=None)
+from serialization import CastDeserializer
 
 
 class GeoBase(SQLModel):
@@ -64,7 +37,7 @@ class Geo(GeoBase):
 
 class AddressBase(SQLModel):
     region: str | None = Field(
-        description="A subdivision of the country. Not necessary for most " "countries. ",
+        description="A subdivision of the country. Not necessary for most countries. ",
         max_length=NORMAL,
         default=None,
         schema_extra={"example": "California"},
@@ -95,6 +68,13 @@ class AddressBase(SQLModel):
         max_length=NORMAL,
         schema_extra={"example": "Wetstraat 170, 1040 Brussel"},
     )
+    country: str | None = Field(
+        default=None,
+        description="The country as ISO 3166-1 alpha-3",
+        schema_extra={"example": "BEL"},
+        min_length=3,
+        max_length=3,
+    )
 
 
 class AddressORM(AddressBase, table=True):  # type: ignore [call-arg]
@@ -102,26 +82,62 @@ class AddressORM(AddressBase, table=True):  # type: ignore [call-arg]
 
     identifier: int | None = Field(primary_key=True)
 
-    country_identifier: int | None = Field(foreign_key="license.identifier")
-    country: Optional[Country] = Relationship(
-        back_populates="address", sa_relationship_kwargs={"cascade": "all, delete"}
-    )
+    # TODO(jos): make country an enum. This is difficult though, because deserialization isn't
+    #  working on non-main entities
+    # country_identifier: int | None = Field(foreign_key=Country.__tablename__ + ".identifier")
+    # country: Optional[Country] = Relationship(
+    #     back_populates="addresses", sa_relationship_kwargs={"cascade": "all, delete"}
+    # )
 
-    class RelationshipConfig:
-        country: Optional[str] = ResourceRelationshipSingle(
-            identifier_name="country_identifier",
-            serializer=AttributeSerializer("name"),
-            deserializer=FindByNameDeserializer(Country),
-        )
+    # class RelationshipConfig:
+    #     country: Optional[str] = ResourceRelationshipSingle(
+    #         example="BEL",
+    #         identifier_name="country_identifier",
+    #         deserializer=FindByNameDeserializer(Country),
+    #     )
 
 
 class Address(AddressBase):
     """A postal address"""
 
-    country: Country = Field(
-        default=None,
-        description="The country as ISO 3166-1 alpha-3",
-        max_length=3,
-        min_length=3,
-        schema_extra={"example": "BEL"},
+    # country: Optional[Country] = Field(
+    #     default=None,
+    #     description="The country as ISO 3166-1 alpha-3",
+    #     schema_extra={"example": "BEL"},
+    # )
+
+    # class Config:
+    #     getter_dict = create_getter_dict(
+    #         {"country": AttributeSerializer("name")}
+    #     )
+
+
+class LocationBase(SQLModel):
+    pass
+
+
+class LocationORM(LocationBase, table=True):  # type: ignore [call-arg]
+    __tablename__ = "location"
+
+    identifier: int | None = Field(primary_key=True)
+    address_identifier: int | None = Field(foreign_key="address.identifier")
+    address: Optional["AddressORM"] = Relationship(
+        sa_relationship_kwargs={"cascade": "all, delete"}
     )
+    geo_identifier: int | None = Field(foreign_key="geo.identifier")
+    geo: Optional["GeoORM"] = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
+
+    class RelationshipConfig:
+        address: Optional[Address] = ResourceRelationshipSingle(
+            deserializer=CastDeserializer(AddressORM),
+        )
+        geo: Optional[Geo] = ResourceRelationshipSingle(
+            deserializer=CastDeserializer(GeoORM),
+        )
+
+
+class Location(LocationBase):
+    """A physical location"""
+
+    address: Optional["Address"] = Field(default=None)
+    geo: Optional["Geo"] = Field(default=None)
