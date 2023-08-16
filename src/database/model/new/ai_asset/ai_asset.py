@@ -90,7 +90,7 @@ class AIAsset(AIAssetBase, AIResource, metaclass=abc.ABCMeta):
 
         factory = (
             distribution_factory
-            if cls.__tablename__ != "ml_model"
+            if cls.__tablename__ not in ("ml_model", "experiment")
             else runnable_distribution_factory
         )
         distribution: Any = factory(table_from=cls.__tablename__)
