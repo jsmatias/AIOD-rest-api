@@ -67,5 +67,3 @@ def distribution_factory(table_from: str, distribution_name="distribution") -> T
 
 class Distribution(DistributionBase):
     """All or part of an AIAsset in downloadable form"""
-
-    pass

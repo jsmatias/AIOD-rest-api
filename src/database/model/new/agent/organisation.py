@@ -33,10 +33,8 @@ class OrganisationBase(AgentBase):
 class Organisation(OrganisationBase, Agent, table=True):  # type: ignore [call-arg]
     __tablename__ = "organisation"
 
-    organisation_type_identifier: int | None = Field(
-        foreign_key=OrganisationType.__tablename__ + ".identifier"
-    )
-    organisation_type: Optional[OrganisationType] = Relationship()
+    type_identifier: int | None = Field(foreign_key=OrganisationType.__tablename__ + ".identifier")
+    type: Optional[OrganisationType] = Relationship()
 
     member: list[AgentTable] = Relationship(
         sa_relationship_kwargs={"cascade": "all, delete"},
@@ -44,9 +42,9 @@ class Organisation(OrganisationBase, Agent, table=True):  # type: ignore [call-a
     )
 
     class RelationshipConfig(Agent.RelationshipConfig):
-        organisation_type: Optional[str] = ResourceRelationshipSingle(
+        type: Optional[str] = ResourceRelationshipSingle(
             description="The type of organisation.",
-            identifier_name="organisation_type_identifier",
+            identifier_name="type_identifier",
             serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(OrganisationType),
             example=["Research Institution"],

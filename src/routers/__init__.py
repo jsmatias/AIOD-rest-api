@@ -1,6 +1,7 @@
 import typing  # noqa:F401
 
 from .dataset_router import DatasetRouter
+from .ml_model_router import MLModelRouter
 from .organisation_router import OrganisationRouter
 from .person_router import PersonRouter
 from .platform_router import PlatformRouter
@@ -16,6 +17,7 @@ resource_routers = [
     DatasetRouter(),
     # EducationalResourceRouter(),
     # EventRouter(),
+    MLModelRouter(),
     # NewsRouter(),
     OrganisationRouter(),
     PersonRouter(),

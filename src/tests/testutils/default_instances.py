@@ -13,6 +13,7 @@ from sqlmodel import Session
 from database.model.new.agent.organisation import Organisation
 from database.model.new.agent.person import Person
 from database.model.new.dataset.dataset import Dataset
+from database.model.new.models_and_experiments.experiment import Experiment
 from database.model.new.knowledge_asset.publication import Publication
 from database.model.resource import resource_create
 from serialization import deserialize_resource_relationships
@@ -83,6 +84,12 @@ def person(body_agent, engine: Engine) -> Person:
     body["expertise"] = ["machine learning"]
     body["language"] = ["eng", "nld"]
     return _create_class_with_body(Person, body, engine)
+
+
+@pytest.fixture
+def experiment(body_asset, engine: Engine) -> Experiment:
+    body = copy.copy(body_asset)
+    return _create_class_with_body(Experiment, body, engine)
 
 
 def _create_class_with_body(clz, body: dict, engine: Engine):

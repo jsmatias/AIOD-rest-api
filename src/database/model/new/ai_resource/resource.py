@@ -9,6 +9,7 @@ from database.model.new.ai_resource.alternate_name import AlternateName
 from database.model.new.ai_resource.application_area import ApplicationArea
 from database.model.new.ai_resource.industrial_sector import IndustrialSector
 from database.model.new.ai_resource.keyword import Keyword
+from database.model.new.ai_resource.note import Note
 from database.model.new.ai_resource.research_area import ResearchArea
 from database.model.new.ai_resource.resource_table import AIResourceTable
 from database.model.new.ai_resource.scientific_domain import ScientificDomain
@@ -59,6 +60,7 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
     has_part: list[AIResourceTable] = Relationship()
 
     media: list = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
+    note: list[Note] = Relationship()
 
     def __init_subclass__(cls):
         # TODO(Jos): describe what's going on here
@@ -137,6 +139,13 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             description="Images or videos depicting the resource or associated with it. ",
             default_factory_pydantic=list,
         )
+        note: list[str] = ResourceRelationshipList(
+            description="Notes on this AI resource.",
+            default_factory_pydantic=list,
+            serializer=AttributeSerializer("name"),
+            deserializer=FindByNameDeserializer(Note),
+            example=["A brief record of points or ideas about this AI resource."],
+        )
 
         is_part_of: list[int] = ResourceRelationshipList(
             description="Links to identifiers of parent resources, which include this resource.",
@@ -170,6 +179,7 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             "industrial_sector",
             "research_area",
             "scientific_domain",
+            "note",
         ):
             relationships[table_to].link_model = link_factory(
                 table_from=cls.__tablename__, table_to=table_to

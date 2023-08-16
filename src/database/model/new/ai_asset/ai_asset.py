@@ -13,6 +13,9 @@ from database.model.new.ai_asset.license import License
 from database.model.new.ai_resource.resource import AIResourceBase, AIResource
 from database.model.new.field_length import NORMAL
 from database.model.new.helper_functions import link_factory
+from database.model.new.models_and_experiments.runnable_distribution import (
+    runnable_distribution_factory,
+)
 from database.model.relationships import ResourceRelationshipSingle, ResourceRelationshipList
 from serialization import (
     AttributeSerializer,
@@ -84,11 +87,18 @@ class AIAsset(AIAssetBase, AIResource, metaclass=abc.ABCMeta):
     @classmethod
     def update_relationships_asset(cls, relationships: dict):
         cls.update_relationships(relationships)
-        distribution: Any = distribution_factory(table_from=cls.__tablename__)
+
+        factory = (
+            distribution_factory
+            if cls.__tablename__ != "ml_model"
+            else runnable_distribution_factory
+        )
+        distribution: Any = factory(table_from=cls.__tablename__)
         cls.__annotations__["distribution"] = list[distribution]
         cls.RelationshipConfig.distribution = copy.copy(AIAsset.RelationshipConfig.distribution)
         deserializer = CastDeserializer(distribution)
         cls.RelationshipConfig.distribution.deserializer = deserializer  # type: ignore
+
         relationships["creator"].link_model = link_factory(
             table_from=cls.__tablename__,
             table_to="person",

@@ -1,6 +1,7 @@
 import sqlite3
 import tempfile
 from typing import Iterator
+from unittest.mock import Mock
 
 import pytest
 from fastapi import FastAPI
@@ -14,7 +15,6 @@ from database.model.platform.platform import Platform
 from database.model.platform.platform_names import PlatformName
 from main import add_routes
 from tests.testutils.test_resource import RouterTestResource, TestResource
-from unittest.mock import Mock
 
 
 @pytest.fixture(scope="session")
