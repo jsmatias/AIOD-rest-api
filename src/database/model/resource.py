@@ -1,54 +1,17 @@
 from typing import Type, Tuple
 
 from pydantic import create_model
-from sqlalchemy import CheckConstraint
-from sqlalchemy.util import classproperty
-from sqlmodel import SQLModel, Field, UniqueConstraint
+from sqlmodel import SQLModel, Field
 from sqlmodel.main import FieldInfo
 
-from database.model.new.helper_functions import get_relationships, all_annotations
+from database.model.concept.concept import AIoDConcept
+from database.model.helper_functions import get_relationships, all_annotations
 from database.model.relationships import ResourceRelationshipInfo
 from serialization import create_getter_dict
-from database.model.platform.platform_names import PlatformName
-
-
-class Resource(SQLModel):
-    """Every top-level class in our API, meaning every class that can be directly accessed
-    through a route, should inherit from `Resource`."""
-
-    platform: str | None = Field(
-        default=None,
-        description="The external platform on which this item can be "
-        "found. Leave empty if this item originates from "
-        "AIoD. If platform is not None, "
-        "the platform_identifier should be set as well.",
-        schema_extra={"example": PlatformName.zenodo},
-        foreign_key="platform.name",
-    )
-    platform_identifier: str | None = Field(
-        description="A unique identifier issued by the external platform that's specified in "
-        "'platform'. Leave empty if this item is not part of an external platform.",
-        default=None,
-        schema_extra={"example": "1"},
-    )
-
-    @classproperty
-    def __table_args__(cls) -> Tuple:
-        return (
-            UniqueConstraint(
-                "platform",
-                "platform_identifier",
-                name="same_platform_and_platform_identifier",
-            ),
-            CheckConstraint(
-                "(platform IS NULL) <> (platform_identifier IS NOT NULL)",
-                name=f"{cls.__name__}_platform_xnor_platform_id_null",
-            ),
-        )
 
 
 def _get_field_definitions(
-    resource_class: Type[Resource],
+    resource_class: Type[AIoDConcept],
     relationships: dict[str, ResourceRelationshipInfo],
     filter_create: bool = False,
 ) -> dict[str, Tuple[Type, FieldInfo]]:
@@ -64,7 +27,7 @@ def _get_field_definitions(
     }
 
 
-def resource_create(resource_class: Type[Resource]) -> Type[SQLModel]:
+def resource_create(resource_class: Type[AIoDConcept]) -> Type[SQLModel]:
     """
     Create a SQLModel for a Create class of a resource. This Create class is a Pydantic class
     that can be used for POST and PUT requests (and thus has no identifier), and is not backed by a
@@ -85,7 +48,7 @@ def resource_create(resource_class: Type[Resource]) -> Type[SQLModel]:
     return model
 
 
-def resource_read(resource_class: Type[Resource]) -> Type[SQLModel]:
+def resource_read(resource_class: Type[AIoDConcept]) -> Type[SQLModel]:
     """
     Create a SQLModel for a Read class of a resource. This Read class is a Pydantic class
     that can be used for GET requests (and thus has a required identifier), and is not backed by a

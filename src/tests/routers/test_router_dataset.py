@@ -6,7 +6,7 @@ from sqlmodel import Session
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
-from database.model.new.agent.person import Person
+from database.model.agent.person import Person
 
 
 def test_happy_path(

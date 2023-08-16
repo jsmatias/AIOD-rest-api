@@ -1,4 +1,4 @@
-from database.model.new.models_and_experiments.ml_model import MLModel
+from database.model.models_and_experiments.ml_model import MLModel
 from routers.resource_router import ResourceRouter
 
 

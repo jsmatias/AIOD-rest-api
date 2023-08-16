@@ -10,14 +10,20 @@ import pytest
 from sqlalchemy.engine import Engine
 from sqlmodel import Session
 
-from database.model.new.agent.organisation import Organisation
-from database.model.new.agent.person import Person
-from database.model.new.dataset.dataset import Dataset
-from database.model.new.models_and_experiments.experiment import Experiment
-from database.model.new.knowledge_asset.publication import Publication
+from database.model.agent.organisation import Organisation
+from database.model.agent.person import Person
+from database.model.concept.status import Status
+from database.model.dataset.dataset import Dataset
+from database.model.models_and_experiments.experiment import Experiment
+from database.model.knowledge_asset.publication import Publication
 from database.model.resource import resource_create
 from serialization import deserialize_resource_relationships
 from tests.testutils.paths import path_test_resources
+
+
+@pytest.fixture
+def draft() -> Status:
+    return Status(name="draft")
 
 
 @pytest.fixture(scope="session")

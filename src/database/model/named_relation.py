@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, Field
 
-from database.model.new.field_length import NORMAL
+from database.model.field_length import NORMAL
 
 
 class NamedRelation(SQLModel):

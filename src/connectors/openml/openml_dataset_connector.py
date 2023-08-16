@@ -11,8 +11,8 @@ from fastapi import HTTPException
 from sqlmodel import SQLModel
 
 from connectors.abstract.resource_connector import ResourceConnector
-from database.model.new.ai_asset.distribution import Distribution
-from database.model.new.dataset.dataset import Dataset
+from database.model.ai_asset.distribution import Distribution
+from database.model.dataset.dataset import Dataset
 from database.model.resource import resource_create
 from database.model.platform.platform_names import PlatformName
 

@@ -1,4 +1,4 @@
-from database.model.new.dataset.dataset import Dataset
+from database.model.dataset.dataset import Dataset
 
 from routers.resource_router import ResourceRouter
 

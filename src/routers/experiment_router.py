@@ -1,4 +1,4 @@
-from database.model.new.models_and_experiments.experiment import Experiment
+from database.model.models_and_experiments.experiment import Experiment
 from routers.resource_router import ResourceRouter
 
 

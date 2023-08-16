@@ -14,7 +14,7 @@ from converters.schema.dcat import (
     DctPeriodOfTime,
 )
 from converters.schema_converters.schema_converter import SchemaConverter
-from database.model.new.dataset.dataset import Dataset
+from database.model.dataset.dataset import Dataset
 
 
 class DatasetConverterDcatAP(SchemaConverter[Dataset, DcatApWrapper]):

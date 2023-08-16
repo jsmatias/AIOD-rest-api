@@ -1,4 +1,4 @@
-from database.model.new.knowledge_asset.publication import Publication
+from database.model.knowledge_asset.publication import Publication
 from routers.resource_router import ResourceRouter
 
 

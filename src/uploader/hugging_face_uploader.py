@@ -6,7 +6,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import joinedload
 from sqlmodel import Session
 
-from database.model.new.dataset.dataset import Dataset
+from database.model.dataset.dataset import Dataset
 from .utils import huggingface_license_identifiers
 
 

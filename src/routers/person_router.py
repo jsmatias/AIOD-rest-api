@@ -1,4 +1,4 @@
-from database.model.new.agent.person import Person
+from database.model.agent.person import Person
 from routers.resource_router import ResourceRouter
 
 

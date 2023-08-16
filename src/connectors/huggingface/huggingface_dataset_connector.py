@@ -9,9 +9,9 @@ import requests
 
 from connectors import ResourceConnector
 from connectors.resource_with_relations import ResourceWithRelations
-from database.model.new.ai_asset.distribution import Distribution
-from database.model.new.dataset.dataset import Dataset
-from database.model.new.knowledge_asset.publication import Publication
+from database.model.ai_asset.distribution import Distribution
+from database.model.dataset.dataset import Dataset
+from database.model.knowledge_asset.publication import Publication
 from database.model.platform.platform_names import PlatformName
 from database.model.resource import resource_create
 

@@ -5,7 +5,7 @@ from sqlalchemy.engine import Engine
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
-from database.model.new.dataset.dataset import Dataset
+from database.model.dataset.dataset import Dataset
 
 
 def test_happy_path(

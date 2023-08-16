@@ -1,4 +1,4 @@
-from database.model.new.service.service import Service
+from database.model.service.service import Service
 from routers.resource_router import ResourceRouter
 
 

@@ -1,4 +1,4 @@
-from database.model.new.agent.organisation import Organisation
+from database.model.agent.organisation import Organisation
 from routers.resource_router import ResourceRouter
 
 

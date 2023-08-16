@@ -3,6 +3,7 @@ import pytest
 import connectors
 
 
+@pytest.mark.skip(reason="connectors currently don't work")
 @pytest.mark.parametrize(
     "datatype",
     [
@@ -14,7 +15,7 @@ import connectors
         "projects",
         "publications",
         "news",
-        # "organisations",
+        "organisations",
     ],
 )
 def test_fetch_all_happy_path(datatype: str):

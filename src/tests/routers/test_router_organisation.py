@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
-from database.model.new.agent.organisation import Organisation
+from database.model.agent.organisation import Organisation
 
 
 def test_happy_path(

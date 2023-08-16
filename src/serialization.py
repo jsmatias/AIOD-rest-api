@@ -8,7 +8,7 @@ from sqlmodel import SQLModel, Session, select
 from starlette.status import HTTP_404_NOT_FOUND
 
 from database.model.named_relation import NamedRelation
-from database.model.new.helper_functions import get_relationships
+from database.model.helper_functions import get_relationships
 
 MODEL = TypeVar("MODEL", bound=SQLModel)
 

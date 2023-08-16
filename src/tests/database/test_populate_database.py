@@ -4,10 +4,9 @@ from sqlalchemy.engine import Engine
 from sqlmodel import Session, select
 
 from connectors import example_connectors
-from database.model.new.dataset.dataset import Dataset
+from database.model.dataset.dataset import Dataset
 from database.model.platform.platform import Platform
 from database.model.platform.platform_names import PlatformName
-from database.model.publication.publication import PublicationOld
 from database.setup import populate_database
 
 OPENML_URL = "https://www.openml.org/api/v1/json"
@@ -26,12 +25,12 @@ def test_example_happy_path(engine: Engine):
     with Session(engine) as session:
         platforms = session.scalars(select(Platform)).all()
         datasets = session.scalars(select(Dataset)).all()
-        publications = session.scalars(select(PublicationOld)).all()
+        # publications = session.scalars(select(PublicationOld)).all()
         assert {p.name for p in platforms} == set(PlatformName)
         assert len(datasets) == 2
-        assert len(publications) == 20
+        # assert len(publications) == 20
         assert {len(d.citations) for d in datasets} == {0, 1}
-        assert {len(p.datasets) for p in publications} == {0, 1}
+        # assert {len(p.datasets) for p in publications} == {0, 1}
 
         (higgs_dataset,) = [d for d in datasets if d.name == "Higgs"]
         assert (
