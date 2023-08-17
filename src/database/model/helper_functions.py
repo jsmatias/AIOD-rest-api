@@ -46,5 +46,4 @@ def link_factory(table_from: str, table_to: str, table_prefix=None):
         linked_identifier: int = Field(foreign_key=table_to + ".identifier", primary_key=True)
 
     LinkTable.__name__ = LinkTable.__qualname__ = LinkTable.__tablename__
-    LinkTable.update_forward_refs()
     return LinkTable

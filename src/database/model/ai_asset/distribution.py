@@ -62,7 +62,6 @@ def distribution_factory(table_from: str, distribution_name="distribution") -> T
         )
 
     DistributionORM.__name__ = DistributionORM.__qualname__ = f"{distribution_name}_{table_from}"
-    DistributionORM.update_forward_refs()
     return DistributionORM
 
 

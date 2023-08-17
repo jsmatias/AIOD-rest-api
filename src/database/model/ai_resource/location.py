@@ -141,3 +141,6 @@ class Location(LocationBase):
 
     address: Optional["Address"] = Field(default=None)
     geo: Optional["Geo"] = Field(default=None)
+
+
+Geo.update_forward_refs()  # Not necessary for unittests, but the application will break without it

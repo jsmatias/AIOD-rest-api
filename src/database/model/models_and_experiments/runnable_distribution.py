@@ -81,7 +81,6 @@ def runnable_distribution_factory(table_from: str, distribution_name="distributi
     RunnableDistributionORM.__name__ = (
         RunnableDistributionORM.__qualname__
     ) = f"{distribution_name}_{table_from}"
-    RunnableDistributionORM.update_forward_refs()
     return RunnableDistributionORM
 
 
