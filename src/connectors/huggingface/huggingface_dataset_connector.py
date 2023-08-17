@@ -13,7 +13,7 @@ from database.model.ai_asset.distribution import Distribution
 from database.model.dataset.dataset import Dataset
 from database.model.knowledge_asset.publication import Publication
 from database.model.platform.platform_names import PlatformName
-from database.model.resource import resource_create
+from database.model.resource_read_and_create import resource_create
 
 
 class HuggingFaceDatasetConnector(ResourceConnector[Dataset]):

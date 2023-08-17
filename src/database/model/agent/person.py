@@ -7,7 +7,11 @@ from database.model.ai_resource.resource import AIResource
 from database.model.concept.aiod_entry import AIoDEntryORM
 from database.model.helper_functions import link_factory
 from database.model.relationships import ResourceRelationshipList
-from serialization import AttributeSerializer, FindByNameDeserializer, FindByIdentifierDeserializer
+from database.model.serializers import (
+    AttributeSerializer,
+    FindByNameDeserializer,
+    FindByIdentifierDeserializer,
+)
 
 
 class PersonBase(AgentBase):

@@ -7,7 +7,11 @@ from database.model.field_length import NORMAL
 from database.model.knowledge_asset.PublicationType import PublicationType
 from database.model.knowledge_asset.knowledge_asset import KnowledgeAssetBase, KnowledgeAsset
 from database.model.relationships import ResourceRelationshipSingle
-from serialization import AttributeSerializer, FindByNameDeserializer, FindByIdentifierDeserializer
+from database.model.serializers import (
+    AttributeSerializer,
+    FindByNameDeserializer,
+    FindByIdentifierDeserializer,
+)
 
 
 class PublicationBase(KnowledgeAssetBase):

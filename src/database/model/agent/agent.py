@@ -8,7 +8,7 @@ from database.model.agent.telephone import Telephone
 from database.model.ai_resource.resource import AIResource, AIResourceBase
 from database.model.helper_functions import link_factory
 from database.model.relationships import ResourceRelationshipList, ResourceRelationshipSingle
-from serialization import AttributeSerializer, FindByNameDeserializer
+from database.model.serializers import AttributeSerializer, FindByNameDeserializer
 
 
 class AgentBase(AIResourceBase):
@@ -29,7 +29,11 @@ class Agent(AgentBase, AIResource):
     email: list[Email] = Relationship()
 
     def __init_subclass__(cls):
-        # TODO(Jos): describe what's going on here
+        """
+        Fixing problems with the inheritance of relationships, and creating linking tables.
+        The latter cannot be done in the class variables, because it depends on the table-name of
+        the child class.
+        """
         cls.__annotations__.update(Agent.__annotations__)
         relationships = copy.deepcopy(Agent.__sqlmodel_relationships__)
         cls.update_relationships(relationships)

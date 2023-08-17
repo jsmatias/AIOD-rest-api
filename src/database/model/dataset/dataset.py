@@ -9,7 +9,11 @@ from database.model.dataset.size import Size, SizeORM
 from database.model.field_length import NORMAL, SHORT
 from database.model.helper_functions import link_factory
 from database.model.relationships import ResourceRelationshipList, ResourceRelationshipSingle
-from serialization import AttributeSerializer, FindByIdentifierDeserializer, CastDeserializer
+from database.model.serializers import (
+    AttributeSerializer,
+    FindByIdentifierDeserializer,
+    CastDeserializer,
+)
 
 
 class DatasetBase(AIAssetBase):

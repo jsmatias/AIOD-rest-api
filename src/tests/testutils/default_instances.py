@@ -16,8 +16,8 @@ from database.model.concept.status import Status
 from database.model.dataset.dataset import Dataset
 from database.model.models_and_experiments.experiment import Experiment
 from database.model.knowledge_asset.publication import Publication
-from database.model.resource import resource_create
-from serialization import deserialize_resource_relationships
+from database.model.resource_read_and_create import resource_create
+from database.model.serializers import deserialize_resource_relationships
 from tests.testutils.paths import path_test_resources
 
 

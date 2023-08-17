@@ -34,10 +34,10 @@ def test_happy_path(
         "geo": {"latitude": 37.42242, "longitude": -122.08585, "elevation_millimeters": 2000},
     }
 
-    response = client.post("/datasets/v0", json=body, headers={"Authorization": "Fake token"})
+    response = client.post("/datasets/v1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
 
-    response = client.get("/datasets/v0/1")
+    response = client.get("/datasets/v1/1")
     assert response.status_code == 200, response.json()
 
     response_json = response.json()

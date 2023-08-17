@@ -6,7 +6,7 @@ from routers.resource_router import ResourceRouter
 class DatasetRouter(ResourceRouter):
     @property
     def version(self) -> int:
-        return 0
+        return 1
 
     @property
     def resource_name(self) -> str:

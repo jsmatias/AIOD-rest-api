@@ -17,7 +17,7 @@ from database.model.concept.concept import AIoDConceptBase, AIoDConcept
 from database.model.field_length import DESCRIPTION, NORMAL
 from database.model.helper_functions import link_factory
 from database.model.relationships import ResourceRelationshipSingle, ResourceRelationshipList
-from serialization import (
+from database.model.serializers import (
     AttributeSerializer,
     FindByNameDeserializer,
     CastDeserializer,
@@ -63,10 +63,16 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
     note: list[Note] = Relationship()
 
     def __init_subclass__(cls):
-        # TODO(Jos): describe what's going on here
+        """
+        Fixing problems with the inheritance of relationships, and creating linking tables.
+        The latter cannot be done in the class variables, because it depends on the table-name of
+        the child class.
+        """
         cls.__annotations__.update(AIResource.__annotations__)
         relationships = copy.deepcopy(AIResource.__sqlmodel_relationships__)
         if cls.__tablename__ not in ("aiasset", "agent", "knowledgeasset"):
+            # AIAsset, Agent and KnowledgeAsset are abstract classes, and must perform their own
+            # initialization, including their own relationships.
             cls.update_relationships(relationships)
         cls.__sqlmodel_relationships__.update(relationships)
 

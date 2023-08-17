@@ -6,7 +6,7 @@ from database.model.helper_functions import link_factory
 from database.model.models_and_experiments.badge import Badge
 from database.model.models_and_experiments.runnable_distribution import RunnableDistribution
 from database.model.relationships import ResourceRelationshipList
-from serialization import AttributeSerializer, FindByNameDeserializer
+from database.model.serializers import AttributeSerializer, FindByNameDeserializer
 
 
 class ExperimentBase(AIAssetBase):

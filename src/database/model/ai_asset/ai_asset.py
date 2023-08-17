@@ -17,7 +17,7 @@ from database.model.models_and_experiments.runnable_distribution import (
     runnable_distribution_factory,
 )
 from database.model.relationships import ResourceRelationshipSingle, ResourceRelationshipList
-from serialization import (
+from database.model.serializers import (
     AttributeSerializer,
     CastDeserializer,
     FindByNameDeserializer,
@@ -49,10 +49,16 @@ class AIAsset(AIAssetBase, AIResource, metaclass=abc.ABCMeta):
     creator: list["Person"] = Relationship()
 
     def __init_subclass__(cls):
-        # TODO(Jos): describe what's going on here
+        """
+        Fixing problems with the inheritance of relationships, and creating linking tables.
+        The latter cannot be done in the class variables, because it depends on the table-name of
+        the child class.
+        """
         cls.__annotations__.update(AIAsset.__annotations__)
         relationships = copy.deepcopy(AIAsset.__sqlmodel_relationships__)
         if cls.__tablename__ != "knowledgeasset":
+            # KnowledgeAsset is an abstract class, and must perform its own initialization,
+            # including own relationships.
             cls.update_relationships_asset(relationships)
         cls.__sqlmodel_relationships__.update(relationships)
 

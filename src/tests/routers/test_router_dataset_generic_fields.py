@@ -36,10 +36,10 @@ def test_happy_path(
     body["citation"] = [1]
 
     datetime_create_request = datetime.utcnow().replace(tzinfo=pytz.utc)
-    response = client.post("/datasets/v0", json=body, headers={"Authorization": "Fake token"})
+    response = client.post("/datasets/v1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
 
-    response = client.get("/datasets/v0/1")
+    response = client.get("/datasets/v1/1")
     assert response.status_code == 200, response.json()
 
     response_json = response.json()
@@ -105,10 +105,10 @@ def test_happy_path(
 
     time.sleep(0.5)
     datetime_update_request = datetime.utcnow().replace(tzinfo=pytz.utc)
-    response = client.put("/datasets/v0/1", json=body, headers={"Authorization": "Fake token"})
+    response = client.put("/datasets/v1/1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
 
-    response = client.get("/datasets/v0/1")
+    response = client.get("/datasets/v1/1")
     response_json = response.json()
     assert response_json["identifier"] == 1
     assert response_json["resource_identifier"] == 3

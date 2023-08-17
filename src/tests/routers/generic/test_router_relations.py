@@ -10,7 +10,7 @@ from authentication import keycloak_openid
 from database.model.named_relation import NamedRelation
 from database.model.relationships import ResourceRelationshipSingle, ResourceRelationshipList
 from routers import ResourceRouter
-from serialization import AttributeSerializer, FindByNameDeserializer, CastDeserializer
+from database.model.serializers import AttributeSerializer, FindByNameDeserializer, CastDeserializer
 
 
 class TestEnum(NamedRelation, table=True):  # type: ignore [call-arg]

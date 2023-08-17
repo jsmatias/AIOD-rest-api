@@ -5,7 +5,11 @@ from database.model.concept.status import Status
 from database.model.field_length import SHORT, NORMAL
 from database.model.platform.platform_names import PlatformName
 from database.model.relationships import ResourceRelationshipSingle, ResourceRelationshipList
-from serialization import AttributeSerializer, FindByNameDeserializer, create_getter_dict
+from database.model.serializers import (
+    AttributeSerializer,
+    FindByNameDeserializer,
+    create_getter_dict,
+)
 
 
 from typing import TYPE_CHECKING

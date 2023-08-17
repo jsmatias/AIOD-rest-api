@@ -4,7 +4,7 @@ from sqlmodel import SQLModel, Field, Relationship
 
 from database.model.field_length import NORMAL, SHORT
 from database.model.relationships import ResourceRelationshipSingle
-from serialization import CastDeserializer
+from database.model.serializers import CastDeserializer
 
 
 class GeoBase(SQLModel):

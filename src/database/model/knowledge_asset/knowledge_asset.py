@@ -7,7 +7,7 @@ from database.model.ai_asset.ai_asset_table import AIAssetTable
 from database.model.helper_functions import link_factory
 from database.model.knowledge_asset.knowledge_asset_table import KnowledgeAssetTable
 from database.model.relationships import ResourceRelationshipList
-from serialization import AttributeSerializer, FindByIdentifierDeserializer
+from database.model.serializers import AttributeSerializer, FindByIdentifierDeserializer
 
 
 class KnowledgeAssetBase(AIAssetBase):
@@ -25,7 +25,11 @@ class KnowledgeAsset(KnowledgeAssetBase, AIAsset):
     documents: list[AIAssetTable] = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
 
     def __init_subclass__(cls):
-        # TODO(Jos): describe what's going on here
+        """
+        Fixing problems with the inheritance of relationships, and creating linking tables.
+        The latter cannot be done in the class variables, because it depends on the table-name of
+        the child class.
+        """
         cls.__annotations__.update(KnowledgeAsset.__annotations__)
         relationships = copy.deepcopy(KnowledgeAsset.__sqlmodel_relationships__)
         cls.update_relationships_asset(relationships)

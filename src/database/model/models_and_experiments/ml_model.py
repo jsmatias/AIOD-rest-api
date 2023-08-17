@@ -9,7 +9,11 @@ from database.model.models_and_experiments.experiment import Experiment
 from database.model.models_and_experiments.ml_model_type import MLModelType
 from database.model.models_and_experiments.runnable_distribution import RunnableDistribution
 from database.model.relationships import ResourceRelationshipList, ResourceRelationshipSingle
-from serialization import AttributeSerializer, FindByIdentifierDeserializer, FindByNameDeserializer
+from database.model.serializers import (
+    AttributeSerializer,
+    FindByIdentifierDeserializer,
+    FindByNameDeserializer,
+)
 
 
 class MLModelBase(AIAssetBase):

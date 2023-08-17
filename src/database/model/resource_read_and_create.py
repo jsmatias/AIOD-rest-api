@@ -1,17 +1,26 @@
-from typing import Type, Tuple
+"""
+Functionality to generate a separate read resource and create resource. For example,
+the date_modified should be in the read resource, but not in the the create resource. You should
+not be able to modify this date yourself in a POST request, but you should retrieve it in a GET
+request.
+"""
+
+from typing import Type, Tuple, TYPE_CHECKING
 
 from pydantic import create_model
 from sqlmodel import SQLModel, Field
 from sqlmodel.main import FieldInfo
 
-from database.model.concept.concept import AIoDConcept
-from database.model.helper_functions import get_relationships, all_annotations
-from database.model.relationships import ResourceRelationshipInfo
-from serialization import create_getter_dict
+from database.model.helper_functions import all_annotations, get_relationships
+from database.model.serializers import create_getter_dict
+
+if TYPE_CHECKING:
+    from database.model.concept.concept import AIoDConcept
+    from database.model.relationships import ResourceRelationshipInfo
 
 
 def _get_field_definitions_read(
-    resource_class: Type[AIoDConcept], relationships: dict[str, ResourceRelationshipInfo]
+    resource_class: Type["AIoDConcept"], relationships: dict[str, "ResourceRelationshipInfo"]
 ) -> dict[str, Tuple[Type, FieldInfo]]:
     if not hasattr(resource_class, "RelationshipConfig"):
         return {}
@@ -28,7 +37,7 @@ def _get_field_definitions_read(
 
 
 def _get_field_definitions_create(
-    resource_class: Type[AIoDConcept], relationships: dict[str, ResourceRelationshipInfo]
+    resource_class: Type["AIoDConcept"], relationships: dict[str, "ResourceRelationshipInfo"]
 ) -> dict[str, Tuple[Type, FieldInfo]]:
     if not hasattr(resource_class, "RelationshipConfig"):
         return {}
@@ -45,7 +54,7 @@ def _get_field_definitions_create(
     }
 
 
-def resource_create(resource_class: Type[AIoDConcept]) -> Type[SQLModel]:
+def resource_create(resource_class: Type["AIoDConcept"]) -> Type[SQLModel]:
     """
     Create a SQLModel for a Create class of a resource. This Create class is a Pydantic class
     that can be used for POST and PUT requests (and thus has no identifier), and is not backed by a
@@ -66,7 +75,7 @@ def resource_create(resource_class: Type[AIoDConcept]) -> Type[SQLModel]:
     return model
 
 
-def resource_read(resource_class: Type[AIoDConcept]) -> Type[SQLModel]:
+def resource_read(resource_class: Type["AIoDConcept"]) -> Type[SQLModel]:
     """
     Create a SQLModel for a Read class of a resource. This Read class is a Pydantic class
     that can be used for GET requests (and thus has a required identifier), and is not backed by a

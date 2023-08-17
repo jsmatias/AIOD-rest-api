@@ -18,11 +18,11 @@ from config import KEYCLOAK_CONFIG
 from converters.schema_converters.schema_converter import SchemaConverter
 from database.model.ai_resource.resource import AIResource
 from database.model.platform.platform import Platform
-from database.model.resource import (
+from database.model.resource_read_and_create import (
     resource_create,
     resource_read,
 )
-from serialization import deserialize_resource_relationships
+from database.model.serializers import deserialize_resource_relationships
 
 
 class Pagination(BaseModel):

@@ -1,19 +1,11 @@
 from collections import ChainMap
-from typing import TYPE_CHECKING
-from typing import Type
+from typing import Type, TYPE_CHECKING
 
 from sqlalchemy import Column, Integer, ForeignKey
 from sqlmodel import SQLModel, Field
 
 if TYPE_CHECKING:
     from database.model.relationships import ResourceRelationshipInfo
-
-
-def get_relationships(resource_class: Type[SQLModel]) -> dict[str, "ResourceRelationshipInfo"]:
-    if not hasattr(resource_class, "RelationshipConfig"):
-        return {}
-    config = resource_class.RelationshipConfig
-    return {field: getattr(config, field) for field in dir(config) if not field.startswith("_")}
 
 
 def all_annotations(cls) -> ChainMap:
@@ -29,8 +21,6 @@ def all_annotations(cls) -> ChainMap:
 def link_factory(table_from: str, table_to: str, table_prefix=None):
     """Create a table linking table_name_from to table_name_to, using the .identifier at both
     sides.
-
-    TODO(jos): should this be moved somewhere else?
     """
     prefix = "" if table_prefix is None else f"{table_prefix}_"
 
@@ -47,3 +37,10 @@ def link_factory(table_from: str, table_to: str, table_prefix=None):
 
     LinkTable.__name__ = LinkTable.__qualname__ = LinkTable.__tablename__
     return LinkTable
+
+
+def get_relationships(resource_class: Type[SQLModel]) -> dict[str, "ResourceRelationshipInfo"]:
+    if not hasattr(resource_class, "RelationshipConfig"):
+        return {}
+    config = resource_class.RelationshipConfig
+    return {field: getattr(config, field) for field in dir(config) if not field.startswith("_")}

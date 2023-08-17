@@ -5,11 +5,11 @@ from sqlmodel import SQLModel, Field, Relationship
 
 from database.model.concept.aiod_entry import AIoDEntryORM, AIoDEntryRead, AIoDEntryCreate
 from database.model.relationships import ResourceRelationshipSingle
-from serialization import CastDeserializer
+from database.model.serializers import CastDeserializer
 
 
 class AIoDConceptBase(SQLModel):
-    pass
+    """The AIoDConcept is the top-level (abstract) class in AIoD."""
 
 
 class AIoDConcept(AIoDConceptBase):
@@ -20,7 +20,7 @@ class AIoDConcept(AIoDConceptBase):
     aiod_entry: AIoDEntryORM = Relationship()
 
     def __init_subclass__(cls):
-        # TODO(Jos): describe what's going on here
+        """Fixing problems with the inheritance of relationships."""
         cls.__annotations__.update(AIoDConcept.__annotations__)
         relationships = copy.deepcopy(AIoDConcept.__sqlmodel_relationships__)
         cls.__sqlmodel_relationships__.update(relationships)

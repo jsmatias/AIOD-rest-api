@@ -9,7 +9,11 @@ from database.model.agent.organisation_type import OrganisationType
 from database.model.field_length import NORMAL, DESCRIPTION
 from database.model.helper_functions import link_factory
 from database.model.relationships import ResourceRelationshipSingle, ResourceRelationshipList
-from serialization import AttributeSerializer, FindByNameDeserializer, FindByIdentifierDeserializer
+from database.model.serializers import (
+    AttributeSerializer,
+    FindByNameDeserializer,
+    FindByIdentifierDeserializer,
+)
 
 
 class OrganisationBase(AgentBase):
