@@ -3,7 +3,7 @@ from typing import Optional
 
 from sqlmodel import SQLModel, Field, Relationship
 
-from database.model.concept.aiod_entry import AIoDEntry, AIoDEntryORM
+from database.model.concept.aiod_entry import AIoDEntryORM, AIoDEntryRead, AIoDEntryCreate
 from database.model.relationships import ResourceRelationshipSingle
 from serialization import CastDeserializer
 
@@ -26,6 +26,9 @@ class AIoDConcept(AIoDConceptBase):
         cls.__sqlmodel_relationships__.update(relationships)
 
     class RelationshipConfig:
-        aiod_entry: Optional[AIoDEntry] = ResourceRelationshipSingle(
-            deserializer=CastDeserializer(AIoDEntryORM), default_factory_orm=AIoDEntryORM
+        aiod_entry: Optional[AIoDEntryRead] = ResourceRelationshipSingle(
+            deserializer=CastDeserializer(AIoDEntryORM),
+            default_factory_orm=AIoDEntryORM,
+            class_read=Optional[AIoDEntryRead],
+            class_create=Optional[AIoDEntryCreate],
         )

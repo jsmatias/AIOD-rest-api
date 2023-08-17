@@ -20,7 +20,7 @@ import routers
 from authentication import get_current_user
 from config import DB_CONFIG, KEYCLOAK_CONFIG
 from database.model.platform.platform_names import PlatformName
-from database.setup import connect_to_database
+from database.setup import connect_to_database, populate_database
 
 
 def _parse_args() -> argparse.Namespace:
@@ -169,14 +169,12 @@ def create_app() -> FastAPI:
     connectors_ = dataset_connectors + examples_connectors
     engine = _engine(args.rebuild_db)
     if len(connectors_) > 0:
-        pass
-        # TODO(jos): enable again
-        # populate_database(
-        #     engine,
-        #     connectors=connectors_,
-        #     only_if_empty=True,
-        #     limit=args.limit,
-        # )
+        populate_database(
+            engine,
+            connectors=connectors_,
+            only_if_empty=True,
+            limit=args.limit,
+        )
 
     add_routes(app, engine, url_prefix=args.url_prefix)
     return app

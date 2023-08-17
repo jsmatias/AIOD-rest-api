@@ -10,20 +10,38 @@ from database.model.relationships import ResourceRelationshipInfo
 from serialization import create_getter_dict
 
 
-def _get_field_definitions(
-    resource_class: Type[AIoDConcept],
-    relationships: dict[str, ResourceRelationshipInfo],
-    filter_create: bool = False,
+def _get_field_definitions_read(
+    resource_class: Type[AIoDConcept], relationships: dict[str, ResourceRelationshipInfo]
 ) -> dict[str, Tuple[Type, FieldInfo]]:
     if not hasattr(resource_class, "RelationshipConfig"):
         return {}
+    annotations = all_annotations(resource_class.RelationshipConfig)
     return {
         attribute_name: (
-            all_annotations(resource_class.RelationshipConfig)[attribute_name],  # the type
-            relationshipConfig.field(),  # The Field()
+            annotations[attribute_name]
+            if config.class_read is None
+            else config.class_read,  # the type
+            config.field(),  # The Field()
         )
-        for attribute_name, relationshipConfig in relationships.items()
-        if not filter_create or relationshipConfig.include_in_create
+        for attribute_name, config in relationships.items()
+    }
+
+
+def _get_field_definitions_create(
+    resource_class: Type[AIoDConcept], relationships: dict[str, ResourceRelationshipInfo]
+) -> dict[str, Tuple[Type, FieldInfo]]:
+    if not hasattr(resource_class, "RelationshipConfig"):
+        return {}
+    annotations = all_annotations(resource_class.RelationshipConfig)
+    return {
+        attribute_name: (
+            annotations[attribute_name]
+            if config.class_create is None
+            else config.class_create,  # the type
+            config.field(),  # The Field()
+        )
+        for attribute_name, config in relationships.items()
+        if config.include_in_create
     }
 
 
@@ -40,7 +58,7 @@ def resource_create(resource_class: Type[AIoDConcept]) -> Type[SQLModel]:
     See https://sqlmodel.tiangolo.com/tutorial/fastapi/multiple-models/ for background.
     """
     relationships = get_relationships(resource_class)
-    field_definitions = _get_field_definitions(resource_class, relationships, filter_create=True)
+    field_definitions = _get_field_definitions_create(resource_class, relationships)
 
     model = create_model(
         resource_class.__name__ + "Create", __base__=resource_class.__base__, **field_definitions
@@ -61,7 +79,7 @@ def resource_read(resource_class: Type[AIoDConcept]) -> Type[SQLModel]:
     See https://sqlmodel.tiangolo.com/tutorial/fastapi/multiple-models/ for background.
     """
     relationships = get_relationships(resource_class)
-    field_definitions = _get_field_definitions(resource_class, relationships)
+    field_definitions = _get_field_definitions_read(resource_class, relationships)
     field_definitions.update({"identifier": (int, Field())})
     resource_class_read = create_model(
         resource_class.__name__ + "Read", __base__=resource_class.__base__, **field_definitions

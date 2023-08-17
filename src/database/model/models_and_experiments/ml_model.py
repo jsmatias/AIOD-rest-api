@@ -41,7 +41,7 @@ class MLModel(MLModelBase, AIAsset, table=True):  # type: ignore [call-arg]
             identifier_name="type_identifier",
             serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(MLModelType),
-            example=["Large Language Model"],
+            example="Large Language Model",
         )
         related_experiment: list[int] = ResourceRelationshipList(
             description="Related experiments.",

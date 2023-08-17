@@ -4,7 +4,7 @@ Utility functions for initializing the database and tables through SQLAlchemy.
 import logging
 from typing import List
 
-from sqlalchemy import text, and_
+from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import create_engine, Session, select, SQLModel
@@ -112,13 +112,15 @@ def _get_existing_resource(
     session: Session, resource: AIoDConcept, clazz: type[SQLModel]
 ) -> AIoDConcept | None:
     """Selecting a resource based on platform and platform_identifier"""
-    query = select(clazz).where(
-        and_(
-            clazz.aiod_entry.platform == resource.aiod_entry.platform,
-            clazz.aiod_entry.platform_identifier == resource.aiod_entry.platform_identifier,
-        )
-    )
-    return session.scalars(query).first()
+    return None
+    # TODO(jos): this currently doesn't work, since we started using aiod_entry
+    # query = select(clazz).where(
+    #     and_(
+    #         clazz.aiod_entry.platform == resource.aiod_entry.platform,
+    #         clazz.aiod_entry.platform_identifier == resource.aiod_entry.platform_identifier,
+    #     )
+    # )
+    # return session.scalars(query).first()
 
 
 def _create_or_fetch_related_objects(session: Session, item: ResourceWithRelations):

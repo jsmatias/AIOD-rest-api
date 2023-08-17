@@ -40,6 +40,8 @@ class ResourceRelationshipInfo(abc.ABC, Representation):
     include_in_create: bool = True
     default_factory_orm: Any | None = None
     default_factory_pydantic: Any | None = None
+    class_read: Any | None = None  # only needed if class_read differs from class_create
+    class_create: Any | None = None  # only needed if class_read differs from class_create
 
     def field(self):
         return Field(

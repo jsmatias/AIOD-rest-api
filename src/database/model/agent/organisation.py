@@ -47,7 +47,7 @@ class Organisation(OrganisationBase, Agent, table=True):  # type: ignore [call-a
             identifier_name="type_identifier",
             serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(OrganisationType),
-            example=["Research Institution"],
+            example="Research Institution",
         )
         member: list[int] = ResourceRelationshipList(
             description="The identifier of an agent (e.g. organisation or person) that is a "

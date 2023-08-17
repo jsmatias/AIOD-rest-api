@@ -24,7 +24,7 @@ class AIoDEntryBase(SQLModel):
         description="The external platform from which this resource originates. Leave empty if "
         "this item originates from AIoD. If platform is not None, the "
         "platform_identifier should be set as well.",
-        schema_extra={"example": PlatformName.zenodo},
+        schema_extra={"example": PlatformName.example},
         foreign_key="platform.name",
     )
     platform_identifier: str | None = Field(
@@ -33,18 +33,6 @@ class AIoDEntryBase(SQLModel):
         "'platform'. Leave empty if this item is not part of an external platform.",
         default=None,
         schema_extra={"example": "1"},
-    )
-    date_modified: datetime | None = Field(
-        description="The datetime on which the metadata was last updated in the AIoD platform,"
-        "in UTC.",
-        schema_extra={"example": "2023-01-01T15:15:00.000"},
-        default_factory=datetime.utcnow,  # Updated in the resource_router
-    )  # TODO(jos): it would be nice to hide the dates in the CREATE classes
-    date_created: datetime | None = Field(
-        description="The datetime on which the metadata was first published on the AIoD platform, "
-        "in UTC.",
-        default_factory=datetime.utcnow,
-        schema_extra={"example": "2022-01-01T15:15:00.000"},
     )
 
 
@@ -59,6 +47,10 @@ class AIoDEntryORM(AIoDEntryBase, table=True):  # type: ignore [call-arg]
     status_identifier: int | None = Field(foreign_key=Status.__tablename__ + ".identifier")
     status: Status = Relationship()
 
+    # date_modified is updated in the resource_router
+    date_modified: datetime | None = Field(default_factory=datetime.utcnow)
+    date_created: datetime | None = Field(default_factory=datetime.utcnow)
+
     class RelationshipConfig:
         editor: list[int] = ResourceRelationshipList()
         status: str = ResourceRelationshipSingle(
@@ -68,15 +60,44 @@ class AIoDEntryORM(AIoDEntryBase, table=True):  # type: ignore [call-arg]
         )
 
 
-class AIoDEntry(AIoDEntryBase):
+class AIoDEntryCreate(AIoDEntryBase):
     editor: list[int] = Field(
         description="Links to identifiers of persons responsible for maintaining the entry.",
         default_factory=list,
+        schema_extra={"example": []},
     )
     status: str = Field(
         description="Status of the entry (published, draft, rejected)",
         schema_extra={"example": "published"},
         default="draft",
+    )
+
+    class Config:
+        getter_dict = create_getter_dict(
+            {"editor": AttributeSerializer("identifier"), "status": AttributeSerializer("name")}
+        )
+
+
+class AIoDEntryRead(AIoDEntryBase):
+    editor: list[int] = Field(
+        description="Links to identifiers of persons responsible for maintaining the entry.",
+        default_factory=list,
+        schema_extra={"example": []},
+    )
+    status: str = Field(
+        description="Status of the entry (published, draft, rejected)",
+        schema_extra={"example": "published"},
+        default="draft",
+    )
+    date_modified: datetime | None = Field(
+        description="The datetime on which the metadata was last updated in the AIoD platform,"
+        "in UTC.",
+        schema_extra={"example": "2023-01-01T15:15:00.000"},
+    )
+    date_created: datetime | None = Field(
+        description="The datetime on which the metadata was first published on the AIoD platform, "
+        "in UTC.",
+        schema_extra={"example": "2022-01-01T15:15:00.000"},
     )
 
     class Config:
