@@ -15,7 +15,7 @@ services:
       - ./src:/app
     command: >
       --rebuild-db always 
-      --fill-with-examples datasets experiments ml_models organisations persons publications
+      --fill-with-examples datasets experiments ml_models organisations persons publications services
       --reload
       --limit 10
     healthcheck:
