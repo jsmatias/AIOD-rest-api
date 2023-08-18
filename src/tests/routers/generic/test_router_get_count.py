@@ -17,7 +17,7 @@ def test_get_count_happy_path(
             ]
         )
         session.commit()
-    response = client_test_resource.get("/counts/test_resources/v0")
+    response = client_test_resource.get("/counts/test_resources/v1")
     assert response.status_code == 200, response.json()
     response_json = response.json()
 
