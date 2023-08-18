@@ -11,9 +11,9 @@ def test_happy_path(client: TestClient, mocked_privileged_token: Mock):
     keycloak_openid.userinfo = mocked_privileged_token
     body = {"name": "my_favourite_platform"}
     response = client.post("/platforms/v0", json=body, headers={"Authorization": "Fake token"})
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     response = client.get("/platforms/v0")
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     platforms = {p["name"] for p in response.json()}
     assert platforms == {p.name for p in PlatformName}.union(["my_favourite_platform"])
 
@@ -23,5 +23,5 @@ def test_happy_path(client: TestClient, mocked_privileged_token: Mock):
 )
 def test_get_platform_of_platform(client: TestClient, url: str):
     response = client.get(url)
-    assert response.status_code == 404
+    assert response.status_code == 404, response.json()
     assert response.json()["detail"] == "Not Found"

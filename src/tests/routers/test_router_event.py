@@ -68,10 +68,10 @@ def test_happy_path(client: TestClient, engine: Engine, mocked_privileged_token:
         "business_categories": ["business category 1", "business category 2"],
     }
     response = client.post("/events/v0", json=body, headers={"Authorization": "Fake token"})
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
 
     response = client.get("/events/v0/2")
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
 
     response_json = response.json()
     assert response_json["identifier"] == 2
@@ -99,7 +99,7 @@ def test_happy_path(client: TestClient, engine: Engine, mocked_privileged_token:
     }
 
     response = client.delete("/events/v0/2", headers={"Authorization": "Fake token"})
-    assert response.status_code == 400
+    assert response.status_code == 400, response.json()
     assert (
         response.json()["detail"] == "This resource cannot be deleted, because other resources "
         "are related to it."

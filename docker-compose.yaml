@@ -1,0 +1,75 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: apiserver
+    env_file: .env
+    environment:
+      - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
+    ports:
+      - 8000:8000
+    volumes:
+      - ./src:/app
+    command: >
+      --rebuild-db always
+      --fill-with-examples datasets computational_resources publications news events case_studies
+            presentations projects educational_resources organisations
+      --reload
+      --limit 10
+    healthcheck:
+      test: ["CMD", "python", "-c",  "import requests; requests.get('http://localhost:8000')"]
+      interval: 30s
+      timeout: 30s
+      retries: 30
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+  sqlserver:
+    image: mysql
+    container_name: sqlserver
+    env_file: .env
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "-uroot", "-p$MYSQL_ROOT_PASSWORD", "ping", "-h", "localhost", "--protocol","tcp"]
+      interval: 30s
+      timeout: 30s
+      retries: 30
+
+  keycloak:
+    image: quay.io/keycloak/keycloak
+    container_name: keycloak
+    env_file: .env
+    environment:
+      - REDIRECT_URIS=$REDIRECT_URIS
+      - POST_LOGOUT_REDIRECT_URIS=$POST_LOGOUT_REDIRECT_URIS
+    ports:
+      - 8080:8080
+    volumes:
+     - ./quay-keycloak:/opt/keycloak/data/import
+    command: >
+      start-dev 
+      --hostname-url http://${HOSTNAME}/aiod-auth
+      --hostname-admin-url http://${HOSTNAME}/aiod-auth
+      --http-relative-path=/aiod-auth
+      --http-enabled=true
+      --hostname-strict-https=false
+      --import-realm
+
+  nginx:
+    image: nginx
+    container_name: nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    ports:
+      - 80:80
+    depends_on:
+      app:
+        condition: service_healthy

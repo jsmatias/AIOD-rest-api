@@ -33,9 +33,9 @@ def test_happy_path(
     response = client_test_resource.delete(
         f"/test_resources/v0/{identifier}", headers={"Authorization": "Fake token"}
     )
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     response = client_test_resource.get("/test_resources/v0/")
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     response_json = response.json()
     assert len(response_json) == 1
     assert {r["identifier"] for r in response_json} == {1, 2} - {identifier}
@@ -64,5 +64,5 @@ def test_non_existent(
     response = client_test_resource.delete(
         f"/test_resources/v0/{identifier}", headers={"Authorization": "Fake token"}
     )
-    assert response.status_code == 404
+    assert response.status_code == 404, response.json()
     assert response.json()["detail"] == f"Test_resource '{identifier}' not found in the database."

@@ -1,0 +1,38 @@
+name: Built docker image and run tests
+
+# This workflow will built docker image and run tests inside the container.
+# This workflow is only executed if there is pull request with change in pyproject.toml dependencies, 
+# or in Dockerfile, or in docker workflow. 
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/docker-image.yml'
+      - 'pyproject.toml'
+      - 'Dockerfile'
+      
+  # allows to manually start a workflow run from the GitHub UI or using the GitHub API.    
+  workflow_dispatch:
+
+jobs:
+  built:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build the docker image
+        run: docker build --tag ai4eu_server_demo:latest -f Dockerfile .
+      
+      - name: Run docker container and pytest tests
+        run: |
+          docker run -e KEYCLOAK_CLIENT_SECRET="mocked_secret" --entrypoint "" ai4eu_server_demo sh -c "pip install \".[dev]\" && pytest tests -s"
+  
+  
+          
+  
+  
+    
+
+
