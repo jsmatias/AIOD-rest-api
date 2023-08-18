@@ -18,8 +18,8 @@ from starlette.status import HTTP_501_NOT_IMPLEMENTED
 import connectors
 import routers
 from authentication import get_current_user
-from config import DB_CONFIG, KEYCLOAK_CONFIG
-from database.setup import connect_to_database, populate_database
+from config import KEYCLOAK_CONFIG
+from database.setup import populate_database, create_engine
 
 
 def _parse_args() -> argparse.Namespace:
@@ -47,23 +47,6 @@ def _parse_args() -> argparse.Namespace:
         help="Use `--reload` for FastAPI.",
     )
     return parser.parse_args()
-
-
-def _engine(rebuild_db: str) -> Engine:
-    """
-    Return a SqlAlchemy engine, backed by the MySql connection as configured in the configuration
-    file.
-    """
-    username = DB_CONFIG.get("name", "root")
-    password = DB_CONFIG.get("password", "ok")
-    host = DB_CONFIG.get("host", "demodb")
-    port = DB_CONFIG.get("port", 3306)
-    database = DB_CONFIG.get("database", "aiod")
-
-    db_url = f"mysql://{username}:{password}@{host}:{port}/{database}"
-
-    delete_before_create = rebuild_db == "always"
-    return connect_to_database(db_url, delete_first=delete_before_create)
 
 
 def _connector_example_from_resource(resource):
@@ -129,7 +112,7 @@ def create_app() -> FastAPI:
         _connector_example_from_resource(resource) for resource in args.fill_with_examples
     ]
 
-    engine = _engine(args.rebuild_db)
+    engine = create_engine(args.rebuild_db)
     if len(examples_connectors) > 0:
         populate_database(
             engine,

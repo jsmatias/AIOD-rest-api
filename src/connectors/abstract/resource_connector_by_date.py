@@ -1,6 +1,7 @@
 import abc
-from datetime import datetime
-from typing import Generic, Iterator, TypeVar
+import logging
+from datetime import datetime, date
+from typing import Generic, Iterator, TypeVar, Tuple
 from connectors.abstract.resource_connector import ResourceConnector
 from connectors.record_error import RecordError
 
@@ -12,18 +13,50 @@ RESOURCE = TypeVar("RESOURCE", bound=SQLModel)
 
 
 class ResourceConnectorByDate(ResourceConnector, Generic[RESOURCE]):
-    """
-    For every platform that offers this resource, this ResourceConnector should be implemented.
-    """
+    """Connectors that synchronize by filtering the results on datetime. In every subsequent run,
+    the previous end-datetime is used as datetime-from."""
 
     @abc.abstractmethod
     def retry(self, _id: int) -> SQLModel | ResourceWithRelations[SQLModel] | RecordError:
         """Retrieve information of the resource identified by id"""
-        pass
 
     @abc.abstractmethod
     def fetch(
         self, from_incl: datetime, to_excl: datetime
-    ) -> Iterator[SQLModel | ResourceWithRelations[SQLModel] | RecordError]:
+    ) -> Iterator[Tuple[date | None, SQLModel | ResourceWithRelations[SQLModel] | RecordError]]:
         """Retrieve information of all resources"""
-        pass
+
+    def run(
+        self,
+        state: dict,
+        from_date: date | None = None,
+        limit: int | None = None,
+        to_excl: datetime | None = None,
+        **kwargs,
+    ) -> Iterator[SQLModel | ResourceWithRelations[SQLModel] | RecordError]:
+        if limit is not None:
+            raise ValueError(
+                "Limit not implemented for this connector. Please remove the command "
+                "line argument."
+            )
+        if to_excl is not None:
+            logging.warning("to_excl should only be set in (unit) tests")
+        else:
+            to_excl = datetime.now()
+
+        first_run = not state
+        if first_run:
+            if from_date is None:
+                raise ValueError("In the first run, the from-date needs to be set")
+            from_incl = datetime.combine(from_date, datetime.min.time())
+        else:
+            from_incl = state["to_excl"]
+
+        logging.info(f"Starting synchronisation {from_incl=}, {to_excl=}.")
+        state["from_incl"] = from_incl
+        state["to_excl"] = to_excl
+        for datetime_, result in self.fetch(from_incl=from_incl, to_excl=to_excl):
+            yield result
+            if datetime_:
+                state["last_datetime"] = datetime_  # For manually resolving errors
+        state["result"] = "complete run successful"

@@ -130,6 +130,4 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                     related_resources={"citations": citations},
                 )
             except Exception as e:
-                yield RecordError(
-                    platform="huggingface", _id=dataset.id, type="dataset", error=e.args[0]
-                )
+                yield RecordError(identifier=dataset.id, error=e)

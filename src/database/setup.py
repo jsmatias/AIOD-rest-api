@@ -10,6 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import create_engine, Session, select, SQLModel
 
 import routers
+from config import DB_CONFIG
 from connectors.abstract.resource_connector_on_start_up import ResourceConnectorOnStartUp
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model.dataset.dataset import Dataset
@@ -161,3 +162,20 @@ def _create_or_fetch_related_objects(session: Session, item: ResourceWithRelatio
             item.resource.__setattr__(field_name, id_)  # E.g. Dataset.license_identifier = 1
         else:
             item.resource.__setattr__(field_name, identifiers)  # E.g. Dataset.keywords = [1, 4]
+
+
+def sqlmodel_engine(rebuild_db: str) -> Engine:
+    """
+    Return a SQLModel engine, backed by the MySql connection as configured in the configuration
+    file.
+    """
+    username = DB_CONFIG.get("name", "root")
+    password = DB_CONFIG.get("password", "ok")
+    host = DB_CONFIG.get("host", "demodb")
+    port = DB_CONFIG.get("port", 3306)
+    database = DB_CONFIG.get("database", "aiod")
+
+    db_url = f"mysql://{username}:{password}@{host}:{port}/{database}"
+
+    delete_before_create = rebuild_db == "always"
+    return connect_to_database(db_url, delete_first=delete_before_create)

@@ -1,140 +1,164 @@
-from typing import Dict, List
 import argparse
-from sqlmodel import SQLModel
+import importlib
+import json
 import logging
-
-from connectors.record_error import RecordError
-from connectors.config import DB_CONFIG
-from connectors.resource_with_relations import ResourceWithRelations
-from database.model.platform.platform_names import PlatformName
+import pathlib
+import sys
 from datetime import datetime
+from typing import Optional
+
+from sqlmodel import SQLModel, Session
+
+import routers
 from connectors.abstract.resource_connector import ResourceConnector
-from connectors.abstract.resource_connector_by_date import ResourceConnectorByDate
-from connectors.abstract.resource_connector_by_id import ResourceConnectorById
-from connectors.huggingface.huggingface_dataset_connector import HuggingFaceDatasetConnector
-from connectors.openml.openml_dataset_connector import OpenMlDatasetConnector
-from connectors.zenodo.zenodo_dataset_connector import ZenodoDatasetConnector
-from database.setup import (
-    connect_to_database,
-)
-from sqlalchemy.engine import Engine
+from connectors.record_error import RecordError
+from connectors.resource_with_relations import ResourceWithRelations
+from database.setup import _create_or_fetch_related_objects, _get_existing_resource, sqlmodel_engine
+from routers import ResourceRouter
 
-logging.basicConfig(filename="example.log", encoding="utf-8", level=logging.DEBUG)
+RELATIVE_PATH_LOG = pathlib.Path("connector.log")
+RELATIVE_PATH_STATE_JSON = pathlib.Path("state.json")
+RELATIVE_PATH_ERROR_CSV = pathlib.Path("errors.csv")
 
 
-class Synchronization:
-    dataset_connectors = {
-        c.platform_name: c
-        for c in (
-            OpenMlDatasetConnector(),
-            HuggingFaceDatasetConnector(),
-            ZenodoDatasetConnector(),
+def _parse_args() -> argparse.Namespace:
+    # TODO: write readme
+    parser = argparse.ArgumentParser(description="Please refer to the README.")
+    parser.add_argument(
+        "--connector",
+        required=True,
+        help="The connector to use. Please provide a relative path such as "
+        "'connectors.zenodo.zenodo_dataset_connector.ZenodoDatasetConnector' where the "
+        "last part is the class name.",
+    )
+    parser.add_argument(
+        "--working-dir",
+        required=True,
+        help="The working directory. The status will be stored here, next to the logs and a "
+        "list of failed resources",
+    )
+    parser.add_argument(
+        "--from-date",
+        type=lambda d: datetime.strptime(d, "%Y-%m-%d").date(),
+        help="The start date. Only relevant for the first run of date-based connectors. "
+        "In subsequent runs, date-based connectors will synchronize from the previous "
+        "end-time. Format: YYYY-MM-DD",
+    )
+    parser.add_argument(
+        "--from-identifier",
+        type=str,
+        help="The start identifier. Only relevant for the first run of identifier-based "
+        "connectors. In subsequent runs, identifier-based connectors will "
+        "synchronize from the previous end-identifier.",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        help="Implemented by some connectors for testing purposes: limit the number of results.",
+    )
+    parser.add_argument(
+        "--save_every",
+        type=int,
+        help="Save the state file every N records. In case that the complete program is killed, "
+        "you can then resume the next run from the last saved state.",
+    )
+    return parser.parse_args()
+
+
+def exception_handler(exc_type, exc_value, exc_traceback):
+    logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+
+def save_to_database(
+    session: Session,
+    connector: ResourceConnector,
+    router: ResourceRouter,
+    item: SQLModel | ResourceWithRelations[SQLModel] | RecordError,
+) -> Optional[RecordError]:
+    if isinstance(item, RecordError):
+        return item
+    try:
+        if isinstance(item, ResourceWithRelations):
+            resource_create_instance = item.resource
+            _create_or_fetch_related_objects(session, item)
+        else:
+            resource_create_instance = item
+        existing = _get_existing_resource(
+            session, resource_create_instance, connector.resource_class
         )
-    }
+        if existing is None:  # TODO: if not None, update
+            router.create_resource(session, resource_create_instance)
 
-    def _parse_args(self) -> argparse.Namespace:
-        parser = argparse.ArgumentParser(description="Please refer to the README.")
-        parser.add_argument(
-            "--populate-datasets",
-            default=[],
-            nargs="+",
-            choices=[p.name for p in PlatformName],
-            help="Zero,     one or more platforms with which the datasets should get populated.",
-        )
-        return parser.parse_args()
+    except Exception as e:
+        return RecordError(identifier=str(item.identifier), error=e)  # type:ignore
+    session.flush()
+    return None
 
-    def _connector_from_platform_name(
-        self, connector_type: str, connector_dict: Dict, platform_name: str
-    ):
-        """Get the connector from the connector_dict, identified by its platform name."""
-        try:
-            platform = PlatformName(platform_name)
-        except ValueError:
-            raise ValueError(
-                f"platform " f"'{platform_name}' not recognized.",
-            )
-        connector = connector_dict.get(platform, None)
-        if connector is None:
-            possibilities = ", ".join(f"`{c}`" for c in self.dataset_connectors.keys())
-            msg = (
-                f"No {connector_type} connector for platform '{platform_name}' available. Possible "
-                f"values: {possibilities}"
-            )
-            raise ValueError(msg)
-        return connector
 
-    def _engine(self, rebuild_db: str) -> Engine:
-        """
-        Return a SqlAlchemy engine, backed by the MySql connection as
-        configured in the configuration file.
-        """
-        username = DB_CONFIG.get("name", "root")
-        password = DB_CONFIG.get("password", "ok")
-        host = DB_CONFIG.get("host", "demodb")
-        port = DB_CONFIG.get("port", 3306)
-        database = DB_CONFIG.get("database", "aiod")
+def main():
+    args = _parse_args()
+    working_dir = pathlib.Path(args.working_dir)
+    working_dir.mkdir(parents=True, exist_ok=True)
+    logging.basicConfig(
+        filename=working_dir / RELATIVE_PATH_LOG, encoding="utf-8", level=logging.INFO
+    )
+    logging.getLogger().addHandler(logging.StreamHandler())
+    sys.excepthook = exception_handler
 
-        db_url = f"mysql://{username}:{password}@{host}:{port}/{database}"
+    module_path = ".".join(args.connector.split(".")[0:-1])
+    connector_cls_name = args.connector.split(".")[-1]
+    module = importlib.import_module(module_path)
+    connector: ResourceConnector = getattr(module, connector_cls_name)
 
-        delete_before_create = rebuild_db == "always"
-        return connect_to_database(db_url, delete_first=delete_before_create)
+    error_path = working_dir / RELATIVE_PATH_ERROR_CSV
+    state_path = working_dir / RELATIVE_PATH_STATE_JSON
+    error_path.parents[0].mkdir(parents=True, exist_ok=True)
+    state_path.parents[0].mkdir(parents=True, exist_ok=True)
+    first_run = not state_path.exists()
+    if not first_run:
+        with open(state_path, "r") as f:
+            state = json.load(f)
+    else:
+        state = {}
 
-    def store_records(
-        self, engine: Engine, items: List["SQLModel | ResourceWithRelations[SQLModel]"]
-    ):
-        """
-        This function store on the database all the items using the engine
-        """
-        pass
+    items = connector.run(
+        state=state,
+        from_identifier=args.from_identifier,
+        from_datetime=args.from_datetime,
+        limit=args.limit,
+    )
 
-    def start(self):
-        args = self._parse_args()
-        dataset_connectors: List["ResourceConnector"] = [
-            self._connector_from_platform_name("dataset", self.dataset_connectors, platform_name)
-            for platform_name in args.populate_datasets
-        ]
-        # add all dict connectors
-        connectors_ = dataset_connectors
-        engine = self._engine(args.rebuild_db)
+    (router,) = [
+        router
+        for router in routers.resource_routers
+        if router.resource_class == connector.resource_class
+    ]
 
-        # init the database with all connectors
-        for connector in connectors_:
-            # This is a unique type of connector due to Huggingface API
-            if isinstance(connector, HuggingFaceDatasetConnector):
-                records = connector.fetch_all()
-                self.store_records(engine, records)
+    engine = sqlmodel_engine(rebuild_db="never")
 
-            elif isinstance(connector, ResourceConnectorByDate):
-                records = []
-                items = connector.fetch(datetime.min, datetime.max)
-                for item in items:
-                    if isinstance(item, RecordError):
-                        # handle error
-                        pass
-                    else:
-                        records.append(item)
-                self.store_records(engine, records)
+    with Session(engine) as session:
+        for i, item in enumerate(items):
+            error = save_to_database(router=router, connector=connector, session=session, item=item)
+            if error:
+                if isinstance(error.error, str):
+                    logging.error(f"Error on identifier {error.identifier}: {error.error}")
+                else:
+                    logging.error(f"Error on identifier {error.identifier}", exc_info=error.error)
+                with open(error_path, "a") as f:
+                    error_cleaned = "".join(
+                        c if c.isalnum() or c == "" else "_" for c in str(error.error)
+                    )
+                    f.write(f'"{error.identifier}","{error_cleaned}"\n')
+            if args.save_every and i > 0 and i % args.save_every == 0:
+                logging.debug(f"Saving state after handling record {i}")
+                with open(state_path, "w") as f:
+                    json.dump(state, f, indent=4)
+                session.commit()
+    with open(state_path, "w") as f:
+        session.commit()
+        json.dump(state, f, indent=4)
+    logging.info("Done")
 
-            elif isinstance(connector, ResourceConnectorById):
-                # Retrieve all records
-                from_id = 0
-                to_id = from_id + 10
-                finished = False
-                records: List["SQLModel" | "ResourceWithRelations[SQLModel]"] = []
-                while not finished:
-                    items = connector.fetch(from_id, to_id)
-                    if records[0].error == "No more datasets to retrieve":
-                        finished = True
-                    else:
-                        from_id += 10
-                        to_id = from_id + 10
-                for item in items:
-                    if isinstance(item, RecordError):
-                        # handle error
-                        pass
-                    else:
-                        records.append(item)
-                self.store_records(engine, records)
 
-            else:
-                pass  # "Unknown connector type!
+if __name__ == "__main__":
+    main()

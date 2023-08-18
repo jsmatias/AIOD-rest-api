@@ -6,22 +6,14 @@ from connectors.zenodo.zenodo_dataset_connector import ZenodoDatasetConnector
 from tests.testutils.paths import path_test_resources
 
 
-def read_file(path):
-    with open(path, "r") as file:
-        content = file.read()
-    return content
-
-
 def test_fetch_happy_path():
     connector = ZenodoDatasetConnector()
     with responses.RequestsMock() as mocked_requests:
         mock_zenodo_responses(mocked_requests)
 
-        datasets = list(
-            connector.fetch(
-                from_incl=datetime.datetime(2000, 1, 1, 12, 0, 0), to_excl=datetime.datetime.max
-            )
-        )
+        from_incl = datetime.datetime(2000, 1, 1, 12, 0, 0)
+        to_excl = datetime.datetime(2000, 1, 2, 12, 0, 0)
+        datasets = list(connector.run(state={}, from_date=from_incl, to_excl=to_excl))
     assert len(datasets) == 1
     dataset = datasets[0]
     assert dataset.name == "THE FIELD'S MALL MASS SHOOTING: EMERGENCY MEDICAL SERVICES RESPONSE"
@@ -89,7 +81,7 @@ def mock_zenodo_responses(mocked_requests: responses.RequestsMock):
         records_list = f.read()
     mocked_requests.add(
         responses.GET,
-        "https://zenodo.org/oai2d?metadataPrefix=oai_datacite&from=2000-01-01T12%3A00%3A00&until=9999-12-31T23%3A59%3A59.999999&verb=ListRecords",  # noqa E501
+        "https://zenodo.org/oai2d?metadataPrefix=oai_datacite&from=2000-01-01T00%3A00%3A00&until=2000-01-02T12%3A00%3A00&verb=ListRecords",  # noqa E501
         body=records_list,
         status=200,
     )

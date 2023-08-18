@@ -1,12 +1,14 @@
-from datetime import datetime
-import logging
-from typing import Iterator
+from datetime import datetime, date
+from typing import Iterator, Tuple
+
 import requests
-from connectors.record_error import RecordError
-from sickle import Sickle
 import xmltodict
+from sickle import Sickle
+from sqlmodel import SQLModel
 
 from connectors.abstract.resource_connector_by_date import ResourceConnectorByDate
+from connectors.record_error import RecordError
+from connectors.resource_with_relations import ResourceWithRelations
 from database.model.dataset.dataset import Dataset
 from database.model.general.keyword import Keyword
 from database.model.general.license import License
@@ -24,27 +26,24 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
     def platform_name(self) -> PlatformName:
         return PlatformName.zenodo
 
-    """
-    This function fetches only one record from Zenodo using the Rest API instead of
-    the OAI-PMH one. When querying using the OAI protocol, we always receive all the
-    records, making it really inefficient to filter through all of them until we get
-    the one we want. Apart from using different protocols, they also employ different
-    serialization methods. The Rest API uses JSON, while OAI uses XML, which is why the
-    code shows no similarities.
-    """
-
     def retry(self, _id: int) -> Dataset | RecordError:
-        """Retrieve information of the resource identified by id"""
+        """
+        This function fetches only one record from Zenodo using the Rest API instead of
+        the OAI-PMH one. When querying using the OAI protocol, we always receive all the
+        records, making it really inefficient to filter through all of them until we get
+        the one we want. Apart from using different protocols, they also employ different
+        serialization methods. The Rest API uses JSON, while OAI uses XML, which is why the
+        code shows no similarities.
+        """
 
         response = requests.get(f"https://zenodo.org/api/records/{_id}")
         if not response.ok:
             msg = response.json()["error"]["message"]
             return RecordError(
-                platform="zenodo",
-                _id=str(_id),
+                identifier=str(_id),
                 error=f"Error while fetching data from Zenodo: '{msg}'.",
-                type="dataset",
             )
+
         record = response.json()
         creators_list = [item["name"] for item in record["metadata"]["creators"]]
         creator = "; ".join(creators_list)  # TODO change field to an array
@@ -61,41 +60,26 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
         )
 
     @staticmethod
-    def _get_record_dictionary(record):
-        xml_string = record.raw
-        xml_dict = xmltodict.parse(xml_string)
-        id_ = xml_dict["record"]["header"]["identifier"]
-        if id_.startswith("oai:"):
-            id_ = id_.replace("oai:", "")
-        resource = xml_dict["record"]["metadata"]["oai_datacite"]["payload"]["resource"]
-        return id_, resource
+    def _error_msg_bad_format(field) -> str:
+        return f"Error while fetching record info: bad format {field}"
 
-    def _bad_record_format(self, dataset_id, field):
-        logging.error(
-            f"Error while fetching record info for dataset {dataset_id}: bad format {field}"
-        )
-
-    def _dataset_from_record(self, record_raw) -> Dataset | RecordError:
-        _id, record = ZenodoDatasetConnector._get_record_dictionary(record_raw)
+    @staticmethod
+    def _dataset_from_record(identifier: str, record: dict) -> Dataset | RecordError:
+        error_fmt = ZenodoDatasetConnector._error_msg_bad_format
         if isinstance(record["creators"]["creator"], list):
             creators_list = [item["creatorName"] for item in record["creators"]["creator"]]
             creator = "; ".join(creators_list)  # TODO change field to an array
         elif isinstance(record["creators"]["creator"]["creatorName"], str):
             creator = record["creators"]["creator"]["creatorName"]
         else:
-            self._bad_record_format(_id, "creator")
-            return RecordError(
-                _id=_id, platform="zenodo", type="dataset", error="error decoding creator"
-            )
+            error_fmt("")
+            return RecordError(identifier=identifier, error=error_fmt("creator"))
 
         if isinstance(record["titles"]["title"], str):
             title = record["titles"]["title"]
         else:
-            self._bad_record_format(_id, "title")
-            return RecordError(
-                _id=_id, platform="zenodo", type="dataset", error="error decoding title"
-            )
-        number_str = _id.rsplit("/", 1)[-1]
+            return RecordError(identifier=identifier, error=error_fmt("title"))
+        number_str = identifier.rsplit("/", 1)[-1]
         id_number = "".join(filter(str.isdigit, number_str))
         same_as = f"https://zenodo.org/api/records/{id_number}"
 
@@ -107,10 +91,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
         elif description_raw["@descriptionType"] == "Abstract":
             description = description_raw["#text"]
         else:
-            self._bad_record_format(_id, "description")
-            return RecordError(
-                _id=_id, platform="zenodo", type="dataset", error="error decoding description"
-            )
+            return RecordError(identifier=identifier, error=error_fmt("description"))
 
         date_published = None
         date_raw = record["dates"]["date"]
@@ -120,28 +101,19 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             date_string = date_raw["#text"]
             date_published = datetime.strptime(date_string, DATE_FORMAT)
         else:
-            self._bad_record_format(_id, "date_published")
-            return RecordError(
-                _id=_id, platform="zenodo", type="dataset", error="error decoding date_published"
-            )
+            return RecordError(identifier=identifier, error=error_fmt("date_published"))
 
         if isinstance(record["publisher"], str):
             publisher = record["publisher"]
         else:
-            self._bad_record_format(_id, "publisher")
-            return RecordError(
-                _id=_id, platform="zenodo", type="dataset", error="error decoding publisher"
-            )
+            return RecordError(identifier=identifier, error=error_fmt("publisher"))
 
         if isinstance(record["rightsList"]["rights"], list):
             license_ = record["rightsList"]["rights"][0]["@rightsURI"]
         elif isinstance(record["rightsList"]["rights"]["@rightsURI"], str):
             license_ = record["rightsList"]["rights"]["@rightsURI"]
         else:
-            self._bad_record_format(_id, "license")
-            return RecordError(
-                _id=_id, platform="zenodo", type="dataset", error="error decoding license"
-            )
+            return RecordError(identifier=identifier, error=error_fmt("license"))
 
         keywords = []
         if "subjects" in record:
@@ -150,14 +122,11 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             elif isinstance(record["subjects"]["subject"], list):
                 keywords = [item for item in record["subjects"]["subject"] if isinstance(item, str)]
             else:
-                self._bad_record_format(_id, "keywords")
-                return RecordError(
-                    _id=_id, platform="zenodo", type="dataset", error="error decoding keywords"
-                )
+                return RecordError(identifier=identifier, error=error_fmt("keywords"))
 
         dataset = Dataset(
             platform="zenodo",
-            platform_identifier=_id,
+            platform_identifier=identifier,
             name=title[:150],
             same_as=same_as,
             creator=creator[
@@ -171,7 +140,9 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
         )
         return dataset
 
-    def _get_resource_type(self, record):
+    @staticmethod
+    def _resource_type(record) -> str | None:
+        """Cheap check before parsing the complete XML."""
         xml_string = record.raw
         start = xml_string.find('<resourceType resourceTypeGeneral="')
         if start != -1:
@@ -179,15 +150,13 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             end = xml_string.find('"', start)
             if end != -1:
                 return xml_string[start:end]
-        id_, _ = ZenodoDatasetConnector._get_record_dictionary(record)
-        logging.error(f"Error while getting the resource type of the record {id_}")
-        # Can return an RecordError Because we dont know the type
         return None
 
-    def _retrieve_dataset_from_datetime(
-        self, sk: Sickle, from_incl: datetime, to_excl: datetime
-    ) -> Iterator[Dataset | RecordError]:
-        records = sk.ListRecords(
+    def fetch(
+        self, from_incl: datetime, to_excl: datetime
+    ) -> Iterator[Tuple[date | None, SQLModel | ResourceWithRelations[SQLModel] | RecordError]]:
+        sickle = Sickle("https://zenodo.org/oai2d")
+        records = sickle.ListRecords(
             **{
                 "metadataPrefix": "oai_datacite",
                 "from": from_incl.isoformat(),
@@ -195,14 +164,23 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             }
         )
 
-        record = next(records, None)
-
-        while record:
-            if self._get_resource_type(record) == "Dataset":
-                dataset = self._dataset_from_record(record)
-                yield dataset
-            record = next(records, None)
-
-    def fetch(self, from_incl: datetime, to_excl: datetime) -> Iterator[Dataset | RecordError]:
-        sickle = Sickle("https://zenodo.org/oai2d")
-        return self._retrieve_dataset_from_datetime(sickle, from_incl, to_excl=to_excl)
+        while record := next(records, None):
+            id_ = None
+            datetime_ = None
+            resource_type = ZenodoDatasetConnector._resource_type(record)
+            if resource_type is None:
+                yield datetime_, RecordError(
+                    identifier=id_, error="Resource type could not be " "determined"
+                )
+            if resource_type == "Dataset":
+                try:
+                    xml_string = record.raw
+                    xml_dict = xmltodict.parse(xml_string)
+                    id_ = xml_dict["record"]["header"]["identifier"]
+                    if id_.startswith("oai:"):
+                        id_ = id_.replace("oai:", "")
+                    datetime_ = xml_dict["record"]["header"]["datestamp"]
+                    resource = xml_dict["record"]["metadata"]["oai_datacite"]["payload"]["resource"]
+                    yield datetime_, self._dataset_from_record(id_, resource)
+                except Exception as e:
+                    yield datetime_, RecordError(identifier=id_, error=e)
