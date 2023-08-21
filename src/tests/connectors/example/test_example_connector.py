@@ -1,5 +1,29 @@
+from typing import TYPE_CHECKING
+
 import pytest
-from connectors import example_connectors
+
+from connectors.example.example import (
+    ExampleDatasetConnector,
+    ExamplePublicationConnector,
+    ExampleServiceConnector,
+    ExamplePersonConnector,
+    ExampleOrganisationConnector,
+    ExampleMLModelConnector,
+    ExampleExperimentConnector,
+)
+
+if TYPE_CHECKING:
+    from connectors.example.example_connector import ExampleConnector  # noqa:F401
+
+example_connectors = {
+    "datasets": ExampleDatasetConnector(),
+    "experiments": ExampleExperimentConnector(),
+    "ml_models": ExampleMLModelConnector(),
+    "organisations": ExampleOrganisationConnector(),
+    "persons": ExamplePersonConnector(),
+    "publications": ExamplePublicationConnector(),
+    "services": ExampleServiceConnector(),
+}  # type: dict[str, ExampleConnector]
 
 
 @pytest.mark.parametrize(

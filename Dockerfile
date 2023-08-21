@@ -20,5 +20,3 @@ ENV PATH="${PATH}:/home/apprunner/.local/bin"
 RUN pip install .
 
 COPY ./src /app
-
-ENTRYPOINT ["python", "main.py"]

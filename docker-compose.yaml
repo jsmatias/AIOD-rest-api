@@ -14,17 +14,36 @@ services:
     volumes:
       - ./src:/app
     command: >
+      python main.py
       --rebuild-db always 
-      --fill-with-examples datasets experiments ml_models organisations persons publications services
       --reload
-      --limit 10
     healthcheck:
       test: ["CMD", "python", "-c",  "import requests; requests.get('http://localhost:8000')"]
-      interval: 30s
+      start_interval: 1s
+      start_period: 30s
+      interval: 5s
       timeout: 30s
-      retries: 30
+      retries: 5
     depends_on:
       sqlserver:
+        condition: service_healthy
+
+  fill-db-with-examples:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: fill-db-with-examples
+    env_file: .env
+    environment:
+      - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
+    volumes:
+      - ./src:/app
+      - ./data/connectors:/opt/connectors/data
+      - ./connectors:/opt/connectors/script
+    command: >
+      /bin/bash -c "/opt/connectors/script/fill-examples.sh"
+    depends_on:
+      app:
         condition: service_healthy
 
   sqlserver:
@@ -37,7 +56,9 @@ services:
       - ./data/mysql:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "-uroot", "-p$MYSQL_ROOT_PASSWORD", "ping", "-h", "localhost", "--protocol","tcp"]
-      interval: 30s
+      start_interval: 1s
+      start_period: 10s
+      interval: 5s
       timeout: 30s
       retries: 30
 
@@ -53,7 +74,7 @@ services:
     volumes:
      - ./quay-keycloak:/opt/keycloak/data/import
     command: >
-      start-dev 
+      start-dev
       --hostname-url http://${HOSTNAME}/aiod-auth
       --hostname-admin-url http://${HOSTNAME}/aiod-auth
       --http-relative-path=/aiod-auth

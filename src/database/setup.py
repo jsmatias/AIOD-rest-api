@@ -1,22 +1,15 @@
 """
 Utility functions for initializing the database and tables through SQLAlchemy.
 """
-import logging
-from typing import List
 
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
-from sqlalchemy.exc import IntegrityError
-from sqlmodel import create_engine, Session, select, SQLModel
+from sqlmodel import create_engine, Session, SQLModel
 
 import routers
 from config import DB_CONFIG
-from connectors.abstract.resource_connector_on_start_up import ResourceConnectorOnStartUp
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model.concept.concept import AIoDConcept
-from database.model.dataset.dataset import Dataset
-from database.model.knowledge_asset.publication import Publication
-from database.model.platform.platform import Platform
 from database.model.platform.platform_names import PlatformName
 
 
@@ -59,53 +52,6 @@ def drop_or_create_database(url: str, delete_first: bool):
         connection.execute(text(f"CREATE DATABASE IF NOT EXISTS {database}"))
         connection.commit()
     engine.dispose()
-
-
-def populate_database(
-    engine: Engine,
-    connectors: List[ResourceConnectorOnStartUp],
-    only_if_empty: bool = True,
-):
-    """Add some data to the Dataset and Publication tables."""
-
-    with Session(engine) as session:
-        session.add_all([Platform(name=name) for name in PlatformName])
-        data_exists = (
-            session.scalars(select(Publication)).first() or session.scalars(select(Dataset)).first()
-        )
-        if only_if_empty and data_exists:
-            return
-
-        for connector in connectors:
-            (router,) = [
-                router
-                for router in routers.resource_routers
-                if router.resource_class == connector.resource_class
-            ]
-            # We use the create_resource function for this router.
-            # This is a temporary solution. After finishing the Connectors (so that they're
-            # synchronizing), we will probably just perform a HTTP POST instead.
-
-            for item in connector.fetch():
-                if isinstance(item, ResourceWithRelations):
-                    resource_create_instance = item.resource
-                    _create_or_fetch_related_objects(session, item)
-                else:
-                    resource_create_instance = item
-                if (
-                    _get_existing_resource(
-                        session, resource_create_instance, connector.resource_class
-                    )
-                    is None
-                ):
-                    try:
-                        router.create_resource(session, resource_create_instance)
-                    except IntegrityError as e:
-                        logging.warning(
-                            f"Error while creating resource. Continuing for now: " f" {e}"
-                        )
-                session.flush()
-        session.commit()
 
 
 def _get_existing_resource(

@@ -5,21 +5,20 @@ Note: order matters for overloaded paths
 (https://fastapi.tiangolo.com/tutorial/path-params/#order-matters).
 """
 import argparse
-import logging
-
 
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import Json
 from sqlalchemy.engine import Engine
-from starlette.status import HTTP_501_NOT_IMPLEMENTED
+from sqlmodel import Session
 
-import connectors
 import routers
 from authentication import get_current_user
 from config import KEYCLOAK_CONFIG
-from database.setup import populate_database, create_engine
+from database.model.platform.platform import Platform
+from database.model.platform.platform_names import PlatformName
+from database.setup import sqlmodel_engine
 
 
 def _parse_args() -> argparse.Namespace:
@@ -32,35 +31,12 @@ def _parse_args() -> argparse.Namespace:
         choices=["no", "only-if-empty", "always"],
         help="Determines if the database is recreated.",
     )
-
-    parser.add_argument(
-        "--fill-with-examples",
-        default=[],
-        nargs="+",
-        choices=connectors.example_connectors.keys(),
-        help="Zero, one or more resources with which the database will have examples.",
-    )
-
     parser.add_argument(
         "--reload",
         action="store_true",
         help="Use `--reload` for FastAPI.",
     )
     return parser.parse_args()
-
-
-def _connector_example_from_resource(resource):
-    connector_dict = connectors.example_connectors
-    connector = connector_dict.get(resource, None)
-    if connector is None:
-        possibilities = ", ".join(f"`{c}`" for c in connectors.example_connectors.keys())
-        msg = (
-            f"No example connector for resource '{resource}' available. Possible "
-            f"values: {possibilities}"
-        )
-        logging.warning(msg)
-        raise HTTPException(status_code=HTTP_501_NOT_IMPLEMENTED, detail=msg)
-    return connector
 
 
 def add_routes(app: FastAPI, engine: Engine, url_prefix=""):
@@ -107,18 +83,10 @@ def create_app() -> FastAPI:
             "scopes": KEYCLOAK_CONFIG.get("scopes"),
         },
     )
-
-    examples_connectors = [
-        _connector_example_from_resource(resource) for resource in args.fill_with_examples
-    ]
-
-    engine = create_engine(args.rebuild_db)
-    if len(examples_connectors) > 0:
-        populate_database(
-            engine,
-            connectors=examples_connectors,
-            only_if_empty=True,
-        )
+    engine = sqlmodel_engine(args.rebuild_db)
+    with Session(engine) as session:
+        session.add_all([Platform(name=name) for name in PlatformName])
+        session.commit()
 
     add_routes(app, engine, url_prefix=args.url_prefix)
     return app

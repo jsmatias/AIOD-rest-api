@@ -7,12 +7,13 @@ import sys
 from datetime import datetime
 from typing import Optional
 
-from sqlmodel import SQLModel, Session
+from sqlmodel import Session
 
 import routers
-from connectors.abstract.resource_connector import ResourceConnector
+from connectors.abstract.resource_connector import ResourceConnector, RESOURCE
 from connectors.record_error import RecordError
 from connectors.resource_with_relations import ResourceWithRelations
+from database.model.concept.concept import AIoDConcept
 from database.setup import _create_or_fetch_related_objects, _get_existing_resource, sqlmodel_engine
 from routers import ResourceRouter
 
@@ -25,6 +26,7 @@ def _parse_args() -> argparse.Namespace:
     # TODO: write readme
     parser = argparse.ArgumentParser(description="Please refer to the README.")
     parser.add_argument(
+        "-c",
         "--connector",
         required=True,
         help="The connector to use. Please provide a relative path such as "
@@ -32,10 +34,18 @@ def _parse_args() -> argparse.Namespace:
         "last part is the class name.",
     )
     parser.add_argument(
+        "-w",
         "--working-dir",
         required=True,
         help="The working directory. The status will be stored here, next to the logs and a "
         "list of failed resources",
+    )
+    parser.add_argument(
+        "-f",
+        "--force-rerun",
+        action=argparse.BooleanOptionalAction,
+        help="Run this connector even if it has run before (only applicable for connectors that "
+        "only run on startup). This is only meant for development, not for production!",
     )
     parser.add_argument(
         "--from-date",
@@ -52,6 +62,7 @@ def _parse_args() -> argparse.Namespace:
         "synchronize from the previous end-identifier.",
     )
     parser.add_argument(
+        "-l",
         "--limit",
         type=int,
         help="Implemented by some connectors for testing purposes: limit the number of results.",
@@ -73,7 +84,7 @@ def save_to_database(
     session: Session,
     connector: ResourceConnector,
     router: ResourceRouter,
-    item: SQLModel | ResourceWithRelations[SQLModel] | RecordError,
+    item: RESOURCE | ResourceWithRelations[RESOURCE] | RecordError,
 ) -> Optional[RecordError]:
     if isinstance(item, RecordError):
         return item
@@ -90,7 +101,14 @@ def save_to_database(
             router.create_resource(session, resource_create_instance)
 
     except Exception as e:
-        return RecordError(identifier=str(item.identifier), error=e)  # type:ignore
+        id_ = None
+        if isinstance(item, AIoDConcept):
+            id_ = item.aiod_entry.platform_identifier
+        elif isinstance(item, ResourceWithRelations):
+            id_ = item.resource.aiod_entry.platform_identifier
+        elif isinstance(item, RecordError):
+            id_ = item.identifier
+        return RecordError(identifier=id_, error=e)  # type:ignore
     session.flush()
     return None
 
@@ -126,6 +144,7 @@ def main():
         from_identifier=args.from_identifier,
         from_date=args.from_date,
         limit=args.limit,
+        force_rerun=args.force_rerun,
     )
 
     (router,) = [
