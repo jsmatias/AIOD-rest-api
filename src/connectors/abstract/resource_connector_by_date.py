@@ -1,15 +1,13 @@
 import abc
 import logging
 from datetime import datetime, date
-from typing import Generic, Iterator, TypeVar, Tuple
+from typing import Generic, Iterator, Tuple
 from connectors.abstract.resource_connector import ResourceConnector
 from connectors.record_error import RecordError
 
-from sqlmodel import SQLModel
 
 from connectors.resource_with_relations import ResourceWithRelations
-
-RESOURCE = TypeVar("RESOURCE", bound=SQLModel)
+from routers.resource_router import RESOURCE
 
 
 class ResourceConnectorByDate(ResourceConnector, Generic[RESOURCE]):
@@ -17,13 +15,13 @@ class ResourceConnectorByDate(ResourceConnector, Generic[RESOURCE]):
     the previous end-datetime is used as datetime-from."""
 
     @abc.abstractmethod
-    def retry(self, _id: int) -> SQLModel | ResourceWithRelations[SQLModel] | RecordError:
+    def retry(self, _id: int) -> RESOURCE | ResourceWithRelations[RESOURCE] | RecordError:
         """Retrieve information of the resource identified by id"""
 
     @abc.abstractmethod
     def fetch(
         self, from_incl: datetime, to_excl: datetime
-    ) -> Iterator[Tuple[date | None, SQLModel | ResourceWithRelations[SQLModel] | RecordError]]:
+    ) -> Iterator[Tuple[date | None, RESOURCE | ResourceWithRelations[RESOURCE] | RecordError]]:
         """Retrieve information of all resources"""
 
     def run(
@@ -33,7 +31,7 @@ class ResourceConnectorByDate(ResourceConnector, Generic[RESOURCE]):
         limit: int | None = None,
         to_excl: datetime | None = None,
         **kwargs,
-    ) -> Iterator[SQLModel | ResourceWithRelations[SQLModel] | RecordError]:
+    ) -> Iterator[RESOURCE | ResourceWithRelations[RESOURCE] | RecordError]:
         if limit is not None:
             raise ValueError(
                 "Limit not implemented for this connector. Please remove the command "

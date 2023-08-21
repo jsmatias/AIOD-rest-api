@@ -1,15 +1,11 @@
 import abc
 import datetime
 import logging
-from typing import Generic, Iterator, TypeVar
-from connectors.abstract.resource_connector import ResourceConnector
+from typing import Generic, Iterator
+
+from connectors.abstract.resource_connector import ResourceConnector, RESOURCE
 from connectors.record_error import RecordError
-
-from sqlmodel import SQLModel
-
 from connectors.resource_with_relations import ResourceWithRelations
-
-RESOURCE = TypeVar("RESOURCE", bound=SQLModel)
 
 
 class ResourceConnectorOnStartUp(ResourceConnector, Generic[RESOURCE]):
@@ -18,12 +14,12 @@ class ResourceConnectorOnStartUp(ResourceConnector, Generic[RESOURCE]):
     @abc.abstractmethod
     def fetch(
         self, limit: int | None = None
-    ) -> Iterator[SQLModel | ResourceWithRelations[SQLModel] | RecordError]:
+    ) -> Iterator[RESOURCE | ResourceWithRelations[RESOURCE] | RecordError]:
         """Retrieve information of all resources"""
 
     def run(
         self, state: dict, limit: int | None = None, **kwargs
-    ) -> Iterator[SQLModel | ResourceWithRelations[SQLModel] | RecordError]:
+    ) -> Iterator[RESOURCE | ResourceWithRelations[RESOURCE] | RecordError]:
         if state:
             raise ValueError("This connector has already been run before.")
         if limit is not None:

@@ -19,7 +19,7 @@ def test_first_run():
         datasets = list(connector.run(state={}, from_identifier=0, limit=None))
     assert {d.name for d in datasets} == {"anneal", "labor", "kr-vs-kp"}
     assert len(datasets) == 3
-    assert {len(d.citations) for d in datasets} == {0}
+    assert {len(d.citation) for d in datasets} == {0}
 
 
 def test_second_run():

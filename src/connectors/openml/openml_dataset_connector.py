@@ -11,10 +11,12 @@ from sqlmodel import SQLModel
 
 from connectors.abstract.resource_connector_by_id import ResourceConnectorById
 from connectors.record_error import RecordError
-from database.model.dataset.data_download import DataDownload
+from database.model.ai_asset.distribution import Distribution
+from database.model.concept.aiod_entry import AIoDEntryCreate
 from database.model.dataset.dataset import Dataset
+from database.model.dataset.size import Size
 from database.model.platform.platform_names import PlatformName
-from database.model.resource import resource_create
+from database.model.resource_read_and_create import resource_create
 
 
 class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
@@ -60,28 +62,24 @@ class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
         qualities_json = {quality["name"]: quality["value"] for quality in qualities}
         pydantic_class = resource_create(Dataset)
         return pydantic_class(
-            platform=self.platform_name,
-            platform_identifier=identifier,
+            aiod_entry=AIoDEntryCreate(
+                platform=self.platform_name,
+                platform_identifier=identifier,
+            ),
             name=dataset_json["name"],
             same_as=url_data,
             description=dataset_json["description"],
             date_published=dateutil.parser.parse(dataset_json["upload_date"]),
-            date_modified=dateutil.parser.parse(dataset_json["processing_date"]),
-            distributions=[
-                DataDownload(
+            distribution=[
+                Distribution(
                     content_url=dataset_json["url"], encoding_format=dataset_json["format"]
                 )
             ],
-            size=_as_int(qualities_json["NumberOfInstances"]),
+            size=Size(value=_as_int(qualities_json["NumberOfInstances"]), unit="instances"),
             is_accessible_for_free=True,
-            keywords=[tag for tag in dataset_json["tag"]],
+            keyword=[tag for tag in dataset_json["tag"]],
             license=dataset_json["licence"] if "licence" in dataset_json else None,
             version=dataset_json["version"],
-            alternate_names=[],
-            citations=[],
-            is_part=[],
-            has_parts=[],
-            measured_values=[],
         )
 
     def fetch(self, offset: int, from_identifier: int) -> Iterator[SQLModel | RecordError]:

@@ -6,10 +6,11 @@ from sqlmodel import SQLModel
 
 from connectors.record_error import RecordError
 from connectors.resource_with_relations import ResourceWithRelations
+from database.model.concept.concept import AIoDConcept
 from database.model.platform.platform_names import PlatformName
 
 
-RESOURCE = TypeVar("RESOURCE", bound=SQLModel)
+RESOURCE = TypeVar("RESOURCE", bound=AIoDConcept)
 
 
 class ResourceConnector(abc.ABC, Generic[RESOURCE]):

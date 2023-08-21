@@ -1,8 +1,9 @@
 import datetime
+
 import responses
+
 from connectors.zenodo.zenodo_dataset_connector import ZenodoDatasetConnector
-
-
+from database.model.agent.person import Person
 from tests.testutils.paths import path_test_resources
 
 
@@ -15,26 +16,30 @@ def test_fetch_happy_path():
         to_excl = datetime.datetime(2000, 1, 2, 12, 0, 0)
         datasets = list(connector.run(state={}, from_date=from_incl, to_excl=to_excl))
     assert len(datasets) == 1
-    dataset = datasets[0]
+    dataset = datasets[0].resource
     assert dataset.name == "THE FIELD'S MALL MASS SHOOTING: EMERGENCY MEDICAL SERVICES RESPONSE"
     assert dataset.description == "This is a description paragraph"
-    assert (
-        dataset.creator
-        == "Hansen, Peter Martin; Alstrøm, henrik; Damm-Hejmdal, Anders; Mikkelsen, Søren"
-    )
     assert dataset.date_published == datetime.datetime(2023, 5, 6)
-    assert dataset.license.name == "https://creativecommons.org/licenses/by/4.0/legalcode"
-    assert dataset.platform == "zenodo"
-    assert dataset.platform_identifier == "zenodo.org:7961614"
-    assert dataset.publisher == "Zenodo"
-    assert len(dataset.keywords) == 5
-    assert {k.name for k in dataset.keywords} == {
+    assert dataset.license == "https://creativecommons.org/licenses/by/4.0/legalcode"
+    assert dataset.aiod_entry.platform == "zenodo"
+    assert dataset.aiod_entry.platform_identifier == "zenodo.org:7961614"
+    assert set(dataset.keyword) == {
         "Mass casualty",
         "Major incident",
         "Management and leadership",
         "Disaster",
         "Mass shooting",
     }
+
+    creators: list[Person] = datasets[0].related_resources["creator"]
+    assert len(creators) == 4
+    for given, sur in [
+        ("Peter Martin", "Hansen"),
+        ("henrik", "Alstrøm"),
+        ("Anders", "Damm-Hejmdal"),
+        ("Søren", "Mikkelsen"),
+    ]:
+        assert any(c for c in creators if c.given_name == given and c.surname == sur)
 
 
 def test_retry_happy_path():
@@ -49,28 +54,36 @@ def test_retry_happy_path():
             status=200,
         )
         id_ = "7902672"
-        dataset = connector.retry(id_)
+        resource_with_relations = connector.retry(id_)
+    dataset = resource_with_relations.resource
     assert dataset.name == "THE FIELD'S MALL MASS SHOOTING: EMERGENCY MEDICAL SERVICES RESPONSE"
     assert dataset.description == "This is a description paragraph"
-    assert (
-        dataset.creator
-        == "Hansen, Peter Martin; Alstrøm, henrik; Damm-Hejmdal, Anders; Mikkelsen, Søren; Rehn, Marius; Berlac, Peter Anthony"  # noqa E501
-    )
     assert dataset.date_published == datetime.datetime(
         2023, 5, 23, 7, 56, 17, 414652, tzinfo=datetime.timezone.utc
     )
-    assert dataset.license.name == "CC-BY-4.0"
-    assert dataset.platform == "zenodo"
-    assert dataset.platform_identifier == "7902672"
-    assert dataset.publisher == "Zenodo"
-    assert len(dataset.keywords) == 5
-    assert {k.name for k in dataset.keywords} == {
+    assert dataset.license == "CC-BY-4.0"
+    assert dataset.aiod_entry.platform == "zenodo"
+    assert dataset.aiod_entry.platform_identifier == "7902672"
+
+    assert len(dataset.keyword) == 5
+    assert set(dataset.keyword) == {
         "Mass casualty",
         "Major incident",
         "Management and leadership",
         "Disaster",
         "Mass shooting",
     }
+    creators: list[Person] = resource_with_relations.related_resources["creator"]
+    assert len(creators) == 6
+    for given, sur in [
+        ("Peter Martin", "Hansen"),
+        ("henrik", "Alstrøm"),
+        ("Anders", "Damm-Hejmdal"),
+        ("Søren", "Mikkelsen"),
+        ("Marius", "Rehn"),
+        ("Peter Anthony", "Berlac"),
+    ]:
+        assert any(c for c in creators if c.given_name == given and c.surname == sur)
 
 
 def mock_zenodo_responses(mocked_requests: responses.RequestsMock):

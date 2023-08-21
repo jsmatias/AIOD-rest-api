@@ -1,16 +1,15 @@
 import json
 
 import responses
+
 from connectors.huggingface.huggingface_dataset_connector import HuggingFaceDatasetConnector
-
-
 from connectors.resource_with_relations import ResourceWithRelations
 from tests.testutils.paths import path_test_resources
 
 HUGGINGFACE_URL = "https://datasets-server.huggingface.co"
 
 
-def test_fetch_happy_path():
+def test_fetch_all_happy_path():
     ids_expected = {
         "0n1xus/codexglue",
         "04-07-22/wep-probes",
@@ -36,12 +35,12 @@ def test_fetch_happy_path():
     assert len(resources_with_relations) == 5
     assert all(type(r) == ResourceWithRelations for r in resources_with_relations)
     datasets = [r.resource for r in resources_with_relations]
-    ids = {d.platform_identifier for d in datasets}
+    ids = {d.aiod_entry.platform_identifier for d in datasets}
     names = {d.name for d in datasets}
     assert ids == ids_expected
     assert names == ids_expected
-    assert all(len(r.related_resources) == 1 for r in resources_with_relations)
-    assert all(len(r.related_resources["citations"]) == 1 for r in resources_with_relations)
+    assert all(len(r.related_resources) in (1, 2) for r in resources_with_relations)
+    assert all(len(r.related_resources["citation"]) == 1 for r in resources_with_relations)
 
 
 def mock_parquet(mocked_requests: responses.RequestsMock, dataset_id: str):

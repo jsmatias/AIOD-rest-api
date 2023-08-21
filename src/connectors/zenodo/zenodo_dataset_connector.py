@@ -9,10 +9,11 @@ from sqlmodel import SQLModel
 from connectors.abstract.resource_connector_by_date import ResourceConnectorByDate
 from connectors.record_error import RecordError
 from connectors.resource_with_relations import ResourceWithRelations
+from database.model.agent.person import Person
+from database.model.concept.aiod_entry import AIoDEntryCreate
 from database.model.dataset.dataset import Dataset
-from database.model.general.keyword import Keyword
-from database.model.general.license import License
 from database.model.platform.platform_names import PlatformName
+from database.model.resource_read_and_create import resource_create
 
 DATE_FORMAT = "%Y-%m-%d"
 
@@ -26,7 +27,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
     def platform_name(self) -> PlatformName:
         return PlatformName.zenodo
 
-    def retry(self, _id: int) -> Dataset | RecordError:
+    def retry(self, _id: int) -> ResourceWithRelations[Dataset] | RecordError:
         """
         This function fetches only one record from Zenodo using the Rest API instead of
         the OAI-PMH one. When querying using the OAI protocol, we always receive all the
@@ -45,18 +46,26 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             )
 
         record = response.json()
-        creators_list = [item["name"] for item in record["metadata"]["creators"]]
-        creator = "; ".join(creators_list)  # TODO change field to an array
-        return Dataset(
-            platform="zenodo",
-            platform_identifier=_id,
+        creator_names = [item["name"] for item in record["metadata"]["creators"]]
+        creators = [
+            Person(given_name=name.split(", ")[1], surname=name.split(", ")[0])
+            for name in creator_names
+        ]
+
+        pydantic_class = resource_create(Dataset)
+        dataset = pydantic_class(
+            aiod_entry=AIoDEntryCreate(
+                platform="zenodo",
+                platform_identifier=_id,
+            ),
             date_published=record.get("created"),
             name=record.get("metadata").get("title"),
             description=record.get("metadata").get("description"),
-            creator=creator,
-            publisher="Zenodo",
-            license=License(name=record.get("metadata").get("license").get("id")),
-            keywords=[Keyword(name=k) for k in record.get("metadata").get("keywords")],
+            license=record.get("metadata").get("license").get("id"),
+            keyword=record.get("metadata").get("keywords"),
+        )
+        return ResourceWithRelations[Dataset](
+            resource=dataset, related_resources={"creator": creators}
         )
 
     @staticmethod
@@ -64,16 +73,21 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
         return f"Error while fetching record info: bad format {field}"
 
     @staticmethod
-    def _dataset_from_record(identifier: str, record: dict) -> Dataset | RecordError:
+    def _dataset_from_record(
+        identifier: str, record: dict
+    ) -> ResourceWithRelations[Dataset] | RecordError:
         error_fmt = ZenodoDatasetConnector._error_msg_bad_format
         if isinstance(record["creators"]["creator"], list):
-            creators_list = [item["creatorName"] for item in record["creators"]["creator"]]
-            creator = "; ".join(creators_list)  # TODO change field to an array
+            creator_names = [item["creatorName"] for item in record["creators"]["creator"]]
         elif isinstance(record["creators"]["creator"]["creatorName"], str):
-            creator = record["creators"]["creator"]["creatorName"]
+            creator_names = [record["creators"]["creator"]["creatorName"]]
         else:
             error_fmt("")
             return RecordError(identifier=identifier, error=error_fmt("creator"))
+        creators = [
+            Person(given_name=name.split(", ")[1], surname=name.split(", ")[0])
+            for name in creator_names
+        ]
 
         if isinstance(record["titles"]["title"], str):
             title = record["titles"]["title"]
@@ -124,21 +138,24 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             else:
                 return RecordError(identifier=identifier, error=error_fmt("keywords"))
 
-        dataset = Dataset(
-            platform="zenodo",
-            platform_identifier=identifier,
+        pydantic_class = resource_create(Dataset)
+        dataset = pydantic_class(
+            aiod_entry=AIoDEntryCreate(
+                platform="zenodo",
+                platform_identifier=identifier,
+            ),
             name=title[:150],
             same_as=same_as,
-            creator=creator[
-                :150
-            ],  # TODO not enough characters for creator list, change to array or allow more length
-            description=description[:500],
+            description=description,
             date_published=date_published,
             publisher=publisher,
-            license=License(name=license_) if license_ is not None else None,
-            keywords=[Keyword(name=k) for k in keywords],
+            license=license_,
+            keyword=keywords,
         )
-        return dataset
+
+        return ResourceWithRelations[Dataset](
+            resource=dataset, related_resources={"creator": creators}
+        )
 
     @staticmethod
     def _resource_type(record) -> str | None:

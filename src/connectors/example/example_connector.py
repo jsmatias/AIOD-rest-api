@@ -3,12 +3,10 @@ import pathlib
 from typing import Iterator, TypeVar
 
 from sqlmodel import SQLModel
+
 from connectors.abstract.resource_connector_on_start_up import ResourceConnectorOnStartUp
-
-
-from database.model.resource import resource_create
 from database.model.platform.platform_names import PlatformName
-
+from database.model.resource_read_and_create import resource_create
 
 RESOURCE = TypeVar("RESOURCE", bound=SQLModel)
 

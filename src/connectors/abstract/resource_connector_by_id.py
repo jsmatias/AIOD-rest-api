@@ -1,14 +1,10 @@
 import abc
 import logging
-from typing import Generic, Iterator, TypeVar
+from typing import Generic, Iterator
 
-from sqlmodel import SQLModel
-
-from connectors.abstract.resource_connector import ResourceConnector
+from connectors.abstract.resource_connector import ResourceConnector, RESOURCE
 from connectors.record_error import RecordError
 from connectors.resource_with_relations import ResourceWithRelations
-
-RESOURCE = TypeVar("RESOURCE", bound=SQLModel)
 
 
 class ResourceConnectorById(ResourceConnector, Generic[RESOURCE]):
@@ -19,18 +15,18 @@ class ResourceConnectorById(ResourceConnector, Generic[RESOURCE]):
         self.limit_per_iteration = limit_per_iteration
 
     @abc.abstractmethod
-    def retry(self, identifier: int) -> SQLModel | ResourceWithRelations[SQLModel] | RecordError:
+    def retry(self, identifier: int) -> RESOURCE | ResourceWithRelations[RESOURCE] | RecordError:
         """Retrieve information of the resource identified by id"""
 
     @abc.abstractmethod
     def fetch(
         self, offset: int, from_identifier: int
-    ) -> Iterator[SQLModel | ResourceWithRelations[SQLModel] | RecordError]:
+    ) -> Iterator[RESOURCE | ResourceWithRelations[RESOURCE] | RecordError]:
         """Retrieve information of resources"""
 
     def run(
         self, state: dict, from_identifier: int | None = None, limit: int | None = None, **kwargs
-    ) -> Iterator[SQLModel | ResourceWithRelations[SQLModel] | RecordError]:
+    ) -> Iterator[RESOURCE | ResourceWithRelations[RESOURCE] | RecordError]:
         if limit is not None:
             logging.warning(
                 "Limiting the results! Please remove the limit command line argument "
