@@ -118,7 +118,7 @@ class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
             try:
                 identifier = summary["did"]
                 if identifier < from_identifier:
-                    yield RecordError(identifier=identifier, error="Id too low", ignore_error=True)
+                    yield RecordError(identifier=identifier, error="Id too low", ignore=True)
                 if from_identifier is None or identifier >= from_identifier:
                     qualities = summary["quality"]
                     yield self.fetch_record(identifier, qualities)

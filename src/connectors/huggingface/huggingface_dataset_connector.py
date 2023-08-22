@@ -10,6 +10,7 @@ import requests
 from connectors.abstract.resource_connector_on_start_up import ResourceConnectorOnStartUp
 from connectors.record_error import RecordError
 from connectors.resource_with_relations import ResourceWithRelations
+from database.model import field_length
 from database.model.agent.person import Person
 from database.model.ai_asset.distribution import Distribution
 from database.model.concept.aiod_entry import AIoDEntryCreate
@@ -21,8 +22,8 @@ from database.model.resource_read_and_create import resource_create
 
 class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
     """
-    This must be only runned on the startup due to there is no way to
-    retrieve data from huggingface filtering by time creation
+    This must be only ran on the startup because there is no way to retrieve data from
+    huggingface filtering by the created time
     """
 
     @property
@@ -67,8 +68,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                             name=dataset.citation,
                         )
                     ]
-            elif len(parsed_citations) == 1:
-                citation = parsed_citations[0]
+            else:
                 citations = [
                     pydantic_class_publication(
                         aiod_entry=AIoDEntryCreate(
@@ -79,12 +79,8 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                         same_as=citation["link"] if "link" in citation else None,
                         type=citation["ENTRYTYPE"],
                     )
+                    for citation in parsed_citations
                 ]
-            else:
-                raise ValueError(
-                    f"Unexpected number of citations found for dataset "
-                    f"{dataset.id} in {dataset.citation}: {len(parsed_citations)}"
-                )
 
         parquet_info = HuggingFaceDatasetConnector._get(
             url="https://datasets-server.huggingface.co/parquet",
@@ -102,7 +98,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
         ]
         size = None
         ds_license = None
-        if dataset.cardData is not None:
+        if dataset.cardData is not None and "license" in dataset.cardData:
             if isinstance(dataset.cardData["license"], str):
                 ds_license = dataset.cardData["license"]
             else:
@@ -117,13 +113,18 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
         related_resources = {"citation": citations}
         if dataset.author is not None:
             related_resources["creator"] = [Person(name=dataset.author)]
+        description = dataset.description
+        if len(description) > field_length.DESCRIPTION:
+            text_break = " [...]"
+            description = description[: field_length.DESCRIPTION - len(text_break)] + text_break
+
         return ResourceWithRelations[Dataset](
             resource=pydantic_class(
                 aiod_entry=AIoDEntryCreate(
                     platform_identifier=dataset.id,
                     platform=self.platform_name,
                 ),
-                description=dataset.description,
+                description=description,
                 name=dataset.id,
                 same_as=f"https://huggingface.co/datasets/{dataset.id}",
                 date_modified=dateutil.parser.parse(dataset.lastModified),

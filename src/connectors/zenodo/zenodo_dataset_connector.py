@@ -1,6 +1,7 @@
-from datetime import datetime, date
+from datetime import datetime
 from typing import Iterator, Tuple
 
+import dateutil.parser
 import requests
 import xmltodict
 from sickle import Sickle
@@ -9,6 +10,7 @@ from sqlmodel import SQLModel
 from connectors.abstract.resource_connector_by_date import ResourceConnectorByDate
 from connectors.record_error import RecordError
 from connectors.resource_with_relations import ResourceWithRelations
+from database.model import field_length
 from database.model.agent.person import Person
 from database.model.concept.aiod_entry import AIoDEntryCreate
 from database.model.dataset.dataset import Dataset
@@ -47,10 +49,18 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
 
         record = response.json()
         creator_names = [item["name"] for item in record["metadata"]["creators"]]
-        creators = [
-            Person(given_name=name.split(", ")[1], surname=name.split(", ")[0])
-            for name in creator_names
-        ]
+        creators = []
+        for name in creator_names:
+            name_splits = name.split(", ")
+            if len(name_splits) == 2:
+                creators.append(Person(given_name=name_splits[1], surname=name_splits[0]))
+            else:
+                creators.append(Person(name=name))
+
+        description = record.get("metadata").get("description")
+        if len(description) > field_length.DESCRIPTION:
+            text_break = " [...]"
+            description = description[: field_length.DESCRIPTION - len(text_break)] + text_break
 
         pydantic_class = resource_create(Dataset)
         dataset = pydantic_class(
@@ -60,7 +70,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             ),
             date_published=record.get("created"),
             name=record.get("metadata").get("title"),
-            description=record.get("metadata").get("description"),
+            description=description,
             license=record.get("metadata").get("license").get("id"),
             keyword=record.get("metadata").get("keywords"),
         )
@@ -84,15 +94,23 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
         else:
             error_fmt("")
             return RecordError(identifier=identifier, error=error_fmt("creator"))
-        creators = [
-            Person(given_name=name.split(", ")[1], surname=name.split(", ")[0])
-            for name in creator_names
-        ]
+
+        creators = []
+        for name in creator_names:
+            name_splits = name.split(", ")
+            if len(name_splits) == 2:
+                creators.append(Person(given_name=name_splits[1], surname=name_splits[0]))
+            else:
+                creators.append(Person(name=name))
 
         if isinstance(record["titles"]["title"], str):
             title = record["titles"]["title"]
         else:
             return RecordError(identifier=identifier, error=error_fmt("title"))
+        if len(title) > field_length.NORMAL:
+            text_break = " [...]"
+            title = title[: field_length.NORMAL - len(text_break)] + text_break
+
         number_str = identifier.rsplit("/", 1)[-1]
         id_number = "".join(filter(str.isdigit, number_str))
         same_as = f"https://zenodo.org/api/records/{id_number}"
@@ -106,6 +124,9 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             description = description_raw["#text"]
         else:
             return RecordError(identifier=identifier, error=error_fmt("description"))
+        if len(description) > field_length.DESCRIPTION:
+            text_break = " [...]"
+            description = description[: field_length.DESCRIPTION - len(text_break)] + text_break
 
         date_published = None
         date_raw = record["dates"]["date"]
@@ -144,7 +165,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
                 platform="zenodo",
                 platform_identifier=identifier,
             ),
-            name=title[:150],
+            name=title,
             same_as=same_as,
             description=description,
             date_published=date_published,
@@ -171,7 +192,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
 
     def fetch(
         self, from_incl: datetime, to_excl: datetime
-    ) -> Iterator[Tuple[date | None, SQLModel | ResourceWithRelations[SQLModel] | RecordError]]:
+    ) -> Iterator[Tuple[datetime | None, SQLModel | ResourceWithRelations[SQLModel] | RecordError]]:
         sickle = Sickle("https://zenodo.org/oai2d")
         records = sickle.ListRecords(
             **{
@@ -187,7 +208,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             resource_type = ZenodoDatasetConnector._resource_type(record)
             if resource_type is None:
                 yield datetime_, RecordError(
-                    identifier=id_, error="Resource type could not be " "determined"
+                    identifier=id_, error="Resource type could not be determined"
                 )
             if resource_type == "Dataset":
                 try:
@@ -196,8 +217,10 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
                     id_ = xml_dict["record"]["header"]["identifier"]
                     if id_.startswith("oai:"):
                         id_ = id_.replace("oai:", "")
-                    datetime_ = xml_dict["record"]["header"]["datestamp"]
+                    datetime_ = dateutil.parser.parse(xml_dict["record"]["header"]["datestamp"])
                     resource = xml_dict["record"]["metadata"]["oai_datacite"]["payload"]["resource"]
                     yield datetime_, self._dataset_from_record(id_, resource)
                 except Exception as e:
                     yield datetime_, RecordError(identifier=id_, error=e)
+            else:
+                yield datetime_, RecordError(identifier=id_, error="Wrong type", ignore=True)

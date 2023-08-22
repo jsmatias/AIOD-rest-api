@@ -21,7 +21,7 @@ class ResourceConnectorByDate(ResourceConnector, Generic[RESOURCE]):
     @abc.abstractmethod
     def fetch(
         self, from_incl: datetime, to_excl: datetime
-    ) -> Iterator[Tuple[date | None, RESOURCE | ResourceWithRelations[RESOURCE] | RecordError]]:
+    ) -> Iterator[Tuple[datetime | None, RESOURCE | ResourceWithRelations[RESOURCE] | RecordError]]:
         """Retrieve information of all resources"""
 
     def run(
@@ -48,13 +48,13 @@ class ResourceConnectorByDate(ResourceConnector, Generic[RESOURCE]):
                 raise ValueError("In the first run, the from-date needs to be set")
             from_incl = datetime.combine(from_date, datetime.min.time())
         else:
-            from_incl = state["to_excl"]
+            from_incl = datetime.fromtimestamp(state["last"] + 0.001)
 
         logging.info(f"Starting synchronisation {from_incl=}, {to_excl=}.")
-        state["from_incl"] = from_incl
-        state["to_excl"] = to_excl
+        state["from_incl"] = from_incl.timestamp()
+        state["to_excl"] = to_excl.timestamp()
         for datetime_, result in self.fetch(from_incl=from_incl, to_excl=to_excl):
             yield result
             if datetime_:
-                state["last_datetime"] = datetime_  # For manually resolving errors
+                state["last"] = datetime_.timestamp()
         state["result"] = "complete run successful"

@@ -5,4 +5,4 @@ import dataclasses
 class RecordError:
     identifier: str | None
     error: BaseException | str
-    ignore_error: bool = False
+    ignore: bool = False

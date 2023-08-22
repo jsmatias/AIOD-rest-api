@@ -2,6 +2,7 @@ import datetime
 
 import responses
 
+from connectors.record_error import RecordError
 from connectors.zenodo.zenodo_dataset_connector import ZenodoDatasetConnector
 from database.model.agent.person import Person
 from tests.testutils.paths import path_test_resources
@@ -14,7 +15,8 @@ def test_fetch_happy_path():
 
         from_incl = datetime.datetime(2000, 1, 1, 12, 0, 0)
         to_excl = datetime.datetime(2000, 1, 2, 12, 0, 0)
-        datasets = list(connector.run(state={}, from_date=from_incl, to_excl=to_excl))
+        resources = list(connector.run(state={}, from_date=from_incl, to_excl=to_excl))
+    datasets = [r for r in resources if not isinstance(r, RecordError)]
     assert len(datasets) == 1
     dataset = datasets[0].resource
     assert dataset.name == "THE FIELD'S MALL MASS SHOOTING: EMERGENCY MEDICAL SERVICES RESPONSE"

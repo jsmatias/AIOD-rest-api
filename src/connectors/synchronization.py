@@ -166,7 +166,7 @@ def main():
         for i, item in enumerate(items):
             error = save_to_database(router=router, connector=connector, session=session, item=item)
             if error:
-                if not error.ignore_error:
+                if not error.ignore:
                     if isinstance(error.error, str):
                         logging.error(f"Error on identifier {error.identifier}: {error.error}")
                     else:

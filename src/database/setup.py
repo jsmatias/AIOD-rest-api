@@ -34,7 +34,7 @@ def connect_to_database(
 
     if delete_first or create_if_not_exists:
         drop_or_create_database(url, delete_first)
-    engine = create_engine(url, echo=True, pool_recycle=3600)
+    engine = create_engine(url, echo=False, pool_recycle=3600)
 
     with engine.connect() as connection:
         AIoDConcept.metadata.create_all(connection, checkfirst=True)
@@ -44,7 +44,7 @@ def connect_to_database(
 
 def drop_or_create_database(url: str, delete_first: bool):
     server, database = url.rsplit("/", 1)
-    engine = create_engine(server, echo=True)  # Temporary engine, not connected to a database
+    engine = create_engine(server, echo=False)  # Temporary engine, not connected to a database
 
     with engine.connect() as connection:
         if delete_first:
@@ -83,9 +83,10 @@ def _create_or_fetch_related_objects(session: Session, item: ResourceWithRelatio
         identifiers = []
         for resource in resources:
             if (
-                resource.platform is not None
-                and resource.platform != PlatformName.aiod
-                and resource.platform_identifier is not None
+                resource.aiod_entry is not None
+                and resource.aiod_entry.platform is not None
+                and resource.aiod_entry.platform != PlatformName.aiod
+                and resource.aiod_entry.platform_identifier is not None
             ):
                 # Get the router of this resource. The difficulty is, that the resource will be a
                 # ResourceRead (e.g. a DatasetRead). So we search for the router for which the
