@@ -18,17 +18,11 @@ class ResourceConnectorOnStartUp(ResourceConnector, Generic[RESOURCE]):
         """Retrieve information of all resources"""
 
     def run(
-        self, state: dict, limit: int | None = None, force_rerun: bool = False, **kwargs
+        self, state: dict, limit: int | None = None, **kwargs
     ) -> Iterator[RESOURCE | ResourceWithRelations[RESOURCE] | RecordError]:
         if state:
-            if force_rerun:
-                logging.warning(
-                    "Rerunning this connector, although the state shows that it has "
-                    "already been run. Please remove the force_rerun command in "
-                    "production."
-                )
-            else:
-                raise ValueError("This connector has already been run before.")
+            logging.warning("This connector has run before. Exiting.")
+            return
         if limit is not None:
             logging.warning(
                 "Limiting the results! Please remove the limit command line argument "

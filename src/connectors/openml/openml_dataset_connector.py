@@ -2,7 +2,6 @@
 This module knows how to load an OpenML object based on its AIoD implementation,
 and how to convert the OpenML response to some agreed AIoD format.
 """
-
 from typing import Iterator
 
 import dateutil.parser
@@ -11,6 +10,7 @@ from sqlmodel import SQLModel
 
 from connectors.abstract.resource_connector_by_id import ResourceConnectorById
 from connectors.record_error import RecordError
+from database.model import field_length
 from database.model.ai_asset.distribution import Distribution
 from database.model.concept.aiod_entry import AIoDEntryCreate
 from database.model.dataset.dataset import Dataset
@@ -61,6 +61,17 @@ class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
 
         qualities_json = {quality["name"]: quality["value"] for quality in qualities}
         pydantic_class = resource_create(Dataset)
+        description = dataset_json["description"]
+        if isinstance(description, list) and len(description) == 0:
+            description = ""
+        elif not isinstance(description, str):
+            return RecordError(identifier=str(identifier), error="Description of unknown format.")
+        if len(description) > field_length.DESCRIPTION:
+            text_break = " [...]"
+            description = description[: field_length.DESCRIPTION - len(text_break)] + text_break
+        size = None
+        if "NumberOfInstances" in qualities_json:
+            size = Size(value=_as_int(qualities_json["NumberOfInstances"]), unit="instances")
         return pydantic_class(
             aiod_entry=AIoDEntryCreate(
                 platform=self.platform_name,
@@ -68,16 +79,16 @@ class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
             ),
             name=dataset_json["name"],
             same_as=url_data,
-            description=dataset_json["description"],
+            description=description,
             date_published=dateutil.parser.parse(dataset_json["upload_date"]),
             distribution=[
                 Distribution(
                     content_url=dataset_json["url"], encoding_format=dataset_json["format"]
                 )
             ],
-            size=Size(value=_as_int(qualities_json["NumberOfInstances"]), unit="instances"),
+            size=size,
             is_accessible_for_free=True,
-            keyword=[tag for tag in dataset_json["tag"]],
+            keyword=[tag for tag in dataset_json["tag"]] if "tag" in dataset_json else [],
             license=dataset_json["licence"] if "licence" in dataset_json else None,
             version=dataset_json["version"],
         )
@@ -106,8 +117,11 @@ class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
             identifier = None
             try:
                 identifier = summary["did"]
-                qualities = summary["quality"]
-                yield self.fetch_record(identifier, qualities)
+                if identifier < from_identifier:
+                    yield RecordError(identifier=identifier, error="Id too low", ignore_error=True)
+                if from_identifier is None or identifier >= from_identifier:
+                    qualities = summary["quality"]
+                    yield self.fetch_record(identifier, qualities)
             except Exception as e:
                 yield RecordError(identifier=identifier, error=e)
 

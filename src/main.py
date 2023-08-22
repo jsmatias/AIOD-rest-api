@@ -11,7 +11,7 @@ from fastapi import Depends, FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import Json
 from sqlalchemy.engine import Engine
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 import routers
 from authentication import get_current_user
@@ -33,7 +33,7 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--reload",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
         help="Use `--reload` for FastAPI.",
     )
     return parser.parse_args()
@@ -85,8 +85,10 @@ def create_app() -> FastAPI:
     )
     engine = sqlmodel_engine(args.rebuild_db)
     with Session(engine) as session:
-        session.add_all([Platform(name=name) for name in PlatformName])
-        session.commit()
+        existing_platforms = session.scalars(select(Platform)).all()
+        if not any(existing_platforms):
+            session.add_all([Platform(name=name) for name in PlatformName])
+            session.commit()
 
     add_routes(app, engine, url_prefix=args.url_prefix)
     return app

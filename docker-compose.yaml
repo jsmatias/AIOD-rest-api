@@ -5,6 +5,7 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
+    image: ai4eu_server
     container_name: apiserver
     env_file: .env
     environment:
@@ -15,7 +16,7 @@ services:
       - ./src:/app
     command: >
       python main.py
-      --rebuild-db always 
+      --rebuild-db only-if-empty
       --reload
     healthcheck:
       test: ["CMD", "python", "-c",  "import requests; requests.get('http://localhost:8000')"]
@@ -29,9 +30,7 @@ services:
         condition: service_healthy
 
   fill-db-with-examples:
-    build:
-      context: ./
-      dockerfile: Dockerfile
+    image: ai4eu_server
     container_name: fill-db-with-examples
     env_file: .env
     environment:
@@ -42,6 +41,25 @@ services:
       - ./connectors:/opt/connectors/script
     command: >
       /bin/bash -c "/opt/connectors/script/fill-examples.sh"
+    depends_on:
+      app:
+        condition: service_healthy
+
+  openml-dataset-connector:
+    build:
+      context: ./
+      dockerfile: connectors/openml/Dockerfile
+    image: ai4eu_openml_connector
+    container_name: openml-dataset-connector
+    env_file: .env
+    environment:
+      - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
+    volumes:
+      - ./src:/app
+      - ./data/connectors:/opt/connectors/data
+      - ./connectors/openml/:/opt/connectors/script
+    command: >
+      /bin/bash -c "/opt/connectors/script/entry.sh"
     depends_on:
       app:
         condition: service_healthy

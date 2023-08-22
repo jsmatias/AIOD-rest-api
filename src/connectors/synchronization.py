@@ -3,6 +3,7 @@ import importlib
 import json
 import logging
 import pathlib
+import shutil
 import sys
 from datetime import datetime
 from typing import Optional
@@ -17,7 +18,6 @@ from database.model.concept.concept import AIoDConcept
 from database.setup import _create_or_fetch_related_objects, _get_existing_resource, sqlmodel_engine
 from routers import ResourceRouter
 
-RELATIVE_PATH_LOG = pathlib.Path("connector.log")
 RELATIVE_PATH_STATE_JSON = pathlib.Path("state.json")
 RELATIVE_PATH_ERROR_CSV = pathlib.Path("errors.csv")
 
@@ -41,11 +41,12 @@ def _parse_args() -> argparse.Namespace:
         "list of failed resources",
     )
     parser.add_argument(
-        "-f",
-        "--force-rerun",
+        "-rm",
+        "--remove_state",
         action=argparse.BooleanOptionalAction,
-        help="Run this connector even if it has run before (only applicable for connectors that "
-        "only run on startup). This is only meant for development, not for production!",
+        help="Remove the existing state files (the files in the working directory) on startup (so "
+        "to start with a clean sheet). This is only meant for development, not for "
+        "production!",
     )
     parser.add_argument(
         "--from-date",
@@ -56,7 +57,7 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--from-identifier",
-        type=str,
+        type=int,
         help="The start identifier. Only relevant for the first run of identifier-based "
         "connectors. In subsequent runs, identifier-based connectors will "
         "synchronize from the previous end-identifier.",
@@ -68,7 +69,7 @@ def _parse_args() -> argparse.Namespace:
         help="Implemented by some connectors for testing purposes: limit the number of results.",
     )
     parser.add_argument(
-        "--save_every",
+        "--save-every",
         type=int,
         help="Save the state file every N records. In case that the complete program is killed, "
         "you can then resume the next run from the last saved state.",
@@ -101,6 +102,7 @@ def save_to_database(
             router.create_resource(session, resource_create_instance)
 
     except Exception as e:
+        session.rollback()
         id_ = None
         if isinstance(item, AIoDConcept):
             id_ = item.aiod_entry.platform_identifier
@@ -115,12 +117,17 @@ def save_to_database(
 
 def main():
     args = _parse_args()
+
     working_dir = pathlib.Path(args.working_dir)
+    if args.remove_state and working_dir.exists():
+        shutil.rmtree(working_dir)
     working_dir.mkdir(parents=True, exist_ok=True)
+
     logging.basicConfig(
-        filename=working_dir / RELATIVE_PATH_LOG, encoding="utf-8", level=logging.INFO
+        level=logging.INFO,
+        format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
-    logging.getLogger().addHandler(logging.StreamHandler())
     sys.excepthook = exception_handler
 
     module_path = ".".join(args.connector.split(".")[0:-1])
@@ -133,18 +140,18 @@ def main():
     error_path.parents[0].mkdir(parents=True, exist_ok=True)
     state_path.parents[0].mkdir(parents=True, exist_ok=True)
     first_run = not state_path.exists()
-    if not first_run:
+
+    if first_run:
+        state = {}
+    else:
         with open(state_path, "r") as f:
             state = json.load(f)
-    else:
-        state = {}
 
     items = connector.run(
         state=state,
         from_identifier=args.from_identifier,
         from_date=args.from_date,
         limit=args.limit,
-        force_rerun=args.force_rerun,
     )
 
     (router,) = [
@@ -159,17 +166,20 @@ def main():
         for i, item in enumerate(items):
             error = save_to_database(router=router, connector=connector, session=session, item=item)
             if error:
-                if isinstance(error.error, str):
-                    logging.error(f"Error on identifier {error.identifier}: {error.error}")
-                else:
-                    logging.error(f"Error on identifier {error.identifier}", exc_info=error.error)
-                with open(error_path, "a") as f:
-                    error_cleaned = "".join(
-                        c if c.isalnum() or c == "" else "_" for c in str(error.error)
-                    )
-                    f.write(f'"{error.identifier}","{error_cleaned}"\n')
+                if not error.ignore_error:
+                    if isinstance(error.error, str):
+                        logging.error(f"Error on identifier {error.identifier}: {error.error}")
+                    else:
+                        logging.error(
+                            f"Error on identifier {error.identifier}", exc_info=error.error
+                        )
+                    with open(error_path, "a") as f:
+                        error_cleaned = "".join(
+                            c if c.isalnum() or c == "" else "_" for c in str(error.error)
+                        )
+                        f.write(f'"{error.identifier}","{error_cleaned}"\n')
             if args.save_every and i > 0 and i % args.save_every == 0:
-                logging.debug(f"Saving state after handling record {i}")
+                logging.info(f"Saving state after handling {i}th result: {json.dumps(state)}")
                 with open(state_path, "w") as f:
                     json.dump(state, f, indent=4)
                 session.commit()

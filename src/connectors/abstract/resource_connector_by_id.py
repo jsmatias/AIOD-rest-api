@@ -37,7 +37,8 @@ class ResourceConnectorById(ResourceConnector, Generic[RESOURCE]):
         if first_run and from_identifier is None:
             raise ValueError("In the first run, the from-identifier needs to be set")
         elif first_run:
-            state = {"offset": 0, "from_id": 0}
+            state["offset"] = 0
+            state["from_id"] = from_identifier if from_identifier is not None else 0
         else:
             state["from_id"] = state["last_id"] + 1
             state["offset"] = state["offset"]  # TODO: what if datasets are deleted? Or updated?
@@ -53,8 +54,8 @@ class ResourceConnectorById(ResourceConnector, Generic[RESOURCE]):
             i = 0
             for item in self.fetch(offset=state["offset"], from_identifier=state["from_id"]):
                 i += 1
-                if hasattr(item, "platform_identifier"):
-                    id_ = int(item.platform_identifier)
+                if hasattr(item, "aiod_entry") and item.aiod_entry.platform_identifier is not None:
+                    id_ = int(item.aiod_entry.platform_identifier)
                 else:
                     id_ = None
                 if id_ is None or id_ >= state["from_id"]:
@@ -64,6 +65,8 @@ class ResourceConnectorById(ResourceConnector, Generic[RESOURCE]):
                     n_results += 1
                     if n_results == limit:
                         return
+
             finished = i < self.limit_per_iteration
+            logging.info(f"Finished: {i} < {self.limit_per_iteration}")
             state["offset"] += i
         state["result"] = "complete run successful"
