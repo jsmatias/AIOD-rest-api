@@ -1,6 +1,7 @@
 import abc
 import datetime
 import traceback
+from functools import partial
 from typing import Literal, Union, Any
 from typing import TypeVar, Type
 from wsgiref.handlers import format_date_time
@@ -179,13 +180,13 @@ class ResourceRouter(abc.ABC):
     ):
         """Fetch all resources of this platform in given schema, using pagination"""
         _raise_error_on_invalid_schema(self._possible_schemas, schema)
-        convert_schema = (
-            self.schema_converters[schema].convert
-            if schema != "aiod"
-            else self.resource_class_read.from_orm
-        )
         try:
             with Session(engine) as session:
+                convert_schema = (
+                    partial(self.schema_converters[schema].convert, session)
+                    if schema != "aiod"
+                    else self.resource_class_read.from_orm
+                )
                 # TODO(jos) "This doesn't work since platform is moved to AIoDEntry")
                 # where_clause = (
                 #     (self.resource_class.aiod_entry.platform == platform)
@@ -215,7 +216,7 @@ class ResourceRouter(abc.ABC):
             with Session(engine) as session:
                 resource = self._retrieve_resource(session, identifier, platform=platform)
                 if schema != "aiod":
-                    return self.schema_converters[schema].convert(resource)
+                    return self.schema_converters[schema].convert(session, resource)
                 return self._wrap_with_headers(self.resource_class_read.from_orm(resource))
         except Exception as e:
             raise _wrap_as_http_exception(e)

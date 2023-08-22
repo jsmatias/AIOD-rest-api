@@ -1,6 +1,8 @@
 import re
 from typing import Type
 
+from sqlmodel import Session
+
 from converters.schema.dcat import (
     DcatApWrapper,
     DcatAPDataset,
@@ -26,7 +28,7 @@ class DatasetConverterDcatAP(SchemaConverter[Dataset, DcatApWrapper]):
     def to_class(self) -> Type[DcatApWrapper]:
         return DcatApWrapper
 
-    def convert(self, aiod: Dataset) -> DcatApWrapper:
+    def convert(self, session: Session, aiod: Dataset) -> DcatApWrapper:
         release_date = (
             XSDDateTime(value_=aiod.date_published) if aiod.date_published is not None else None
         )
