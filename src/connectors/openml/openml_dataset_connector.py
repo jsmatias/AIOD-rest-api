@@ -20,10 +20,10 @@ from database.model.resource_read_and_create import resource_create
 
 
 class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
-    """ "
-    Openml orders its records with a numeric id in ascendent order but does not allow
-    gather them from a certain date. This is the reason why the ResourceConnectorById
-    is needed
+    """
+    Openml does not allow gathering the records based on the last modified datetime. Instead,
+    it does guarantee strictly ascending identifiers. This is the reason why the
+    ResourceConnectorById is used.
     """
 
     @property

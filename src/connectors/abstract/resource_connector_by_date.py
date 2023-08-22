@@ -57,4 +57,4 @@ class ResourceConnectorByDate(ResourceConnector, Generic[RESOURCE]):
             yield result
             if datetime_:
                 state["last"] = datetime_.timestamp()
-        state["result"] = "complete run successful"
+        state["result"] = "Complete run done (although there might be errors)."

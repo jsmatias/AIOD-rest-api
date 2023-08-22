@@ -22,8 +22,8 @@ from database.model.resource_read_and_create import resource_create
 
 class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
     """
-    This must be only ran on the startup because there is no way to retrieve data from
-    huggingface filtering by the created time
+    This connector only runs on startup, because there is no endpoint to filter the huggingface
+    data by last modified datetime
     """
 
     @property

@@ -69,4 +69,4 @@ class ResourceConnectorById(ResourceConnector, Generic[RESOURCE]):
             finished = i < self.limit_per_iteration
             logging.info(f"Finished: {i} < {self.limit_per_iteration}")
             state["offset"] += i
-        state["result"] = "complete run successful"
+        state["result"] = "Complete run done (although there might be errors)."

@@ -23,8 +23,9 @@ RELATIVE_PATH_ERROR_CSV = pathlib.Path("errors.csv")
 
 
 def _parse_args() -> argparse.Namespace:
-    # TODO: write readme
-    parser = argparse.ArgumentParser(description="Please refer to the README.")
+    parser = argparse.ArgumentParser(
+        description="Synchronize a resource from a platform to the " "AIoD database."
+    )
     parser.add_argument(
         "-c",
         "--connector",
@@ -71,7 +72,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--save-every",
         type=int,
-        help="Save the state file every N records. In case that the complete program is killed, "
+        help="Save the state file every N records. In case the complete program is killed, "
         "you can then resume the next run from the last saved state.",
     )
     return parser.parse_args()
@@ -98,7 +99,8 @@ def save_to_database(
         existing = _get_existing_resource(
             session, resource_create_instance, connector.resource_class
         )
-        if existing is None:  # TODO: if not None, update
+        # TODO: if not None, update (https://github.com/aiondemand/AIOD-rest-api/issues/131)
+        if existing is None:
             router.create_resource(session, resource_create_instance)
 
     except Exception as e:

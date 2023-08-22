@@ -30,4 +30,4 @@ class ResourceConnectorOnStartUp(ResourceConnector, Generic[RESOURCE]):
             )
         state["result"] = f"started on {datetime.datetime.now()}"
         yield from self.fetch(limit=limit)
-        state["result"] = "complete run successful"
+        state["result"] = "Complete run done (although there might be errors)."
