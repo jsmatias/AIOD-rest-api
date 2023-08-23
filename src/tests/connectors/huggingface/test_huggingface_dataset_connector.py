@@ -35,7 +35,7 @@ def test_fetch_all_happy_path():
     assert len(resources_with_relations) == 5
     assert all(type(r) == ResourceWithRelations for r in resources_with_relations)
     datasets = [r.resource for r in resources_with_relations]
-    ids = {d.aiod_entry.platform_identifier for d in datasets}
+    ids = {d.platform_identifier for d in datasets}
     names = {d.name for d in datasets}
     assert ids == ids_expected
     assert names == ids_expected
