@@ -1,6 +1,10 @@
 #!/bin/bash
 
 python3 connectors/synchronization.py \
+  -c connectors.example.example.ExampleCaseStudyConnector \
+  -w /opt/connectors/data/example/case_study
+
+python3 connectors/synchronization.py \
   -c connectors.example.example.ExampleExperimentConnector \
   -w /opt/connectors/data/example/experiment
 

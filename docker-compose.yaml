@@ -16,7 +16,7 @@ services:
       - ./src:/app
     command: >
       python main.py
-      --rebuild-db only-if-empty
+      --rebuild-db always
       --reload
     healthcheck:
       test: ["CMD", "python", "-c",  "import requests; requests.get('http://localhost:8000')"]
