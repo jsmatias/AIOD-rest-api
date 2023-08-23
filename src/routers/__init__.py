@@ -4,6 +4,7 @@ from .dataset_router import DatasetRouter
 from .educational_resource_router import EducationalResourceRouter
 from .experiment_router import ExperimentRouter
 from .ml_model_router import MLModelRouter
+from .news_router import NewsRouter
 from .organisation_router import OrganisationRouter
 from .person_router import PersonRouter
 from .platform_router import PlatformRouter
@@ -22,7 +23,7 @@ resource_routers = [
     # EventRouter(),
     ExperimentRouter(),
     MLModelRouter(),
-    # NewsRouter(),
+    NewsRouter(),
     OrganisationRouter(),
     PersonRouter(),
     PublicationRouter(),
