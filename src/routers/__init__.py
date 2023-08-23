@@ -8,6 +8,7 @@ from .platform_router import PlatformRouter
 from .publication_router import PublicationRouter
 from .resource_router import ResourceRouter  # noqa:F401
 from .service_router import ServiceRouter
+from .team_router import TeamRouter
 from .upload_router_huggingface import UploadRouterHuggingface
 
 resource_routers = [
@@ -26,6 +27,7 @@ resource_routers = [
     # ProjectRouter(),
     # PresentationRouter(),
     ServiceRouter(),
+    TeamRouter(),
 ]  # type: list[ResourceRouter]
 
 other_routers = [UploadRouterHuggingface()]

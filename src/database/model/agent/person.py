@@ -1,3 +1,4 @@
+from pydantic import condecimal
 from sqlmodel import Relationship, Field
 
 from database.model.agent.agent import AgentBase, Agent
@@ -27,6 +28,16 @@ class PersonBase(AgentBase):
         "personal name.",
         max_length=NORMAL,
         schema_extra={"example": "Doe"},
+    )
+    price_per_hour_euro: condecimal(max_digits=4, decimal_places=2) | None = Field(  # type: ignore
+        description="A ballpark figure of the per hour cost to hire this person.",
+        schema_extra={"example": 75.50},
+        default=None,
+    )
+    wants_to_be_contacted: bool = Field(
+        description="Does this person want to be contacted about new opportunities relating their "
+        "expertise?",
+        default=False,
     )
 
 

@@ -27,3 +27,7 @@ python3 connectors/synchronization.py \
 python3 connectors/synchronization.py \
   -c connectors.example.example.ExampleServiceConnector \
   -w /opt/connectors/data/example/service
+
+python3 connectors/synchronization.py \
+  -c connectors.example.example.ExampleTeamConnector \
+  -w /opt/connectors/data/example/team
