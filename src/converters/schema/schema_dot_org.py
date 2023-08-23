@@ -63,7 +63,7 @@ class SchemaDotOrgPerson(BaseModel):
     type_: str = Field(default="Person", alias="@type", constant=True)
     name: str = Field(description="The name of the item.")
     givenName: str | None = Field(
-        description="Given name. In the U.S., the first name of a " "Person."
+        description="Given name. In the U.S., the first name of a Person."
     )
     familyName: str | None = Field(
         description="Family name. In the U.S., the last name of a Person."
