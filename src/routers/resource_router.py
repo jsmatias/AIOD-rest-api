@@ -380,7 +380,7 @@ class ResourceRouter(abc.ABC):
                 with Session(engine) as session:
                     resource = self._retrieve_resource(session, identifier)
                     if hasattr(resource, "aiod_entry"):
-                        datetime_created = resource.aiod_entry.date_created  # TODO(jos): clean up
+                        datetime_created = resource.aiod_entry.date_created
                     for attribute_name in resource.schema()["properties"]:
                         if hasattr(resource_create_instance, attribute_name):
                             new_value = getattr(resource_create_instance, attribute_name)
