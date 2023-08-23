@@ -1,5 +1,3 @@
-import typing  # noqa:F401
-
 from .dataset_router import DatasetRouter
 from .experiment_router import ExperimentRouter
 from .ml_model_router import MLModelRouter
@@ -27,6 +25,6 @@ resource_routers = [
     # ProjectRouter(),
     # PresentationRouter(),
     ServiceRouter(),
-]  # type: typing.List[ResourceRouter]
+]  # type: list[ResourceRouter]
 
 other_routers = [UploadRouterHuggingface()]
