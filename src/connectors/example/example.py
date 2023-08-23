@@ -3,6 +3,7 @@ import pathlib
 from connectors.example.example_connector import ExampleConnector
 from database.model.agent.organisation import Organisation
 from database.model.agent.person import Person
+from database.model.agent.team import Team
 from database.model.dataset.dataset import Dataset
 from database.model.knowledge_asset.publication import Publication
 from database.model.models_and_experiments.experiment import Experiment
@@ -52,3 +53,9 @@ class ExampleServiceConnector(ExampleConnector[Service]):
     def __init__(self):
         json_path = _path_example_resources / "services.json"
         super().__init__(json_path, Service)
+
+
+class ExampleTeamConnector(ExampleConnector[Team]):
+    def __init__(self):
+        json_path = _path_example_resources / "teams.json"
+        super().__init__(json_path, Team)
