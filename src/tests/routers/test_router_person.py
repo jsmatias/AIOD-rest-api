@@ -26,10 +26,10 @@ def test_happy_path(
     body["expertise"] = ["machine learning"]
     body["language"] = ["eng", "nld"]
     body["contact"] = [1]
-    response = client.post("/persons/v0", json=body, headers={"Authorization": "Fake token"})
+    response = client.post("/persons/v1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
 
-    response = client.get("/persons/v0/2")
+    response = client.get("/persons/v1/2")
     assert response.status_code == 200, response.json()
 
     response_json = response.json()
