@@ -7,6 +7,7 @@ from .ml_model_router import MLModelRouter
 from .organisation_router import OrganisationRouter
 from .person_router import PersonRouter
 from .platform_router import PlatformRouter
+from .project_router import ProjectRouter
 from .publication_router import PublicationRouter
 from .resource_router import ResourceRouter  # noqa:F401
 from .service_router import ServiceRouter
@@ -26,7 +27,7 @@ resource_routers = [
     OrganisationRouter(),
     PersonRouter(),
     PublicationRouter(),
-    # ProjectRouter(),
+    ProjectRouter(),
     ServiceRouter(),
     TeamRouter(),
 ]  # type: list[ResourceRouter]
