@@ -19,6 +19,7 @@ def test_happy_path(
     keycloak_openid.userinfo = mocked_privileged_token
 
     with Session(engine) as session:
+        person.platform_identifier = "2"
         session.add(person)
         session.commit()
 
