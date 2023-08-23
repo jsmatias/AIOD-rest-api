@@ -2,9 +2,11 @@
 Utility functions for initializing the database and tables through SQLAlchemy.
 """
 
+from operator import and_
+
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
-from sqlmodel import create_engine, Session, SQLModel
+from sqlmodel import create_engine, Session, SQLModel, select
 
 import routers
 from config import DB_CONFIG
@@ -58,15 +60,13 @@ def _get_existing_resource(
     session: Session, resource: AIoDConcept, clazz: type[SQLModel]
 ) -> AIoDConcept | None:
     """Selecting a resource based on platform and platform_identifier"""
-    return None
-    # TODO(jos): this currently doesn't work, since we started using aiod_entry
-    # query = select(clazz).where(
-    #     and_(
-    #         clazz.aiod_entry.platform == resource.aiod_entry.platform,
-    #         clazz.aiod_entry.platform_identifier == resource.aiod_entry.platform_identifier,
-    #     )
-    # )
-    # return session.scalars(query).first()
+    query = select(clazz).where(
+        and_(
+            clazz.platform == resource.platform,
+            clazz.platform_identifier == resource.platform_identifier,
+        )
+    )
+    return session.scalars(query).first()
 
 
 def _create_or_fetch_related_objects(session: Session, item: ResourceWithRelations):
@@ -83,10 +83,9 @@ def _create_or_fetch_related_objects(session: Session, item: ResourceWithRelatio
         identifiers = []
         for resource in resources:
             if (
-                resource.aiod_entry is not None
-                and resource.aiod_entry.platform is not None
-                and resource.aiod_entry.platform != PlatformName.aiod
-                and resource.aiod_entry.platform_identifier is not None
+                resource.platform is not None
+                and resource.platform != PlatformName.aiod
+                and resource.platform_identifier is not None
             ):
                 # Get the router of this resource. The difficulty is, that the resource will be a
                 # ResourceRead (e.g. a DatasetRead). So we search for the router for which the

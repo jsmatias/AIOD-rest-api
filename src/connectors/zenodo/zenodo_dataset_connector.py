@@ -12,7 +12,6 @@ from connectors.record_error import RecordError
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model import field_length
 from database.model.agent.person import Person
-from database.model.concept.aiod_entry import AIoDEntryCreate
 from database.model.dataset.dataset import Dataset
 from database.model.platform.platform_names import PlatformName
 from database.model.resource_read_and_create import resource_create
@@ -64,10 +63,8 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
 
         pydantic_class = resource_create(Dataset)
         dataset = pydantic_class(
-            aiod_entry=AIoDEntryCreate(
-                platform="zenodo",
-                platform_identifier=_id,
-            ),
+            platform="zenodo",
+            platform_identifier=_id,
             date_published=record.get("created"),
             name=record.get("metadata").get("title"),
             description=description,
@@ -161,10 +158,8 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
 
         pydantic_class = resource_create(Dataset)
         dataset = pydantic_class(
-            aiod_entry=AIoDEntryCreate(
-                platform="zenodo",
-                platform_identifier=identifier,
-            ),
+            platform="zenodo",
+            platform_identifier=identifier,
             name=title,
             same_as=same_as,
             description=description,

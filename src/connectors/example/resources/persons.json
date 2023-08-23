@@ -1,11 +1,11 @@
 [
     {
+    "platform": "example",
+    "platform_identifier": "1",
     "name": "The name of this resource",
     "description": "A description.",
     "same_as": "https://www.example.com/resource/this_resource",
     "aiod_entry": {
-      "platform": "example",
-      "platform_identifier": "1",
       "editor": [],
       "status": "draft"
     },

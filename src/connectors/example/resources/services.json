@@ -1,13 +1,13 @@
 [
   {
+  "platform": "example",
+  "platform_identifier": "1",
   "name": "The name of this resource",
   "description": "A description.",
   "same_as": "https://www.example.com/resource/this_resource",
   "slogan": "Making your Smart Paradigm Shifts more Disruptive",
   "terms_of_service": "Your use of this service is subject to the following terms: [...].",
   "aiod_entry": {
-    "platform": "example",
-    "platform_identifier": "1",
     "editor": [],
     "status": "draft"
   },
