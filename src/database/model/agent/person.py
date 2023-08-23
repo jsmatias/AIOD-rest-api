@@ -1,10 +1,11 @@
-from sqlmodel import Relationship
+from sqlmodel import Relationship, Field
 
 from database.model.agent.agent import AgentBase, Agent
 from database.model.agent.expertise import Expertise
 from database.model.agent.language import Language
 from database.model.ai_resource.resource import AIResource
 from database.model.concept.aiod_entry import AIoDEntryORM
+from database.model.field_length import NORMAL
 from database.model.helper_functions import link_factory
 from database.model.relationships import ResourceRelationshipList
 from database.model.serializers import (
@@ -15,7 +16,18 @@ from database.model.serializers import (
 
 
 class PersonBase(AgentBase):
-    pass
+    given_name: str | None = Field(
+        description="Also known as forename or first name. The part of the personal name that "
+        "identifies a person, potentially with a middle name as well.",
+        max_length=NORMAL,
+        schema_extra={"example": "Jane"},
+    )
+    surname: str | None = Field(
+        description="Also known as last name or family name. The mostly heriditary part of the "
+        "personal name.",
+        max_length=NORMAL,
+        schema_extra={"example": "Doe"},
+    )
 
 
 class Person(PersonBase, Agent, table=True):  # type: ignore [call-arg]
