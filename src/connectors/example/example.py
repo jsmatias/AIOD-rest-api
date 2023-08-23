@@ -5,6 +5,7 @@ from database.model.agent.organisation import Organisation
 from database.model.agent.person import Person
 from database.model.agent.team import Team
 from database.model.case_study.case_study import CaseStudy
+from database.model.computational_asset.computational_asset import ComputationalAsset
 from database.model.dataset.dataset import Dataset
 from database.model.knowledge_asset.publication import Publication
 from database.model.models_and_experiments.experiment import Experiment
@@ -18,6 +19,12 @@ class ExampleCaseStudyConnector(ExampleConnector[CaseStudy]):
     def __init__(self):
         json_path = _path_example_resources / "case_studies.json"
         super().__init__(json_path, CaseStudy)
+
+
+class ExampleComputationalAssetConnector(ExampleConnector[ComputationalAsset]):
+    def __init__(self):
+        json_path = _path_example_resources / "computational_assets.json"
+        super().__init__(json_path, ComputationalAsset)
 
 
 class ExampleDatasetConnector(ExampleConnector[Dataset]):

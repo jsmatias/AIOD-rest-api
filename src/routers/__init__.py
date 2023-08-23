@@ -1,4 +1,5 @@
 from .case_study_router import CaseStudyRouter
+from .computational_asset_router import ComputationalAssetRouter
 from .dataset_router import DatasetRouter
 from .experiment_router import ExperimentRouter
 from .ml_model_router import MLModelRouter
@@ -14,7 +15,7 @@ from .upload_router_huggingface import UploadRouterHuggingface
 resource_routers = [
     PlatformRouter(),
     CaseStudyRouter(),
-    # ComputationalResourceRouter(),
+    ComputationalAssetRouter(),
     DatasetRouter(),
     # EducationalResourceRouter(),
     # EventRouter(),

@@ -2,15 +2,12 @@
     {
       "platform": "example",
       "platform_identifier": "1",
-      "name": "The name of this experiment",
-      "description": "A description.",
+      "name": "Name of the Computational Asset",
+      "description": "The computational asset should be saved in a separate database (stored as 'platform') by using the platform_identifier.",
       "same_as": "https://www.example.com/resource/this_resource",
       "date_published": "2022-01-01T15:15:00.000",
       "version": "1.1.0",
       "pid": "https://doi.org/10.1000/182",
-      "experimental_workflow": "1) Load the dataset 2) run preprocessing code found in ... 3) run the model on the data.",
-      "execution_settings": "string",
-      "reproducibility_explanation": "string",
       "aiod_entry": {
         "editor": [],
         "status": "draft"
@@ -24,35 +21,10 @@
         "Voice Assistance",
         "Disease Classification"
       ],
-      "badge": [
-        "ACM Artifacts Evaluated - Reusable"
-      ],
       "citation": [],
       "contact": [],
       "creator": [],
-      "distribution": [
-        {
-          "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "checksum_algorithm": "sha256",
-          "copyright": "2010-2020 Example Company. All rights reserved.",
-          "content_url": "https://www.example.com/experiment.zip",
-          "content_size_kb": 10000,
-          "date_published": "2022-01-01T15:15:00.000",
-          "description": "Description of this file.",
-          "encoding_format": "application/zip",
-          "name": "Name of this file.",
-          "technology_readiness_level": 1,
-          "installation_script": "./install.sh",
-          "installation": "Build the Dockerfile",
-          "installation_time_milliseconds": 100,
-          "deployment_script": "./run.sh",
-          "deployment": "You can run the run.py file using python3. See README.md for required arguments.",
-          "deployment_time_milliseconds": 100,
-          "os_requirement": "Windows 11.",
-          "dependency": "Python packages as listed in requirements.txt.",
-          "hardware_requirement": "4GB RAM; 100MB storage; 1GHz processor with 8 cores."
-        }
-      ],
+      "distribution": [],
       "has_part": [],
       "industrial_sector": [
         "Finance",
@@ -89,6 +61,8 @@
         "Anomaly Detection",
         "Voice Recognition",
         "Computer Vision."
-      ]
+      ],
+      "status_info": "https://www.example.com/cluster-status",
+      "type": "storage"
     }
 ]
