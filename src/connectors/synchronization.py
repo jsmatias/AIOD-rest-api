@@ -24,7 +24,7 @@ RELATIVE_PATH_ERROR_CSV = pathlib.Path("errors.csv")
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Synchronize a resource from a platform to the " "AIoD database."
+        description="Synchronize a resource from a platform to the AIoD database."
     )
     parser.add_argument(
         "-c",
