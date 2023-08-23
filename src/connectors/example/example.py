@@ -4,6 +4,7 @@ from connectors.example.example_connector import ExampleConnector
 from database.model.agent.organisation import Organisation
 from database.model.agent.person import Person
 from database.model.agent.team import Team
+from database.model.computational_asset.computational_asset import ComputationalAsset
 from database.model.dataset.dataset import Dataset
 from database.model.knowledge_asset.publication import Publication
 from database.model.models_and_experiments.experiment import Experiment
@@ -11,6 +12,12 @@ from database.model.models_and_experiments.ml_model import MLModel
 from database.model.service.service import Service
 
 _path_example_resources = pathlib.Path(__file__).parent.parent / "example" / "resources"
+
+
+class ExampleComputationalAssetConnector(ExampleConnector[ComputationalAsset]):
+    def __init__(self):
+        json_path = _path_example_resources / "computational_assets.json"
+        super().__init__(json_path, ComputationalAsset)
 
 
 class ExampleDatasetConnector(ExampleConnector[Dataset]):
