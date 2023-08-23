@@ -13,7 +13,6 @@ from connectors.resource_with_relations import ResourceWithRelations
 from database.model import field_length
 from database.model.agent.person import Person
 from database.model.ai_asset.distribution import Distribution
-from database.model.concept.aiod_entry import AIoDEntryCreate
 from database.model.dataset.dataset import Dataset
 from database.model.knowledge_asset.publication import Publication
 from database.model.platform.platform_names import PlatformName
@@ -71,10 +70,8 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
             else:
                 citations = [
                     pydantic_class_publication(
-                        aiod_entry=AIoDEntryCreate(
-                            platform=self.platform_name,
-                            platform_identifier=citation["ID"],
-                        ),
+                        platform=self.platform_name,
+                        platform_identifier=citation["ID"],
                         name=citation["title"],
                         same_as=citation["link"] if "link" in citation else None,
                         type=citation["ENTRYTYPE"],
@@ -120,10 +117,8 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
 
         return ResourceWithRelations[Dataset](
             resource=pydantic_class(
-                aiod_entry=AIoDEntryCreate(
-                    platform_identifier=dataset.id,
-                    platform=self.platform_name,
-                ),
+                platform_identifier=dataset.id,
+                platform=self.platform_name,
                 description=description,
                 name=dataset.id,
                 same_as=f"https://huggingface.co/datasets/{dataset.id}",

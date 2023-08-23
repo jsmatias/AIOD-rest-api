@@ -107,9 +107,9 @@ def save_to_database(
         session.rollback()
         id_ = None
         if isinstance(item, AIoDConcept):
-            id_ = item.aiod_entry.platform_identifier
+            id_ = item.platform_identifier
         elif isinstance(item, ResourceWithRelations):
-            id_ = item.resource.aiod_entry.platform_identifier
+            id_ = item.resource.platform_identifier
         elif isinstance(item, RecordError):
             id_ = item.identifier
         return RecordError(identifier=id_, error=e)  # type:ignore

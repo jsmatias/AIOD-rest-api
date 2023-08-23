@@ -54,8 +54,8 @@ class ResourceConnectorById(ResourceConnector, Generic[RESOURCE]):
             i = 0
             for item in self.fetch(offset=state["offset"], from_identifier=state["from_id"]):
                 i += 1
-                if hasattr(item, "aiod_entry") and item.aiod_entry.platform_identifier is not None:
-                    id_ = int(item.aiod_entry.platform_identifier)
+                if hasattr(item, "platform_identifier") and item.platform_identifier is not None:
+                    id_ = int(item.platform_identifier)
                 else:
                     id_ = None
                 if id_ is None or id_ >= state["from_id"]:
