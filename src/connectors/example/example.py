@@ -5,6 +5,7 @@ from database.model.agent.organisation import Organisation
 from database.model.agent.person import Person
 from database.model.agent.team import Team
 from database.model.dataset.dataset import Dataset
+from database.model.educational_resource.educational_resource import EducationalResource
 from database.model.knowledge_asset.publication import Publication
 from database.model.models_and_experiments.experiment import Experiment
 from database.model.models_and_experiments.ml_model import MLModel
@@ -17,6 +18,12 @@ class ExampleDatasetConnector(ExampleConnector[Dataset]):
     def __init__(self):
         json_path = _path_example_resources / "datasets.json"
         super().__init__(json_path, Dataset)
+
+
+class ExampleEducationalResourceConnector(ExampleConnector[EducationalResource]):
+    def __init__(self):
+        json_path = _path_example_resources / "educational_resources.json"
+        super().__init__(json_path, EducationalResource)
 
 
 class ExampleExperimentConnector(ExampleConnector[Experiment]):

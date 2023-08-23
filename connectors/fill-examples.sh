@@ -1,5 +1,11 @@
 #!/bin/bash
 
+
+python3 connectors/synchronization.py \
+  -c connectors.example.example.ExampleEducationalResourceConnector \
+  -w /opt/connectors/data/example/educational_resource
+
+
 python3 connectors/synchronization.py \
   -c connectors.example.example.ExampleExperimentConnector \
   -w /opt/connectors/data/example/experiment
