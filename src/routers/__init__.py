@@ -1,7 +1,7 @@
 from . import resource_router_list
-from .parent_class_router import ParentClassRouter  # noqa:F401
-from .parent_router.agent_router import AgentRouter
 from .resource_router import ResourceRouter  # noqa:F401
+from .parent_class_router import ParentClassRouter  # noqa:F401
+from .parent_routers.agent_router import AgentRouter
 from .upload_router_huggingface import UploadRouterHuggingface
 
 
