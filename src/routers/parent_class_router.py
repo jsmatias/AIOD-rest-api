@@ -6,7 +6,7 @@ from sqlalchemy.engine import Engine
 from sqlmodel import SQLModel, select, Session
 from starlette.status import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
 
-from database.model.resource_read_and_create import resource_read
+from routers.resource_router_list import resource_routers
 
 
 class ParentClassRouter(abc.ABC):
@@ -41,11 +41,12 @@ class ParentClassRouter(abc.ABC):
         version = "v1"
         default_kwargs = {
             "response_model_exclude_none": True,
-            "tags": [self.resource_name_plural],
+            "tags": ["parents"],
         }
         available_schemas: list[SQLModel] = list(non_abstract_subclasses(self.parent_class))
-        classes_dict = {clz.__tablename__: clz for clz in available_schemas}
-        read_classes_dict = {name: resource_read(clz) for name, clz in classes_dict.items()}
+        classes_dict = {clz.__tablename__: clz for clz in available_schemas if clz.__tablename__}
+        routers = {router.resource_name: router for router in resource_routers}
+        read_classes_dict = {name: routers[name].resource_class_read for name in classes_dict}
         response_model = Union[*read_classes_dict.values()]  # type:ignore
 
         router.add_api_route(
