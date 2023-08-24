@@ -12,6 +12,7 @@ from database.model.event.event import Event
 from database.model.knowledge_asset.publication import Publication
 from database.model.models_and_experiments.experiment import Experiment
 from database.model.models_and_experiments.ml_model import MLModel
+from database.model.news.news import News
 from database.model.service.service import Service
 
 _path_example_resources = pathlib.Path(__file__).parent.parent / "example" / "resources"
@@ -57,6 +58,12 @@ class ExampleMLModelConnector(ExampleConnector[MLModel]):
     def __init__(self):
         json_path = _path_example_resources / "ml_models.json"
         super().__init__(json_path, MLModel)
+
+
+class ExampleNewsConnector(ExampleConnector[News]):
+    def __init__(self):
+        json_path = _path_example_resources / "news.json"
+        super().__init__(json_path, News)
 
 
 class ExampleOrganisationConnector(ExampleConnector[Organisation]):

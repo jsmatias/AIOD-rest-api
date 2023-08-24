@@ -26,6 +26,10 @@ python3 connectors/synchronization.py \
   -w /opt/connectors/data/example/ml_model
 
 python3 connectors/synchronization.py \
+  -c connectors.example.example.ExampleNewsConnector \
+  -w /opt/connectors/data/example/news
+
+python3 connectors/synchronization.py \
   -c connectors.example.example.ExampleOrganisationConnector \
   -w /opt/connectors/data/example/organisation
 
