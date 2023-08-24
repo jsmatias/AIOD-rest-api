@@ -47,7 +47,7 @@ class AIAssetBase(AIResourceBase, metaclass=abc.ABCMeta):
 
 
 class AIAsset(AIAssetBase, AIResource, metaclass=abc.ABCMeta):
-    asset_id: int | None = Field(foreign_key=AIAssetTable.__tablename__ + ".identifier")
+    asset_id: int | None = Field(foreign_key=AIAssetTable.__tablename__ + ".identifier", index=True)
     asset_identifier: AIAssetTable | None = Relationship()
 
     citation: list["Publication"] = Relationship()

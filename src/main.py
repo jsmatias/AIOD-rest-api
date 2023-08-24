@@ -64,7 +64,7 @@ def add_routes(app: FastAPI, engine: Engine, url_prefix=""):
         """
         return {"msg": "success", "user": user}
 
-    for router in routers.resource_routers + routers.other_routers:
+    for router in routers.resource_routers + routers.other_routers + routers.parent_class_routers:
         app.include_router(router.create(engine, url_prefix))
 
 

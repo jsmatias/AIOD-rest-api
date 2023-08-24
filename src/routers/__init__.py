@@ -7,6 +7,8 @@ from .experiment_router import ExperimentRouter
 from .ml_model_router import MLModelRouter
 from .news_router import NewsRouter
 from .organisation_router import OrganisationRouter
+from .parent_class_router import ParentClassRouter  # noqa:F401
+from .parent_router.agent_router import AgentRouter
 from .person_router import PersonRouter
 from .platform_router import PlatformRouter
 from .publication_router import PublicationRouter
@@ -32,5 +34,7 @@ resource_routers = [
     ServiceRouter(),
     TeamRouter(),
 ]  # type: list[ResourceRouter]
+
+parent_class_routers = [AgentRouter()]  # type: list[ParentClassRouter]
 
 other_routers = [UploadRouterHuggingface()]

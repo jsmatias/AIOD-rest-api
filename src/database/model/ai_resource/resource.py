@@ -45,7 +45,7 @@ class AIResourceBase(AIoDConceptBase, metaclass=abc.ABCMeta):
 
 
 class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
-    resource_id: int | None = Field(foreign_key="ai_resource.identifier")
+    resource_id: int | None = Field(foreign_key="ai_resource.identifier", index=True)
     resource_identifier: AIResourceTable | None = Relationship()
 
     alternate_name: list[AlternateName] = Relationship()
