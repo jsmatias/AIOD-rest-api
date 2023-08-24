@@ -45,3 +45,10 @@ class EnumRouter(abc.ABC):
                 return [r.name for r in resources]
 
         return get_resources
+
+    def create_resource(self, session: Session, resource_create_instance: str):
+        # Used by synchronization.py: router.create_resource
+        resource = self.resource_class(name=resource_create_instance)
+        session.add(resource)
+        session.commit()
+        return resource

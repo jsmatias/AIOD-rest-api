@@ -11,6 +11,7 @@ from sqlmodel import create_engine, Session, SQLModel, select
 from config import DB_CONFIG
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model.concept.concept import AIoDConcept
+from database.model.named_relation import NamedRelation
 from database.model.platform.platform_names import PlatformName
 from routers import resource_routers
 
@@ -60,12 +61,16 @@ def _get_existing_resource(
     session: Session, resource: AIoDConcept, clazz: type[SQLModel]
 ) -> AIoDConcept | None:
     """Selecting a resource based on platform and platform_identifier"""
-    query = select(clazz).where(
-        and_(
-            clazz.platform == resource.platform,
-            clazz.platform_identifier == resource.platform_identifier,
+    is_enum = NamedRelation in clazz.__mro__
+    if is_enum:
+        query = select(clazz).where(clazz.name == resource)
+    else:
+        query = select(clazz).where(
+            and_(
+                clazz.platform == resource.platform,
+                clazz.platform_identifier == resource.platform_identifier,
+            )
         )
-    )
     return session.scalars(query).first()
 
 

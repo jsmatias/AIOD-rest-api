@@ -4,7 +4,6 @@ python3 connectors/synchronization.py \
   -c connectors.example.example.ExampleCaseStudyConnector \
   -w /opt/connectors/data/example/case_study
 
-
 python3 connectors/synchronization.py \
   -c connectors.example.example.ExampleComputationalAssetConnector \
   -w /opt/connectors/data/example/computational_asset
@@ -48,3 +47,9 @@ python3 connectors/synchronization.py \
 python3 connectors/synchronization.py \
   -c connectors.example.example.ExampleTeamConnector \
   -w /opt/connectors/data/example/team
+
+# Enums
+
+python3 connectors/synchronization.py \
+  -c connectors.example.enum.EnumConnectorStatus \
+  -w /opt/connectors/data/enum/status
