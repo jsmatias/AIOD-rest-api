@@ -2,10 +2,10 @@ from typing import Type
 
 from database.model.agent.agent import Agent
 from database.model.agent.agent_table import AgentTable
-from routers.parent_class_router import ParentClassRouter
+from routers.parent_router import ParentRouter
 
 
-class AgentRouter(ParentClassRouter):
+class AgentRouter(ParentRouter):
     @property
     def resource_name(self) -> str:
         return "agent"

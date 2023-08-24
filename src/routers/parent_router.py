@@ -6,10 +6,10 @@ from sqlalchemy.engine import Engine
 from sqlmodel import SQLModel, select, Session
 from starlette.status import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
 
-from routers.resource_router_list import resource_routers
+from routers import resource_routers
 
 
-class ParentClassRouter(abc.ABC):
+class ParentRouter(abc.ABC):
     """
     Abstract class for FastAPI parent-class routers. These are routers for, for example, Agent,
     making it possible to perform a GET request based on the agent_identifier, retrieving either
@@ -45,7 +45,7 @@ class ParentClassRouter(abc.ABC):
         }
         available_schemas: list[SQLModel] = list(non_abstract_subclasses(self.parent_class))
         classes_dict = {clz.__tablename__: clz for clz in available_schemas if clz.__tablename__}
-        routers = {router.resource_name: router for router in resource_routers}
+        routers = {router.resource_name: router for router in resource_routers.router_list}
         read_classes_dict = {name: routers[name].resource_class_read for name in classes_dict}
         response_model = Union[*read_classes_dict.values()]  # type:ignore
 

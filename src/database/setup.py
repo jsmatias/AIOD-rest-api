@@ -8,11 +8,11 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlmodel import create_engine, Session, SQLModel, select
 
-import routers
 from config import DB_CONFIG
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model.concept.concept import AIoDConcept
 from database.model.platform.platform_names import PlatformName
+from routers import resource_routers
 
 
 def connect_to_database(
@@ -94,7 +94,7 @@ def _create_or_fetch_related_objects(session: Session, item: ResourceWithRelatio
                 resource_read_str = type(resource).__name__  # E.g. DatasetRead
                 (router,) = [
                     router
-                    for router in routers.resource_routers
+                    for router in resource_routers.router_list
                     if resource_read_str.startswith(router.resource_class.__name__)
                     # E.g. "DatasetRead".startswith("Dataset")
                 ]
