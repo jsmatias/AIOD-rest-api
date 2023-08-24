@@ -14,6 +14,10 @@ python3 connectors/synchronization.py \
   -w /opt/connectors/data/example/educational_resource
 
 python3 connectors/synchronization.py \
+  -c connectors.example.example.ExampleEventConnector \
+  -w /opt/connectors/data/example/event
+
+python3 connectors/synchronization.py \
   -c connectors.example.example.ExampleExperimentConnector \
   -w /opt/connectors/data/example/experiment
 

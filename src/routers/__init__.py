@@ -2,6 +2,7 @@ from .case_study_router import CaseStudyRouter
 from .computational_asset_router import ComputationalAssetRouter
 from .dataset_router import DatasetRouter
 from .educational_resource_router import EducationalResourceRouter
+from .event_router import EventRouter
 from .experiment_router import ExperimentRouter
 from .ml_model_router import MLModelRouter
 from .organisation_router import OrganisationRouter
@@ -19,7 +20,7 @@ resource_routers = [
     ComputationalAssetRouter(),
     DatasetRouter(),
     EducationalResourceRouter(),
-    # EventRouter(),
+    EventRouter(),
     ExperimentRouter(),
     MLModelRouter(),
     # NewsRouter(),

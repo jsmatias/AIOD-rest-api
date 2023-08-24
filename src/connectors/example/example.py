@@ -8,6 +8,7 @@ from database.model.case_study.case_study import CaseStudy
 from database.model.computational_asset.computational_asset import ComputationalAsset
 from database.model.dataset.dataset import Dataset
 from database.model.educational_resource.educational_resource import EducationalResource
+from database.model.event.event import Event
 from database.model.knowledge_asset.publication import Publication
 from database.model.models_and_experiments.experiment import Experiment
 from database.model.models_and_experiments.ml_model import MLModel
@@ -38,6 +39,12 @@ class ExampleEducationalResourceConnector(ExampleConnector[EducationalResource])
     def __init__(self):
         json_path = _path_example_resources / "educational_resources.json"
         super().__init__(json_path, EducationalResource)
+
+
+class ExampleEventConnector(ExampleConnector[Event]):
+    def __init__(self):
+        json_path = _path_example_resources / "events.json"
+        super().__init__(json_path, Event)
 
 
 class ExampleExperimentConnector(ExampleConnector[Experiment]):
