@@ -38,6 +38,10 @@ python3 connectors/synchronization.py \
   -w /opt/connectors/data/example/person
 
 python3 connectors/synchronization.py \
+  -c connectors.example.example.ExampleProjectConnector \
+  -w /opt/connectors/data/example/project
+
+python3 connectors/synchronization.py \
   -c connectors.example.example.ExamplePublicationConnector \
   -w /opt/connectors/data/example/publication
 
