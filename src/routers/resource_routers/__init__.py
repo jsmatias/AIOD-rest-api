@@ -9,6 +9,7 @@ from .news_router import NewsRouter
 from .organisation_router import OrganisationRouter
 from .person_router import PersonRouter
 from .platform_router import PlatformRouter
+from .project_router import ProjectRouter
 from .publication_router import PublicationRouter
 from .service_router import ServiceRouter
 from .team_router import TeamRouter
@@ -27,7 +28,7 @@ router_list: list[ResourceRouter] = [
     OrganisationRouter(),
     PersonRouter(),
     PublicationRouter(),
-    # ProjectRouter(),
+    ProjectRouter(),
     ServiceRouter(),
     TeamRouter(),
 ]
