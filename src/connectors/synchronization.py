@@ -10,13 +10,12 @@ from typing import Optional
 
 from sqlmodel import Session
 
-import routers
 from connectors.abstract.resource_connector import ResourceConnector, RESOURCE
 from connectors.record_error import RecordError
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model.concept.concept import AIoDConcept
 from database.setup import _create_or_fetch_related_objects, _get_existing_resource, sqlmodel_engine
-from routers import ResourceRouter
+from routers import ResourceRouter, resource_routers, enum_routers
 
 RELATIVE_PATH_STATE_JSON = pathlib.Path("state.json")
 RELATIVE_PATH_ERROR_CSV = pathlib.Path("errors.csv")
@@ -158,7 +157,7 @@ def main():
 
     (router,) = [
         router
-        for router in routers.resource_routers
+        for router in resource_routers.router_list + enum_routers.router_list
         if router.resource_class == connector.resource_class
     ]
 
