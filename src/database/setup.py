@@ -8,11 +8,12 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlmodel import create_engine, Session, SQLModel, select
 
-import routers
 from config import DB_CONFIG
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model.concept.concept import AIoDConcept
+from database.model.named_relation import NamedRelation
 from database.model.platform.platform_names import PlatformName
+from routers import resource_routers
 
 
 def connect_to_database(
@@ -60,12 +61,16 @@ def _get_existing_resource(
     session: Session, resource: AIoDConcept, clazz: type[SQLModel]
 ) -> AIoDConcept | None:
     """Selecting a resource based on platform and platform_identifier"""
-    query = select(clazz).where(
-        and_(
-            clazz.platform == resource.platform,
-            clazz.platform_identifier == resource.platform_identifier,
+    is_enum = NamedRelation in clazz.__mro__
+    if is_enum:
+        query = select(clazz).where(clazz.name == resource)
+    else:
+        query = select(clazz).where(
+            and_(
+                clazz.platform == resource.platform,
+                clazz.platform_identifier == resource.platform_identifier,
+            )
         )
-    )
     return session.scalars(query).first()
 
 
@@ -94,7 +99,7 @@ def _create_or_fetch_related_objects(session: Session, item: ResourceWithRelatio
                 resource_read_str = type(resource).__name__  # E.g. DatasetRead
                 (router,) = [
                     router
-                    for router in routers.resource_routers
+                    for router in resource_routers.router_list
                     if resource_read_str.startswith(router.resource_class.__name__)
                     # E.g. "DatasetRead".startswith("Dataset")
                 ]
