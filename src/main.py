@@ -5,27 +5,25 @@ Note: order matters for overloaded paths
 (https://fastapi.tiangolo.com/tutorial/path-params/#order-matters).
 """
 import argparse
-import logging
-import os
-import tomllib
-from typing import Dict
 
 import uvicorn
-from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import Json
 from sqlalchemy.engine import Engine
-from starlette.status import HTTP_400_BAD_REQUEST, HTTP_501_NOT_IMPLEMENTED
+from sqlmodel import Session, select
 
-import connectors
 import routers
 from authentication import get_current_user
+from config import KEYCLOAK_CONFIG
+from database.model.platform.platform import Platform
 from database.model.platform.platform_names import PlatformName
-from database.setup import connect_to_database, populate_database
+from database.setup import sqlmodel_engine
+from routers import resource_routers, parent_routers, enum_routers
 
 
 def _parse_args() -> argparse.Namespace:
+    # TODO: refactor configuration (https://github.com/aiondemand/AIOD-rest-api/issues/82)
     parser = argparse.ArgumentParser(description="Please refer to the README.")
     parser.add_argument("--url-prefix", default="", help="Prefix for the api url.")
     parser.add_argument(
@@ -35,86 +33,11 @@ def _parse_args() -> argparse.Namespace:
         help="Determines if the database is recreated.",
     )
     parser.add_argument(
-        "--populate-datasets",
-        default=[],
-        nargs="+",
-        choices=[p.name for p in PlatformName],
-        help="Zero, one or more platforms with which the datasets should get populated.",
-    )
-    parser.add_argument(
-        "--fill-with-examples",
-        default=[],
-        nargs="+",
-        choices=connectors.example_connectors.keys(),
-        help="Zero, one or more resources with which the database will have examples.",
-    )
-    parser.add_argument(
-        "--limit",
-        type=int,
-        default=None,
-        help="Limit the number of initial resources with which the database is populated, "
-        "per resource and per platform.",
-    )
-    parser.add_argument(
         "--reload",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
         help="Use `--reload` for FastAPI.",
     )
     return parser.parse_args()
-
-
-def _engine(rebuild_db: str) -> Engine:
-    """
-    Return a SqlAlchemy engine, backed by the MySql connection as configured in the configuration
-    file.
-    """
-    with open("config.toml", "rb") as fh:
-        config = tomllib.load(fh)
-    db_config = config.get("database", {})
-    username = db_config.get("name", "root")
-    password = db_config.get("password", "ok")
-    host = db_config.get("host", "demodb")
-    port = db_config.get("port", 3306)
-    database = db_config.get("database", "aiod")
-
-    db_url = f"mysql://{username}:{password}@{host}:{port}/{database}"
-
-    delete_before_create = rebuild_db == "always"
-    return connect_to_database(db_url, delete_first=delete_before_create)
-
-
-def _connector_from_platform_name(connector_type: str, connector_dict: Dict, platform_name: str):
-    """Get the connector from the connector_dict, identified by its platform name."""
-    try:
-        platform = PlatformName(platform_name)
-    except ValueError:
-        raise HTTPException(
-            status_code=HTTP_400_BAD_REQUEST,
-            detail=f"platform " f"'{platform_name}' not recognized.",
-        )
-    connector = connector_dict.get(platform, None)
-    if connector is None:
-        possibilities = ", ".join(f"`{c}`" for c in connectors.dataset_connectors.keys())
-        msg = (
-            f"No {connector_type} connector for platform '{platform_name}' available. Possible "
-            f"values: {possibilities}"
-        )
-        raise HTTPException(status_code=HTTP_501_NOT_IMPLEMENTED, detail=msg)
-    return connector
-
-
-def _connector_example_from_resource(resource):
-    connector_dict = connectors.example_connectors
-    connector = connector_dict.get(resource, None)
-    if connector is None:
-        possibilities = ", ".join(f"`{c}`" for c in connectors.example_connectors.keys())
-        msg = (
-            f"No example connector for resource '{resource}' available. Possible "
-            f"values: {possibilities}"
-        )
-        logging.warning(msg)
-        raise HTTPException(status_code=HTTP_501_NOT_IMPLEMENTED, detail=msg)
-    return connector
 
 
 def add_routes(app: FastAPI, engine: Engine, url_prefix=""):
@@ -142,41 +65,36 @@ def add_routes(app: FastAPI, engine: Engine, url_prefix=""):
         """
         return {"msg": "success", "user": user}
 
-    for router in routers.resource_routers + routers.other_routers:
+    for router in (
+        resource_routers.router_list
+        + routers.other_routers
+        + parent_routers.router_list
+        + enum_routers.router_list
+    ):
         app.include_router(router.create(engine, url_prefix))
 
 
 def create_app() -> FastAPI:
     """Create the FastAPI application, complete with routes."""
-    app = FastAPI(
-        swagger_ui_init_oauth={
-            "clientId": os.getenv("KEYCLOAK_CLIENT_ID"),
-            "clientSecret": os.getenv("KEYCLOAK_CLIENT_SECRET"),
-            "realm": "dev",
-            "appName": "AIoD API",
-            "usePkceWithAuthorizationCodeGrant": True,
-            "scopes": "openid profile microprofile-jwt",
-        }
-    )
     args = _parse_args()
-
-    dataset_connectors = [
-        _connector_from_platform_name("dataset", connectors.dataset_connectors, platform_name)
-        for platform_name in args.populate_datasets
-    ]
-
-    examples_connectors = [
-        _connector_example_from_resource(resource) for resource in args.fill_with_examples
-    ]
-    connectors_ = dataset_connectors + examples_connectors
-    engine = _engine(args.rebuild_db)
-    if len(connectors_) > 0:
-        populate_database(
-            engine,
-            connectors=connectors_,
-            only_if_empty=True,
-            limit=args.limit,
-        )
+    app = FastAPI(
+        openapi_url=f"{args.url_prefix}/openapi.json",
+        docs_url=f"{args.url_prefix}/docs",
+        swagger_ui_oauth2_redirect_url=f"{args.url_prefix}/docs/oauth2-redirect",
+        swagger_ui_init_oauth={
+            "clientId": KEYCLOAK_CONFIG.get("client_id_swagger"),
+            "realm": KEYCLOAK_CONFIG.get("realm"),
+            "appName": "AIoD Metadata Catalogue",
+            "usePkceWithAuthorizationCodeGrant": True,
+            "scopes": KEYCLOAK_CONFIG.get("scopes"),
+        },
+    )
+    engine = sqlmodel_engine(args.rebuild_db)
+    with Session(engine) as session:
+        existing_platforms = session.scalars(select(Platform)).all()
+        if not any(existing_platforms):
+            session.add_all([Platform(name=name) for name in PlatformName])
+            session.commit()
 
     add_routes(app, engine, url_prefix=args.url_prefix)
     return app
@@ -185,7 +103,6 @@ def create_app() -> FastAPI:
 def main():
     """Run the application. Placed in a separate function, to avoid having global variables"""
     args = _parse_args()
-    load_dotenv()
     uvicorn.run("main:create_app", host="0.0.0.0", reload=args.reload, factory=True)
 
 

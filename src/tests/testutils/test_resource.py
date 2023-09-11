@@ -6,16 +6,29 @@ from typing import Type
 
 from sqlmodel import Field
 
-from database.model.resource import Resource
-from routers import ResourceRouter
+from database.model.concept.aiod_entry import AIoDEntryORM
+from database.model.concept.concept import AIoDConcept, AIoDConceptBase
+from database.model.concept.status import Status
+from routers.resource_router import ResourceRouter
 
 
-class TestResourceBase(Resource):
+class TestResourceBase(AIoDConceptBase):
     title: str = Field(max_length=250, nullable=False, unique=True)
 
 
-class TestResource(TestResourceBase, table=True):  # type: ignore [call-arg]
+class TestResource(TestResourceBase, AIoDConcept, table=True):  # type: ignore [call-arg]
     identifier: int = Field(default=None, primary_key=True)
+
+
+def test_resource_factory(title=None, status=None, platform="example", platform_identifier="1"):
+    if status is None:
+        status = Status(name="draft")
+    return TestResource(
+        title=title,
+        platform=platform,
+        platform_identifier=platform_identifier,
+        aiod_entry=AIoDEntryORM(status=status),
+    )
 
 
 class RouterTestResource(ResourceRouter):

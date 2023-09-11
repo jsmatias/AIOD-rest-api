@@ -1,77 +1,92 @@
 from datetime import datetime
-from typing import List
-from pydantic import condecimal
+from typing import Optional
 
+from pydantic import condecimal
 from sqlmodel import Field, Relationship
-from database.model.relationships import ResourceRelationshipList
-from serialization import (
+
+from database.model.agent.organisation import Organisation
+from database.model.ai_asset.ai_asset_table import AIAssetTable
+from database.model.ai_resource.resource import AIResourceBase, AIResource
+from database.model.helper_functions import link_factory
+from database.model.relationships import ResourceRelationshipList, ResourceRelationshipSingle
+from database.model.serializers import (
     AttributeSerializer,
-    FindByNameDeserializer,
+    FindByIdentifierDeserializer,
 )
 
-from database.model.general.keyword import Keyword
-from database.model.project.keyword_link import ProjectKeywordLink
 
-from database.model.resource import Resource
-
-MONEY_TYPE = condecimal(max_digits=12, decimal_places=2)
-
-
-class ProjectBase(Resource):
-
-    # Required fields
-    name: str = Field(max_length=250, schema_extra={"example": "Example Project"})
-
-    # Recommended fields
-    doi: str | None = Field(max_length=150, schema_extra={"example": "0000000/000000000000"})
-    start_date: datetime | None = Field(
-        default=None, schema_extra={"example": "2022-01-01T15:15:00.000Z"}
+class ProjectBase(AIResourceBase):
+    start_date: datetime = Field(
+        description="The start date and time of the project as ISO 8601.",
+        default=None,
+        schema_extra={"example": "2021-02-03T15:15:00"},
     )
     end_date: datetime | None = Field(
-        default=None, schema_extra={"example": "2023-01-01T15:15:00.000Z"}
+        description="The end date and time of the project as ISO 8601.",
+        default=None,
+        schema_extra={"example": "2022-01-01T15:15:00"},
     )
-    founded_under: str | None = Field(
-        max_length=250, default=None, schema_extra={"example": "John Doe"}
-    )
-    total_cost_euro: MONEY_TYPE | None = Field(  # type: ignore
-        default=None, schema_extra={"example": 100000000.54}
-    )
-    eu_contribution_euro: MONEY_TYPE | None = Field(  # type: ignore
-        default=None, schema_extra={"example": 100000000.54}
+    total_cost_euro: condecimal(max_digits=12, decimal_places=2) | None = Field(  # type: ignore
+        description="The total budget of the project in euros.",
+        schema_extra={"example": 1000000},
+        default=None,
     )
 
-    coordinated_by: str | None = Field(
-        max_length=250, default=None, schema_extra={"example": "John Doe"}
-    )
-    project_description_title: str | None = Field(
-        max_length=500, default=None, schema_extra={"example": "A project description title"}
-    )
-    project_description_text: str | None = Field(
-        max_length=500, default=None, schema_extra={"example": "Example project description"}
-    )
-    programmes_url: str | None = Field(
-        max_length=250, schema_extra={"example": "aiod.eu/project/0/programme"}
-    )
-    topic_url: str | None = Field(
-        max_length=250, schema_extra={"example": "aiod.eu/project/0/topic"}
-    )
-    call_for_proposal: str | None = Field(
-        max_length=250, schema_extra={"example": "Example call for proposal"}
-    )
-    founding_scheme: str | None = Field(max_length=250, schema_extra={"example": "founding scheme"})
-    image: str | None = Field(max_length=250, schema_extra={"example": "Example image"})
-    url: str | None = Field(max_length=250, schema_extra={"example": "aiod.eu/project/0"})
 
-
-class Project(ProjectBase, table=True):  # type: ignore [call-arg]
+class Project(ProjectBase, AIResource, table=True):  # type: ignore [call-arg]
     __tablename__ = "project"
 
-    identifier: int = Field(default=None, primary_key=True)
-    keywords: List[Keyword] = Relationship(back_populates="projects", link_model=ProjectKeywordLink)
+    funder: list[Organisation] = Relationship(
+        sa_relationship_kwargs={"cascade": "all, delete"},
+        link_model=link_factory("project", Organisation.__tablename__, table_prefix="funder"),
+    )
+    participant: list[Organisation] = Relationship(
+        sa_relationship_kwargs={"cascade": "all, delete"},
+        link_model=link_factory("project", Organisation.__tablename__, table_prefix="participant"),
+    )
+    coordinator_identifier: int | None = Field(
+        foreign_key=Organisation.__tablename__ + ".identifier"
+    )
+    coordinator: Optional[Organisation] = Relationship()
+    produced: list[AIAssetTable] = Relationship(
+        link_model=link_factory("project", AIAssetTable.__tablename__, table_prefix="produced"),
+    )
+    used: list[AIAssetTable] = Relationship(
+        link_model=link_factory("project", AIAssetTable.__tablename__, table_prefix="used"),
+    )
 
-    class RelationshipConfig:
-        keywords: List[str] = ResourceRelationshipList(
-            serializer=AttributeSerializer("name"),
-            deserializer=FindByNameDeserializer(Keyword),
-            example=["keyword1", "keyword2"],
+    class RelationshipConfig(AIResource.RelationshipConfig):
+        funder: list[int] = ResourceRelationshipList(
+            description="Identifiers of organizations that support this project through some kind "
+            "of financial contribution. ",
+            serializer=AttributeSerializer("identifier"),
+            deserializer=FindByIdentifierDeserializer(Organisation),
+            default_factory_pydantic=list,
+            example=[],
+        )
+        participant: list[int] = ResourceRelationshipList(
+            description="Identifiers of members of this project. ",
+            serializer=AttributeSerializer("identifier"),
+            deserializer=FindByIdentifierDeserializer(Organisation),
+            default_factory_pydantic=list,
+            example=[],
+        )
+        coordinator: Optional[int] = ResourceRelationshipSingle(
+            identifier_name="coordinator_identifier",
+            description="The coordinating organisation of this project.",
+            serializer=AttributeSerializer("identifier"),
+        )
+        produced: list[int] = ResourceRelationshipList(
+            description="Identifiers of AIAssets that are created in this project.",
+            serializer=AttributeSerializer("identifier"),
+            deserializer=FindByIdentifierDeserializer(AIAssetTable),
+            default_factory_pydantic=list,
+            example=[],
+        )
+        used: list[int] = ResourceRelationshipList(
+            description="Identifiers of AIAssets that are used (but not created) in this project.",
+            serializer=AttributeSerializer("identifier"),
+            deserializer=FindByIdentifierDeserializer(AIAssetTable),
+            default_factory_pydantic=list,
+            example=[],
         )

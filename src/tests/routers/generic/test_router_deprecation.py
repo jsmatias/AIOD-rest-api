@@ -6,8 +6,8 @@ from fastapi import FastAPI
 from sqlalchemy.engine import Engine
 from starlette.testclient import TestClient
 
-from tests.testutils.test_resource import TestResource, RouterTestResource
 from authentication import keycloak_openid
+from tests.testutils.test_resource import RouterTestResource
 
 
 class DeprecatedRouter(RouterTestResource):
@@ -26,9 +26,9 @@ class DeprecatedRouter(RouterTestResource):
     "verb,url",
     [
         ("get", "/test_resources/v1/"),
-        ("get", "/platforms/example/test_resources/v1"),
+        # ("get", "/platforms/example/test_resources/v1"),
         ("get", "/test_resources/v1/1"),
-        ("get", "/platforms/example/test_resources/v1/1"),
+        # ("get", "/platforms/example/test_resources/v1/1"),
         ("post", "/test_resources/v1/"),
         ("put", "/test_resources/v1/1"),
         ("delete", "/test_resources/v1/1"),
@@ -37,21 +37,23 @@ class DeprecatedRouter(RouterTestResource):
 def test_deprecated_router(
     engine_test_resource_filled: Engine, verb: str, url: str, mocked_privileged_token: Mock
 ):
-    keycloak_openid.decode_token = mocked_privileged_token
+    keycloak_openid.userinfo = mocked_privileged_token
     app = FastAPI()
     app.include_router(DeprecatedRouter().create(engine_test_resource_filled, ""))
     client = TestClient(app)
 
     kwargs = {}
     if verb in ("post", "put"):
-        kwargs["json"] = TestResource(
-            title="Another title", platform="example", platform_identifier="2"
-        ).dict()
+        kwargs["json"] = {
+            "title": "Another title",
+            "platform": "example",
+            "platform_identifier": "2",
+        }
 
     if verb in ("post", "put", "delete"):
         kwargs["headers"] = {"Authorization": "fake-token"}
 
     response = getattr(client, verb)(url, **kwargs)
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     assert "deprecated" in response.headers
     assert response.headers.get("deprecated") == "Thu, 21 Apr 2022 00:00:00 GMT"

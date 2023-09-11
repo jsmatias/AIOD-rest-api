@@ -23,7 +23,7 @@ datasets, we will for instance support schema.org and DCAT-AP.
 
 Requesting a dataset will therefore be simply:
 
-![asdf](media/GetDatasetUML.png)
+![Get dataset UML](media/GetDatasetUML.png)
 
 To fill the database, a synchronization process must be running continuously for every platform 
 (e.g. HuggingFace or OpenML). This synchronization service of a platform will be deployed at a 
@@ -34,9 +34,24 @@ Note that this synchronization process between the platform and the database, is
 the synchronization between database instances. The latter is under discussion in the AIoD 
 Synchronization Meetings. 
 
+### AIoD Metadata
+
+The models are found in `src/database/model`. The AIoD Metadata team is responsible for 
+determining the fields of the metadata, whereafter the classes are implemented in this metadata 
+catalogue. To check the existing fields, the easiest way it to start this application (see 
+"Using Docker Compose") and check the automatically generated swagger documentation 
+(http://localhost:8000/docs).
+
+We use inheritance to make sure that generic fields, such as name and description, are present 
+and consistent over all resources. A partial overview of the metadata model can be found in the 
+following figure:
+
+![AIoD Metadata model](media/AIoD_Metadata_Model.drawio.png)
+
 ## Prerequisites
 - Linux/MacOS/Windows (should all work)
-- [Docker](https://docs.docker.com/get-docker/)
+- [Docker](https://docs.docker.com/get-docker/) 
+- [Docker Compose](https://docs.docker.com/compose/install/) version 2.21.0 or higher
 
 For development:
 - `Python3.11` with `python3.11-dev` (`sudo apt install python3.11-dev` on Debian)
@@ -49,6 +64,19 @@ For development:
 This repository contains two systems; the database and the REST API.
 As a database we use a containerized MySQL server (through Docker), the REST API can be run locally or containerized.
 Information on how to install Docker is found in [their documentation](https://docs.docker.com/desktop/).
+
+### Using docker compose
+```bash
+docker compose up
+```
+starts the MYSQL Server, the REST API, Keycloak for Identy and access management and Nginx for reverse proxing. \
+Once started, you should be able to visit the REST API server at: http://localhost and Keycloak at http://localhost/aiod-auth \
+To authenticate to the REST API swagger interface the predefined user is: user, and password: password \
+To authenticate as admin to Keycloak the predefined user is: admin and password: password \
+To use a different DNS hostname replace localhost with it in .env and src/config.toml \
+This configuration is intended for development, DO NOT use it in production. 
+
+Use the following instructions if you prefer to use Docker instead of Docker Compose.
 
 ### Starting a MySQL Server
 
@@ -170,33 +198,27 @@ The `--reload` argument will automatically restart the app if changes are made t
 2. Run using docker. For instance using `scripts/run_apiserver.sh`
 3. Run using DevContainer (see next subsection)
 
-#### (Optional) Devcontainer Installation
-If you want to run the server on and isolated container pre configured for the proyect you can open the proyect via docker dashboard. On the dev container section click `create a new enviroment`
-
-<img width="1270" alt="image" src="https://user-images.githubusercontent.com/46299278/224726755-a8843f78-9cd8-41f2-a042-c24838c79fea.png">
-
-Follow the instructions and select the root folder of the project:
-
-<img width="895" alt="image" src="https://user-images.githubusercontent.com/46299278/224727211-0615d20b-e42f-499d-87c6-ec33b9e20e57.png">
- 
- After this, docker will ask you for selection de devcontainer and open it on vscode, you should 
- choose aiod-app-1:
- 
- <img width="883" alt="image" src="https://user-images.githubusercontent.com/46299278/224727507-5b77fa99-6e59-4df1-a280-46214930e1d0.png">
-
 ### Authentication
 Currently, the code is on default coupled with a keycloak running on test.openml.org. To make 
-this work, you need to set some environment variables. You can do this by creating a `.env` file 
-and place it in the `src` directory. The `.env` file needs two variables:
+this work, you need to set an environment variable. You can do this by setting the 
+`KEYCLOAK_CLIENT_SECRET` in `src/.env`.
 
 ```bash
-# Authentication
-KEYCLOAK_CLIENT_ID=aiod-api
+# src/.env
 KEYCLOAK_CLIENT_SECRET=[SECRET]
 ```
 
 Please ask Jos van der Velde (j.d.v.d.velde@tue.nl) for the keycloak secret, and to give your 
 user the correct roles.
+
+Alternatively, you can connect to a different keycloak instance by modifying `src/.env`. EGI 
+Checkin can for instance be used on a deployed instance - not on local host. Marco Rorro is the 
+go-to person to request the usage of the EGI Checkin.
+
+The reason that EGI Checkin doesn't work on localhost, is that the redirection url of EGI 
+Checkin is strict - as it should be. On our development keycloak, any redirection url is 
+accepted, so that it works on local host or wherever you deploy. This should never be the case 
+for a production instance.
 
 See [authentication README](authentication/README.md) for more information.
 

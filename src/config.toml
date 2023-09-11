@@ -1,4 +1,5 @@
 # Configures the REST API
+# TODO: refactor configuration (https://github.com/aiondemand/AIOD-rest-api/issues/82)
 
 # Information on which database to connect to
 [database]
@@ -11,3 +12,13 @@ password = "ok"
 # Additional options for development
 [dev]
 reload = true
+
+# Authentication and authorization
+[keycloak]
+server_url = "http://keycloak:8080/aiod-auth/"
+realm = "aiod"
+client_id = "aiod-api"  # a private client, used by the backend
+client_id_swagger = "aiod-api-swagger"  # a public client, used by the Swagger Frontend
+openid_connect_url = "http://localhost/aiod-auth/realms/aiod/.well-known/openid-configuration"
+scopes = "openid profile roles"
+role = "edit_aiod_resources"

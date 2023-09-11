@@ -4,6 +4,7 @@ import pytest
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from sqlalchemy.engine import Engine
+from sqlmodel import Session
 from starlette.testclient import TestClient
 
 from converters.schema_converters.schema_converter import SchemaConverter
@@ -23,7 +24,7 @@ class SchemaConverterTestResource(SchemaConverter[TestResource, SchemaClass]):
     def to_class(self) -> Type[SchemaClass]:
         return SchemaClass
 
-    def convert(self, aiod: TestResource) -> SchemaClass:
+    def convert(self, session: Session, aiod: TestResource) -> SchemaClass:
         return SchemaClass(title_with_alternative_name=aiod.title)
 
 
@@ -54,7 +55,7 @@ def test_resources_aiod(
 
     for client in [client_test_resource_other_schema, client_test_resource]:
         response = client.get("/test_resources/v0" + schema_string)
-        assert response.status_code == 200
+        assert response.status_code == 200, response.json()
         json_ = response.json()
         assert len(json_) == 1
         assert json_[0]["title"] == "A title"
@@ -70,7 +71,7 @@ def test_resource_aiod(
 ):
     for client in [client_test_resource_other_schema, client_test_resource]:
         response = client.get("/test_resources/v0/1" + schema_string)
-        assert response.status_code == 200
+        assert response.status_code == 200, response.json()
         json_ = response.json()
         assert json_["title"] == "A title"
         assert "title_with_alternative_name" not in json_
@@ -79,7 +80,7 @@ def test_resource_aiod(
 @pytest.mark.parametrize("url_part", ["?schema=other-schema", "/1?schema=other-schema"])
 def test_aiod_only_other_schema(client_test_resource: TestClient, url_part: str):
     response = client_test_resource.get("/test_resources/v0" + url_part)
-    assert response.status_code == 422
+    assert response.status_code == 422, response.json()
     assert response.json()["detail"][0]["msg"] == "unexpected value; permitted: 'aiod'"
 
 
@@ -87,7 +88,7 @@ def test_resources_other_schema(
     client_test_resource_other_schema: TestClient, engine_test_resource_filled: Engine
 ):
     response = client_test_resource_other_schema.get("/test_resources/v0?schema=other-schema")
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     json_ = response.json()
     assert len(json_) == 1
     assert json_[0]["title_with_alternative_name"] == "A title"
@@ -98,7 +99,7 @@ def test_resource_other_schema(
     client_test_resource_other_schema: TestClient, engine_test_resource_filled: Engine
 ):
     response = client_test_resource_other_schema.get("/test_resources/v0/1?schema=other-schema")
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     json_ = response.json()
     assert json_["title_with_alternative_name"] == "A title"
     assert "title" not in json_
@@ -109,6 +110,6 @@ def test_resource_other_schema(
 )
 def test_nonexistent_schema(client_test_resource_other_schema: TestClient, url: str):
     response = client_test_resource_other_schema.get(url)
-    assert response.status_code == 422
+    assert response.status_code == 422, response.json()
     msg = response.json()["detail"][0]["msg"]
     assert msg == "unexpected value; permitted: 'aiod', 'other-schema'"
