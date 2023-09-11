@@ -50,7 +50,7 @@ following figure:
 
 ## Prerequisites
 - Linux/MacOS/Windows (should all work)
-- [Docker](https://docs.docker.com/get-docker/)
+- [Docker](https://docs.docker.com/get-docker/) (latest docker-compose version v2.21.0 or higher)
 
 For development:
 - `Python3.11` with `python3.11-dev` (`sudo apt install python3.11-dev` on Debian)
