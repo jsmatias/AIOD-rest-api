@@ -20,7 +20,9 @@ class TestResource(TestResourceBase, AIoDConcept, table=True):  # type: ignore [
     identifier: int = Field(default=None, primary_key=True)
 
 
-def test_resource_factory(title=None, status=None, platform="example", platform_identifier="1"):
+def test_resource_factory(
+    title=None, status=None, platform="example", platform_identifier="1", date_deleted=None
+):
     if status is None:
         status = Status(name="draft")
     return TestResource(
@@ -28,6 +30,7 @@ def test_resource_factory(title=None, status=None, platform="example", platform_
         platform=platform,
         platform_identifier=platform_identifier,
         aiod_entry=AIoDEntryORM(status=status),
+        date_deleted=date_deleted,
     )
 
 

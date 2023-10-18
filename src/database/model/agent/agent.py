@@ -6,8 +6,9 @@ from database.model.agent.agent_table import AgentTable
 from database.model.agent.email import Email
 from database.model.agent.telephone import Telephone
 from database.model.ai_resource.resource import AIResource, AIResourceBase
-from database.model.helper_functions import link_factory
-from database.model.relationships import ResourceRelationshipList, ResourceRelationshipSingle
+from database.model.helper_functions import many_to_many_link_factory
+from database.model.relationships import OneToOne, ManyToMany
+
 from database.model.serializers import AttributeSerializer, FindByNameDeserializer
 
 
@@ -38,19 +39,20 @@ class Agent(AgentBase, AIResource):
         relationships = copy.deepcopy(Agent.__sqlmodel_relationships__)
         cls.update_relationships(relationships)
         for table_to in ("email", "telephone"):
-            relationships[table_to].link_model = link_factory(
+            relationships[table_to].link_model = many_to_many_link_factory(
                 table_from=cls.__tablename__, table_to=table_to
             )
         cls.__sqlmodel_relationships__.update(relationships)
+        cls.create_triggers_based_on_configuration()
 
     class RelationshipConfig(AIResource.RelationshipConfig):
-        agent_identifier: int | None = ResourceRelationshipSingle(
+        agent_identifier: int | None = OneToOne(
             identifier_name="agent_id",
             serializer=AttributeSerializer("identifier"),
             include_in_create=False,
             default_factory_orm=lambda type_: AgentTable(type=type_),
         )
-        email: list[str] = ResourceRelationshipList(
+        email: list[str] = ManyToMany(
             description="A telephone number, including the land code, on which this agent is "
             "reachable.",
             serializer=AttributeSerializer("name"),
@@ -58,7 +60,7 @@ class Agent(AgentBase, AIResource):
             example=["a@b.com"],
             default_factory_pydantic=list,
         )
-        telephone: list[str] = ResourceRelationshipList(
+        telephone: list[str] = ManyToMany(
             description="A telephone number, including the land code, on which this agent is "
             "reachable.",
             serializer=AttributeSerializer("name"),

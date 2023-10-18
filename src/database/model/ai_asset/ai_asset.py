@@ -12,11 +12,11 @@ from database.model.ai_asset.distribution import Distribution, distribution_fact
 from database.model.ai_asset.license import License
 from database.model.ai_resource.resource import AIResourceBase, AIResource
 from database.model.field_length import NORMAL
-from database.model.helper_functions import link_factory
+from database.model.helper_functions import many_to_many_link_factory
 from database.model.models_and_experiments.runnable_distribution import (
     runnable_distribution_factory,
 )
-from database.model.relationships import ResourceRelationshipSingle, ResourceRelationshipList
+from database.model.relationships import OneToMany, ManyToOne, ManyToMany, OneToOne
 from database.model.serializers import (
     AttributeSerializer,
     CastDeserializer,
@@ -70,29 +70,30 @@ class AIAsset(AIAssetBase, AIResource, metaclass=abc.ABCMeta):
             # KnowledgeAsset is an abstract class, and must perform its own initialization,
             # including own relationships.
             cls.update_relationships_asset(relationships)
+            cls.create_triggers_based_on_configuration()
         cls.__sqlmodel_relationships__.update(relationships)
 
     class RelationshipConfig(AIResource.RelationshipConfig):
-        ai_asset_identifier: int | None = ResourceRelationshipSingle(
+        ai_asset_identifier: int | None = OneToOne(
             identifier_name="ai_asset_id",
             serializer=AttributeSerializer("identifier"),
             include_in_create=False,
             default_factory_orm=lambda type_: AIAssetTable(type=type_),
         )
-        distribution: list[Distribution] = ResourceRelationshipList(default_factory_pydantic=list)
-        license: Optional[str] = ResourceRelationshipSingle(
+        distribution: list[Distribution] = OneToMany(default_factory_pydantic=list)
+        license: Optional[str] = ManyToOne(
             identifier_name="license_identifier",
             serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(License),
             example="https://creativecommons.org/share-your-work/public-domain/cc0/",
         )
-        citation: list[int] = ResourceRelationshipList(
+        citation: list[int] = ManyToMany(
             description="A bibliographic reference.",
             serializer=AttributeSerializer("identifier"),
             default_factory_pydantic=list,
             example=[],
         )
-        creator: list[int] = ResourceRelationshipList(
+        creator: list[int] = ManyToMany(
             description="Links to identifiers of the persons that created this asset.",
             serializer=AttributeSerializer("identifier"),
             deserializer=FindByIdentifierDeserializer(Person),
@@ -115,12 +116,12 @@ class AIAsset(AIAssetBase, AIResource, metaclass=abc.ABCMeta):
         deserializer = CastDeserializer(distribution)
         cls.RelationshipConfig.distribution.deserializer = deserializer  # type: ignore
 
-        relationships["creator"].link_model = link_factory(
+        relationships["creator"].link_model = many_to_many_link_factory(
             table_from=cls.__tablename__,
             table_to="person",
             table_prefix="creator",
         )
-        relationships["citation"].link_model = link_factory(
+        relationships["citation"].link_model = many_to_many_link_factory(
             table_from=cls.__tablename__,
             table_to="publication",
             table_prefix="citation",

@@ -9,8 +9,9 @@ from wsgiref.handlers import format_date_time
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
-from sqlalchemy import and_, delete
+from sqlalchemy import and_
 from sqlalchemy.engine import Engine
+from sqlalchemy.sql.operators import is_
 from sqlmodel import SQLModel, Session, select
 from starlette.responses import JSONResponse
 
@@ -187,8 +188,9 @@ class ResourceRouter(abc.ABC):
                     if schema != "aiod"
                     else self.resource_class_read.from_orm
                 )
-                where_clause = (
-                    (self.resource_class.platform == platform) if platform is not None else True
+                where_clause = and_(
+                    is_(self.resource_class.date_deleted, None),
+                    (self.resource_class.platform == platform) if platform is not None else True,
                 )
                 query = (
                     select(self.resource_class)
@@ -380,8 +382,8 @@ class ResourceRouter(abc.ABC):
             try:
                 with Session(engine) as session:
                     resource = self._retrieve_resource(session, identifier)
-                    if hasattr(resource, "aiod_entry"):
-                        datetime_created = resource.aiod_entry.date_created
+
+                    datetime_created = resource.aiod_entry.date_created
                     for attribute_name in resource.schema()["properties"]:
                         if hasattr(resource_create_instance, attribute_name):
                             new_value = getattr(resource_create_instance, attribute_name)
@@ -389,8 +391,7 @@ class ResourceRouter(abc.ABC):
                     deserialize_resource_relationships(
                         session, self.resource_class, resource, resource_create_instance
                     )
-                    if hasattr(resource, "aiod_entry"):
-                        resource.aiod_entry.date_created = datetime_created
+                    resource.aiod_entry.date_created = datetime_created
                     try:
                         session.merge(resource)
                         session.commit()
@@ -413,25 +414,17 @@ class ResourceRouter(abc.ABC):
             if "groups" in user and KEYCLOAK_CONFIG.get("role") not in user["groups"]:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You do not have permission to edit Aiod resources.",
+                    detail="You do not have permission to delete Aiod resources.",
                 )
-
             try:
                 with Session(engine) as session:
-                    self._retrieve_resource(session, identifier)  # Raise error if it does not exist
-                    statement = delete(self.resource_class).where(
-                        self.resource_class.identifier == identifier
-                    )
-                    session.execute(statement)
+                    # Raise error if it does not exist
+                    resource = self._retrieve_resource(session, identifier)
+                    resource.date_deleted = datetime.datetime.utcnow()
+                    session.add(resource)
                     session.commit()
                 return self._wrap_with_headers(None)
             except Exception as e:
-                if "foreign key" in str(e).lower():  # Should work regardless of db technology
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="This resource cannot be deleted, because other resources are "
-                        "related to it.",
-                    )
                 raise _wrap_as_http_exception(e)
 
         return delete_resource
@@ -452,15 +445,18 @@ class ResourceRouter(abc.ABC):
                 )
             )
         resource = session.scalars(query).first()
-        if not resource:
-            if platform is None:
-                msg = f"{self.resource_name.capitalize()} '{identifier}' not found in the database."
-            else:
-                msg = (
-                    f"{self.resource_name.capitalize()} '{identifier}' of '{platform}' not found "
-                    "in the database."
-                )
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
+        if not resource or resource.date_deleted is not None:
+            name = (
+                f"{self.resource_name.capitalize()} '{identifier}'"
+                if platform is None
+                else f"{self.resource_name.capitalize()} '{identifier}' of '{platform}'"
+            )
+            msg = (
+                "not found in the database."
+                if not resource
+                else "not found in the database, " "because it was deleted."
+            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{name} {msg}")
         return resource
 
     @property

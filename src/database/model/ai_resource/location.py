@@ -3,7 +3,7 @@ from typing import Optional
 from sqlmodel import SQLModel, Field, Relationship
 
 from database.model.field_length import NORMAL, SHORT
-from database.model.relationships import ResourceRelationshipSingle
+from database.model.relationships import OneToOne
 from database.model.serializers import CastDeserializer
 
 
@@ -126,10 +126,10 @@ class LocationORM(LocationBase, table=True):  # type: ignore [call-arg]
     geo: Optional["GeoORM"] = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
 
     class RelationshipConfig:
-        address: Optional[Address] = ResourceRelationshipSingle(
+        address: Optional[Address] = OneToOne(
             deserializer=CastDeserializer(AddressORM),
         )
-        geo: Optional[Geo] = ResourceRelationshipSingle(
+        geo: Optional[Geo] = OneToOne(
             deserializer=CastDeserializer(GeoORM),
         )
 
