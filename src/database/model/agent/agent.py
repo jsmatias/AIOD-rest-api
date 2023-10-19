@@ -6,7 +6,7 @@ from database.model.agent.agent_table import AgentTable
 from database.model.agent.email import Email
 from database.model.agent.telephone import Telephone
 from database.model.ai_resource.resource import AIResource, AIResourceBase
-from database.model.helper_functions import many_to_many_link_factory
+from database.model.helper_functions import many_to_many_link_factory, non_abstract_subclasses
 from database.model.relationships import OneToOne, ManyToMany
 
 from database.model.serializers import AttributeSerializer, FindByNameDeserializer
@@ -58,7 +58,7 @@ class Agent(AgentBase, AIResource):
             example=["a@b.com"],
             default_factory_pydantic=list,
             on_delete_trigger_orphan_deletion=lambda: [
-                f"{a.__tablename__}_email_link" for a in Agent.__subclasses__()
+                f"{a.__tablename__}_email_link" for a in non_abstract_subclasses(Agent)
             ],
         )
         telephone: list[str] = ManyToMany(
@@ -69,6 +69,6 @@ class Agent(AgentBase, AIResource):
             example=["0032 XXXX XXXX"],
             default_factory_pydantic=list,
             on_delete_trigger_orphan_deletion=lambda: [
-                f"{a.__tablename__}_telephone_link" for a in Agent.__subclasses__()
+                f"{a.__tablename__}_telephone_link" for a in non_abstract_subclasses(Agent)
             ],
         )

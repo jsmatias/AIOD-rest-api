@@ -10,13 +10,13 @@ from database.model.ai_resource.alternate_name import AlternateName
 from database.model.ai_resource.application_area import ApplicationArea
 from database.model.ai_resource.industrial_sector import IndustrialSector
 from database.model.ai_resource.keyword import Keyword
-from database.model.ai_resource.note import Note
+from database.model.ai_resource.note import note_factory, Note
 from database.model.ai_resource.research_area import ResearchArea
 from database.model.ai_resource.resource_table import AIResourceTable
 from database.model.ai_resource.scientific_domain import ScientificDomain
 from database.model.concept.concept import AIoDConceptBase, AIoDConcept
 from database.model.field_length import DESCRIPTION, NORMAL
-from database.model.helper_functions import many_to_many_link_factory
+from database.model.helper_functions import many_to_many_link_factory, non_abstract_subclasses
 from database.model.relationships import OneToOne, ManyToMany, OneToMany
 from database.model.serializers import (
     AttributeSerializer,
@@ -60,8 +60,8 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
     is_part_of: list[AIResourceTable] = Relationship()
     has_part: list[AIResourceTable] = Relationship()
 
-    media: list = Relationship()
-    note: list[Note] = Relationship()
+    media: list = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
+    note: list = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
 
     def __init_subclass__(cls):
         """
@@ -93,7 +93,10 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             deserializer=FindByNameDeserializer(AlternateName),
             example=["alias 1", "alias 2"],
             default_factory_pydantic=list,
-            on_delete_trigger_orphan_deletion=True,
+            on_delete_trigger_orphan_deletion=lambda: [
+                f"{a.__tablename__}_alternate_name_link"
+                for a in non_abstract_subclasses(AIResource)
+            ],
         )
         keyword: list[str] = ManyToMany(
             description="Keywords or tags used to describe this resource, providing additional "
@@ -102,7 +105,9 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             deserializer=FindByNameDeserializer(Keyword),
             example=["keyword1", "keyword2"],
             default_factory_pydantic=list,
-            on_delete_trigger_orphan_deletion=True,
+            on_delete_trigger_orphan_deletion=lambda: [
+                f"{a.__tablename__}_keyword_link" for a in non_abstract_subclasses(AIResource)
+            ],
         )
 
         application_area: list[str] = ManyToMany(
@@ -148,13 +153,9 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             description="Images or videos depicting the resource or associated with it. ",
             default_factory_pydantic=list,  # no deletion trigger: cascading delete is used
         )
-        note: list[str] = OneToMany(
+        note: list[Note] = OneToMany(
             description="Notes on this AI resource.",
-            default_factory_pydantic=list,
-            serializer=AttributeSerializer("name"),
-            deserializer=FindByNameDeserializer(Note),
-            example=["A brief record of points or ideas about this AI resource."],
-            on_delete_trigger_deletion="identifier",
+            default_factory_pydantic=list,  # no deletion trigger: cascading delete is used
         )
 
         is_part_of: list[int] = ManyToMany(
@@ -182,6 +183,11 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         cls.RelationshipConfig.media = copy.copy(cls.RelationshipConfig.media)
         cls.RelationshipConfig.media.deserializer = CastDeserializer(distribution)  # type: ignore
 
+        note: Any = note_factory(table_from=cls.__tablename__)
+        cls.__annotations__["note"] = list[note]
+        cls.RelationshipConfig.note = copy.copy(cls.RelationshipConfig.note)
+        cls.RelationshipConfig.note.deserializer = CastDeserializer(note)  # type: ignore
+
         for table_to in (
             "alternate_name",
             "keyword",
@@ -189,7 +195,6 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             "industrial_sector",
             "research_area",
             "scientific_domain",
-            "note",
         ):
             relationships[table_to].link_model = many_to_many_link_factory(
                 table_from=cls.__tablename__, table_to=table_to

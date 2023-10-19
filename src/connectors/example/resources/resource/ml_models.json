@@ -73,7 +73,9 @@
         }
       ],
       "note": [
-        "A brief record of points or ideas about this AI resource."
+        {
+          "value": "A brief record of points or ideas about this AI resource."
+        }
       ],
       "related_experiment": [],
       "research_area": [

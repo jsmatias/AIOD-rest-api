@@ -99,16 +99,8 @@ class ManyToOne(_ResourceRelationshipSingle):
 
 @dataclasses.dataclass
 class OneToMany(_ResourceRelationshipList):
-    on_delete_trigger_deletion: None | str = None
-
     def create_triggers(self, parent_class: Type[SQLModel], field_name: str):
-        if self.on_delete_trigger_deletion is not None:
-            to_delete = parent_class.__annotations__[field_name].__args__[0]
-            triggers.create_deletion_trigger_one_to_x(
-                trigger=parent_class,
-                to_delete=to_delete,
-                to_delete_identifier=self.on_delete_trigger_deletion,
-            )
+        """No deletion triggers: thus far, this could always be solved using a cascading delete."""
 
 
 @dataclasses.dataclass
