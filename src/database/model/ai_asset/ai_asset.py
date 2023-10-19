@@ -66,11 +66,9 @@ class AIAsset(AIAssetBase, AIResource, metaclass=abc.ABCMeta):
         """
         cls.__annotations__.update(AIAsset.__annotations__)
         relationships = copy.deepcopy(AIAsset.__sqlmodel_relationships__)
-        if cls.__tablename__ != "knowledgeasset":
-            # KnowledgeAsset is an abstract class, and must perform its own initialization,
-            # including own relationships.
+        is_not_abstract = cls.__tablename__ != "knowledgeasset"
+        if is_not_abstract:
             cls.update_relationships_asset(relationships)
-            cls.create_triggers_based_on_configuration()
         cls.__sqlmodel_relationships__.update(relationships)
 
     class RelationshipConfig(AIResource.RelationshipConfig):
@@ -79,6 +77,7 @@ class AIAsset(AIAssetBase, AIResource, metaclass=abc.ABCMeta):
             serializer=AttributeSerializer("identifier"),
             include_in_create=False,
             default_factory_orm=lambda type_: AIAssetTable(type=type_),
+            on_delete_trigger_deletion_by="ai_asset_id",
         )
         distribution: list[Distribution] = OneToMany(default_factory_pydantic=list)
         license: Optional[str] = ManyToOne(

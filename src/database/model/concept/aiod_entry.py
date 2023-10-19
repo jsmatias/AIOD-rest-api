@@ -39,7 +39,7 @@ class AIoDEntryORM(AIoDEntryBase, table=True):  # type: ignore [call-arg]
     date_created: datetime | None = Field(default_factory=datetime.utcnow)
 
     class RelationshipConfig:
-        editor: list[int] = ManyToMany()
+        editor: list[int] = ManyToMany()  # No deletion triggers: "orphan" Persons should be kept
         status: str = ManyToOne(
             example="draft",
             identifier_name="status_identifier",

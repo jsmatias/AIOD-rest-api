@@ -6,6 +6,7 @@ from sqlalchemy.engine import Engine
 from sqlmodel import SQLModel, select, Session
 from starlette.status import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
 
+from database.model.helper_functions import non_abstract_subclasses
 from routers import resource_routers
 
 
@@ -86,19 +87,3 @@ class ParentRouter(abc.ABC):
                 return child_class_read.from_orm(child)
 
         return get_resource
-
-
-def non_abstract_subclasses(cls):
-    """
-    All non-abstract subclasses of the class.
-
-    To check if a class is abstract, we check if it has any children itself. This will break if
-    we ever inherit from a non-abstract class.
-    """
-    for child in cls.__subclasses__():
-        has_grandchild = False
-        for grand_child in non_abstract_subclasses(child):
-            has_grandchild = True
-            yield grand_child
-        if not has_grandchild:
-            yield child

@@ -33,7 +33,6 @@ class KnowledgeAsset(KnowledgeAssetBase, AIAsset):
         cls.__annotations__.update(KnowledgeAsset.__annotations__)
         relationships = copy.deepcopy(KnowledgeAsset.__sqlmodel_relationships__)
         cls.update_relationships_asset(relationships)
-        cls.create_triggers_based_on_configuration()
 
         relationships["documents"].link_model = many_to_many_link_factory(
             table_from=cls.__tablename__, table_to="ai_asset", table_prefix="documents"

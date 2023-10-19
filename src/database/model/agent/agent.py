@@ -22,9 +22,7 @@ class AgentBase(AIResourceBase):
 
 class Agent(AgentBase, AIResource):
     agent_id: int | None = Field(foreign_key=AgentTable.__tablename__ + ".identifier", index=True)
-    agent_identifier: AgentTable | None = Relationship(
-        sa_relationship_kwargs={"cascade": "all, delete"}
-    )
+    agent_identifier: AgentTable | None = Relationship()
 
     telephone: list[Telephone] = Relationship()
     email: list[Email] = Relationship()
@@ -43,7 +41,6 @@ class Agent(AgentBase, AIResource):
                 table_from=cls.__tablename__, table_to=table_to
             )
         cls.__sqlmodel_relationships__.update(relationships)
-        cls.create_triggers_based_on_configuration()
 
     class RelationshipConfig(AIResource.RelationshipConfig):
         agent_identifier: int | None = OneToOne(
@@ -51,6 +48,7 @@ class Agent(AgentBase, AIResource):
             serializer=AttributeSerializer("identifier"),
             include_in_create=False,
             default_factory_orm=lambda type_: AgentTable(type=type_),
+            on_delete_trigger_deletion_by="agent_id",
         )
         email: list[str] = ManyToMany(
             description="A telephone number, including the land code, on which this agent is "
@@ -59,6 +57,9 @@ class Agent(AgentBase, AIResource):
             deserializer=FindByNameDeserializer(Email),
             example=["a@b.com"],
             default_factory_pydantic=list,
+            on_delete_trigger_orphan_deletion=lambda: [
+                f"{a.__tablename__}_email_link" for a in Agent.__subclasses__()
+            ],
         )
         telephone: list[str] = ManyToMany(
             description="A telephone number, including the land code, on which this agent is "
@@ -67,4 +68,7 @@ class Agent(AgentBase, AIResource):
             deserializer=FindByNameDeserializer(Telephone),
             example=["0032 XXXX XXXX"],
             default_factory_pydantic=list,
+            on_delete_trigger_orphan_deletion=lambda: [
+                f"{a.__tablename__}_telephone_link" for a in Agent.__subclasses__()
+            ],
         )

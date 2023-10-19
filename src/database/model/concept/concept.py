@@ -8,9 +8,8 @@ from sqlmodel import SQLModel, Field, Relationship
 
 from database.model.concept.aiod_entry import AIoDEntryORM, AIoDEntryRead, AIoDEntryCreate
 from database.model.field_length import SHORT, NORMAL
-from database.model.helper_functions import get_relationships
 from database.model.platform.platform_names import PlatformName
-from database.model.relationships import OneToOne, DeleteOneToOne
+from database.model.relationships import OneToOne
 from database.model.serializers import CastDeserializer
 
 
@@ -43,13 +42,11 @@ class AIoDConcept(AIoDConceptBase):
     )
     aiod_entry: AIoDEntryORM = Relationship()
 
-    def __init_subclass__(cls, metaclass=None):
+    def __init_subclass__(cls):
         """Fixing problems with the inheritance of relationships."""
         cls.__annotations__.update(AIoDConcept.__annotations__)
         relationships = copy.deepcopy(AIoDConcept.__sqlmodel_relationships__)
         cls.__sqlmodel_relationships__.update(relationships)
-        if cls.__tablename__ not in ("aiasset", "agent", "knowledgeasset", "airesource"):
-            cls.create_triggers_based_on_configuration()
 
     class RelationshipConfig:
         aiod_entry: Optional[AIoDEntryRead] = OneToOne(
@@ -57,7 +54,7 @@ class AIoDConcept(AIoDConceptBase):
             default_factory_orm=AIoDEntryORM,
             class_read=Optional[AIoDEntryRead],
             class_create=Optional[AIoDEntryCreate],
-            on_delete_trigger_deletion_of=DeleteOneToOne(AIoDEntryORM, "aiod_entry_identifier"),
+            on_delete_trigger_deletion_by="aiod_entry_identifier",
         )
 
     @classproperty
@@ -78,8 +75,3 @@ class AIoDConcept(AIoDConceptBase):
                 name=f"{cls.__name__}_platform_xnor_platform_id_null",
             ),
         )
-
-    @classmethod
-    def create_triggers_based_on_configuration(cls):
-        for name, value in get_relationships(cls).items():
-            value.create_triggers(cls)

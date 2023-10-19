@@ -9,7 +9,6 @@ from database.model.concept.aiod_entry import AIoDEntryORM
 from database.model.field_length import NORMAL
 from database.model.helper_functions import many_to_many_link_factory
 from database.model.relationships import ManyToMany
-
 from database.model.serializers import (
     AttributeSerializer,
     FindByNameDeserializer,
@@ -60,6 +59,7 @@ class Person(PersonBase, Agent, table=True):  # type: ignore [call-arg]
             deserializer=FindByNameDeserializer(Expertise),
             example=["transfer learning"],
             default_factory_pydantic=list,
+            on_delete_trigger_orphan_deletion=True,
         )
         language: list[str] = ManyToMany(
             description="A language this person masters, in ISO639-3",

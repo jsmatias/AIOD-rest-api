@@ -128,9 +128,10 @@ class LocationORM(LocationBase, table=True):  # type: ignore [call-arg]
     class RelationshipConfig:
         address: Optional[Address] = OneToOne(
             deserializer=CastDeserializer(AddressORM),
+            on_delete_trigger_deletion_by="address_identifier",
         )
         geo: Optional[Geo] = OneToOne(
-            deserializer=CastDeserializer(GeoORM),
+            deserializer=CastDeserializer(GeoORM), on_delete_trigger_deletion_by="geo_identifier"
         )
 
 

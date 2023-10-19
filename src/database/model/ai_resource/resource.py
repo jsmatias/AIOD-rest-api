@@ -60,7 +60,7 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
     is_part_of: list[AIResourceTable] = Relationship()
     has_part: list[AIResourceTable] = Relationship()
 
-    media: list = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
+    media: list = Relationship()
     note: list[Note] = Relationship()
 
     def __init_subclass__(cls):
@@ -71,11 +71,9 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         """
         cls.__annotations__.update(AIResource.__annotations__)
         relationships = copy.deepcopy(AIResource.__sqlmodel_relationships__)
-        if cls.__tablename__ not in ("aiasset", "agent", "knowledgeasset"):
-            # AIAsset, Agent and KnowledgeAsset are abstract classes, and must perform their own
-            # initialization, including their own relationships.
+        is_not_abstract = cls.__tablename__ not in ("aiasset", "agent", "knowledgeasset")
+        if is_not_abstract:
             cls.update_relationships(relationships)
-            cls.create_triggers_based_on_configuration()
         cls.__sqlmodel_relationships__.update(relationships)
 
     class RelationshipConfig(AIoDConcept.RelationshipConfig):
@@ -86,6 +84,7 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             serializer=AttributeSerializer("identifier"),
             include_in_create=False,
             default_factory_orm=lambda type_: AIResourceTable(type=type_),
+            on_delete_trigger_deletion_by="ai_resource_id",
         )
         alternate_name: list[str] = ManyToMany(
             description="An alias for the item, commonly used for the resource instead of the "
@@ -94,6 +93,7 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             deserializer=FindByNameDeserializer(AlternateName),
             example=["alias 1", "alias 2"],
             default_factory_pydantic=list,
+            on_delete_trigger_orphan_deletion=True,
         )
         keyword: list[str] = ManyToMany(
             description="Keywords or tags used to describe this resource, providing additional "
@@ -102,6 +102,7 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             deserializer=FindByNameDeserializer(Keyword),
             example=["keyword1", "keyword2"],
             default_factory_pydantic=list,
+            on_delete_trigger_orphan_deletion=True,
         )
 
         application_area: list[str] = ManyToMany(
@@ -145,7 +146,7 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         # address of at a geographical location?
         media: list[Distribution] = OneToMany(
             description="Images or videos depicting the resource or associated with it. ",
-            default_factory_pydantic=list,
+            default_factory_pydantic=list,  # no deletion trigger: cascading delete is used
         )
         note: list[str] = OneToMany(
             description="Notes on this AI resource.",
@@ -153,6 +154,7 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(Note),
             example=["A brief record of points or ideas about this AI resource."],
+            on_delete_trigger_deletion="identifier",
         )
 
         is_part_of: list[int] = ManyToMany(

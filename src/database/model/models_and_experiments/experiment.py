@@ -6,7 +6,6 @@ from database.model.helper_functions import many_to_many_link_factory
 from database.model.models_and_experiments.badge import Badge
 from database.model.models_and_experiments.runnable_distribution import RunnableDistribution
 from database.model.relationships import ManyToMany, OneToMany
-
 from database.model.serializers import AttributeSerializer, FindByNameDeserializer
 
 

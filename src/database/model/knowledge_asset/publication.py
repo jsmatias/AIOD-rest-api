@@ -7,7 +7,6 @@ from database.model.field_length import NORMAL
 from database.model.knowledge_asset.PublicationType import PublicationType
 from database.model.knowledge_asset.knowledge_asset import KnowledgeAssetBase, KnowledgeAsset
 from database.model.relationships import ManyToOne
-
 from database.model.serializers import (
     AttributeSerializer,
     FindByNameDeserializer,

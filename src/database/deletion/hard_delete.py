@@ -8,7 +8,7 @@ from sqlalchemy.sql.operators import is_not
 from sqlmodel import Session
 
 from database.model.concept.concept import AIoDConcept
-from routers.parent_router import non_abstract_subclasses
+from database.model.helper_functions import non_abstract_subclasses
 
 
 def hard_delete_older_than(engine: Engine, age: timedelta):

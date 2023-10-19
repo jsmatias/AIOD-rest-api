@@ -73,9 +73,11 @@ class Dataset(DatasetBase, AIAsset, table=True):  # type: ignore [call-arg]
             description="The size of this dataset, for example the number of rows. The file size "
             "should not be included here, but in distribution.content_size_kb.",
             deserializer=CastDeserializer(SizeORM),
+            on_delete_trigger_deletion_by="size_identifier",
         )
         spatial_coverage: Optional[Location] = OneToOne(
             description="A location that describes the spatial aspect of this dataset. For "
             "example, a point where all the measurements were collected.",
             deserializer=CastDeserializer(LocationORM),
+            on_delete_trigger_deletion_by="spatial_coverage_identifier",
         )

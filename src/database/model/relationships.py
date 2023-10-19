@@ -6,15 +6,14 @@ serialization and complex relationships.
 
 import abc
 import dataclasses
-from typing import Any, Type
+import typing
+from types import UnionType
+from typing import Any, Type, Callable
 
 from pydantic.utils import Representation
 from sqlmodel import Field, SQLModel
 
-from database.deletion.triggers import (
-    create_deletion_trigger_one_to_x,
-    create_deletion_trigger_many_to_many,
-)
+from database.deletion import triggers
 from database.model import serializers
 
 
@@ -42,7 +41,7 @@ class _ResourceRelationship(abc.ABC, Representation):
         pass
 
     @abc.abstractmethod
-    def create_triggers(self, parent_class: Type[SQLModel]):
+    def create_triggers(self, parent_class: Type[SQLModel], field_name: str):
         pass
 
 
@@ -62,89 +61,67 @@ class _ResourceRelationshipList(_ResourceRelationship):
 
 
 @dataclasses.dataclass
-class DeleteOneToOne:
-    """
-    Delete rows from other table when a row from the parent table is deleted.
-
-    Args:
-        to_delete_model (Type[SQLModel]): Delete rows from this table
-        linking_identifier (str): Delete those rows where identifier equals the
-        linking_identifier of the deleted item.
-    """
-
-    to_delete_model: Type[SQLModel]
-    linking_identifier: str
-
-
-@dataclasses.dataclass
 class OneToOne(_ResourceRelationshipSingle):
-    on_delete_trigger_deletion_of: None | DeleteOneToOne = None
+    on_delete_trigger_deletion_by: None | str = None
 
-    def create_triggers(self, parent_class: Type[SQLModel]):
-        if self.on_delete_trigger_deletion_of:
-            create_deletion_trigger_one_to_x(
+    def create_triggers(self, parent_class: Type[SQLModel], field_name: str):
+        if self.on_delete_trigger_deletion_by is not None:
+            to_delete = parent_class.__annotations__[field_name]
+            is_optional = typing.get_origin(to_delete) in (typing.Union, UnionType) and type(
+                None
+            ) in typing.get_args(to_delete)
+            if is_optional:
+                (to_delete,) = [
+                    type_ for type_ in to_delete.__args__ if not isinstance(None, type_)
+                ]
+            triggers.create_deletion_trigger_one_to_x(
                 trigger=parent_class,
-                trigger_identifier_link=self.on_delete_trigger_deletion_of.linking_identifier,
-                to_delete=self.on_delete_trigger_deletion_of.to_delete_model,
+                trigger_identifier_link=self.on_delete_trigger_deletion_by,
+                to_delete=to_delete,
             )
-
-
-@dataclasses.dataclass
-class DeleteManyToOne:
-    """
-    Delete rows from other table when a row from the parent table is deleted.
-
-    Args:
-        to_delete_model (Type[SQLModel]): Delete rows from this table
-        to_delete_identifier (str): Delete those rows for which the to_delete_identifier equals
-        the just deleted
-    """
-
-    to_delete_model: Type[SQLModel]
-    to_delete_identifier: str
 
 
 @dataclasses.dataclass
 class ManyToOne(_ResourceRelationshipSingle):
-    # on_delete_trigger_deletion_of_orphan: None | DeleteOther = None
+    on_delete_trigger_deletion_of_orphan: None | Type[SQLModel] = None
 
-    def create_triggers(self, parent_class: Type[SQLModel]):
-        pass
-        # if self.on_delete_trigger_deletion_of_orphan:
-        #     create_deletion_trigger_many_to_one(
-        #         trigger=parent_class,
-        #         to_delete=self.on_delete_trigger_deletion_of_orphan.to_delete_model,
-        #         to_delete_identifier=self.on_delete_trigger_deletion_of_orphan.to_delete_identifier
-        #     )
-
-
-@dataclasses.dataclass
-class OneToMany(_ResourceRelationshipList):
-    on_delete_trigger_deletion_of: None | Type[SQLModel] = None
-
-    def create_triggers(self, parent_class: Type[SQLModel]):
-        if self.on_delete_trigger_deletion_of:
-            create_deletion_trigger_one_to_x(
+    def create_triggers(self, parent_class: Type[SQLModel], field_name: str):
+        if self.on_delete_trigger_deletion_of_orphan is not None:
+            to_delete_identifier = getattr(
+                parent_class.RelationshipConfig, field_name
+            ).identifier_name
+            triggers.create_deletion_trigger_many_to_one(
                 trigger=parent_class,
-                trigger_identifier_link=self.identifier_name,
-                to_delete=self.on_delete_trigger_deletion_of,
+                to_delete=self.on_delete_trigger_deletion_of_orphan,
+                trigger_identifier_link=to_delete_identifier,
             )
 
 
 @dataclasses.dataclass
-class DeleteOrphan:
-    link_model: Type[SQLModel]
-    to_delete_model: Type[SQLModel]
+class OneToMany(_ResourceRelationshipList):
+    on_delete_trigger_deletion: None | str = None
+
+    def create_triggers(self, parent_class: Type[SQLModel], field_name: str):
+        if self.on_delete_trigger_deletion is not None:
+            to_delete = parent_class.__annotations__[field_name].__args__[0]
+            triggers.create_deletion_trigger_one_to_x(
+                trigger=parent_class,
+                to_delete=to_delete,
+                to_delete_identifier=self.on_delete_trigger_deletion,
+            )
 
 
 @dataclasses.dataclass
 class ManyToMany(_ResourceRelationshipList):
-    on_delete_trigger_orphan_deletion: None | DeleteOrphan = None
+    on_delete_trigger_orphan_deletion: bool | Callable[[], list[str]] = False
 
-    def create_triggers(self, parent_class: Type[SQLModel]):
+    def create_triggers(self, parent_class: Type[SQLModel], field_name: str):
         if self.on_delete_trigger_orphan_deletion:
-            create_deletion_trigger_many_to_many(
-                trigger=parent_class,
-                link=self.on_delete_trigger_orphan_deletion.link_model,
-                to_delete=self.on_delete_trigger_orphan_deletion.to_delete_model,
+            link = parent_class.__sqlmodel_relationships__[field_name].link_model
+            to_delete = parent_class.__annotations__[field_name].__args__[0]
+            other_links = None
+            if not isinstance(self.on_delete_trigger_orphan_deletion, bool):
+                other_links = self.on_delete_trigger_orphan_deletion()
+            triggers.create_deletion_trigger_many_to_many(
+                trigger=parent_class, link=link, to_delete=to_delete, other_links=other_links
             )
