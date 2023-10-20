@@ -12,5 +12,5 @@ flock -n -x 9 || another_instance
 
 echo $(date -u) "Starting deletion..."
 PYTHONPATH=/app /usr/local/bin/python3 /app/database/deletion/hard_delete.py \
-      --time-threshold-minutes 1 > ${WORK_DIR}/deletion.log 2>&1
+      --time-threshold-minutes 10080 > ${WORK_DIR}/deletion.log 2>&1
 echo $(date -u) "Deletion Done."
