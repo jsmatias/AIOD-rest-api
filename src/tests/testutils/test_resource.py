@@ -13,7 +13,7 @@ from routers.resource_router import ResourceRouter
 
 
 class TestResourceBase(AIoDConceptBase):
-    title: str = Field(max_length=250, nullable=False, unique=True)
+    title: str = Field(max_length=250, nullable=False)
 
 
 class TestResource(TestResourceBase, AIoDConcept, table=True):  # type: ignore [call-arg]

@@ -2,7 +2,8 @@ import copy
 import datetime
 from typing import Optional, Tuple
 
-from sqlalchemy import CheckConstraint, Column, Index
+from sqlalchemy import CheckConstraint, Index
+from sqlalchemy.sql.functions import coalesce
 from sqlalchemy.util import classproperty
 from sqlmodel import SQLModel, Field, Relationship
 
@@ -32,11 +33,11 @@ class AIoDConceptBase(SQLModel):
         default=None,
         schema_extra={"example": "1"},
     )
-    date_deleted: datetime.datetime | None = Field(exclude=True)
 
 
 class AIoDConcept(AIoDConceptBase):
     identifier: int = Field(default=None, primary_key=True)
+    date_deleted: datetime.datetime | None = Field()
     aiod_entry_identifier: int | None = Field(
         foreign_key=AIoDEntryORM.__tablename__ + ".identifier"
     )
@@ -67,8 +68,8 @@ class AIoDConcept(AIoDConceptBase):
                 f"{cls.__name__}_same_platform_and_platform_identifier",
                 cls.platform,
                 cls.platform_identifier,
+                coalesce(cls.date_deleted, "2000-01-01"),
                 unique=True,
-                postgresql_where=Column("date_deleted IS NULL"),
             ),
             CheckConstraint(
                 "(platform IS NULL) <> (platform_identifier IS NOT NULL)",
