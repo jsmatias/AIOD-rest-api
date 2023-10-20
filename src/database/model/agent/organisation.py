@@ -41,7 +41,6 @@ class Organisation(OrganisationBase, Agent, table=True):  # type: ignore [call-a
     type: Optional[OrganisationType] = Relationship()
 
     member: list[AgentTable] = Relationship(
-        sa_relationship_kwargs={"cascade": "all, delete"},
         link_model=many_to_many_link_factory("organisation", AgentTable.__tablename__),
     )
 

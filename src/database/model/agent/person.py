@@ -59,7 +59,7 @@ class Person(PersonBase, Agent, table=True):  # type: ignore [call-arg]
             deserializer=FindByNameDeserializer(Expertise),
             example=["transfer learning"],
             default_factory_pydantic=list,
-            on_delete_trigger_orphan_deletion=True,
+            on_delete_trigger_orphan_deletion=list,
         )
         language: list[str] = ManyToMany(
             description="A language this person masters, in ISO639-3",

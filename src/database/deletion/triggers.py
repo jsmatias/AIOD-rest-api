@@ -1,3 +1,10 @@
+"""
+Deletion triggers, to automatically delete rows from related tables.
+
+Note that normally adding cascading deletes is preferable, but that's not always easy because
+tables are referenced by multiple tables. See src/README.md for additional information.
+"""
+
 from typing import Type
 
 from sqlalchemy import DDL, event
@@ -13,15 +20,15 @@ def add_delete_triggers(parent_class: Type[SQLModel]):
             value.create_triggers(cls, name)
 
 
-def create_deletion_trigger_one_to_x(
+def create_deletion_trigger_one_to_one(
     trigger: Type[SQLModel],
     to_delete: Type[SQLModel],
     trigger_identifier_link: str = "identifier",
     to_delete_identifier: str = "identifier",
 ):
     """
-    Create a trigger for a one-to-one or one-to-many relationship, so that if a row from trigger is
-    deleted, any row in the to_delete is also deleted where trigger.trigger_identifier_link ==
+    Create a trigger for a one-to-one relationship, so that if a row from trigger is deleted, any
+    row in the to_delete is also deleted where trigger.trigger_identifier_link ==
     to_delete.to_delete_identifier.
 
     e.g.
@@ -29,7 +36,15 @@ def create_deletion_trigger_one_to_x(
     - trigger_identifier_link: "ai_asset_identifier"
     - to_delete: AIAssetTable
     - to_delete_identifier: "identifier"
+
     Then, after deleting a Dataset, the corresponding AIAsset will also be deleted.
+
+    Args:
+        trigger: The table that triggers a deletion
+        to_delete: The related table
+        trigger_identifier_link: the identifier on the trigger table, that has a foreign key
+            relationship to the to_delete_identifier
+        to_delete_identifier: the identifier on the related table that is referenced.
     """
     trigger_name = trigger.__tablename__
     delete_name = to_delete.__tablename__
@@ -55,7 +70,16 @@ def create_deletion_trigger_many_to_one(
     to_delete_identifier: str = "identifier",
 ):
     """
-    Create a trigger, so that if trigger is deleted, any orphan row in the to_table is also deleted
+    Create a trigger for a many-to-one relationship, so that if a row from trigger is deleted,
+    any **orphan** row in the to_delete is also deleted where trigger.trigger_identifier_link ==
+    to_delete.to_delete_identifier.
+
+    Args:
+        trigger: The table that triggers a deletion
+        to_delete: The related table
+        trigger_identifier_link: the identifier on the trigger table, that has a foreign key
+            relationship to the to_delete_identifier
+        to_delete_identifier: the identifier on the related table that is referenced.
     """
     trigger_name = trigger.__tablename__
     delete_name = to_delete.__tablename__
@@ -89,7 +113,21 @@ def create_deletion_trigger_many_to_many(
     other_links: None | list[str] = None,
 ):
     """
-    Create a trigger, so that if trigger is deleted, any orphan row in the to_table is also deleted
+    Create a trigger for a many-to-many relationship, so that if a row from trigger is deleted,
+    any **orphan** row in the to_delete is also deleted.
+
+    Args:
+        trigger: The table that triggers a deletion
+        link: The linking table between the trigger and the to_delete
+        to_delete: The related table
+        trigger_identifier: the identifier on the trigger table, that is referenced by the link
+            table
+        to_delete_identifier: the identifier on the related table that is referenced by the link
+            table
+        link_from_identifier: the foreign key field on the link table, referencing the trigger table
+        link_to_identifier: the foreign key field on the link table, referencing the to_delete table
+        other_links: a list of other link tables to determine if a row in to_delete is orphan.
+            The same identifier names are assumed on each of these tables.
     """
     trigger_name = trigger.__tablename__
     link_name = link.__tablename__

@@ -18,9 +18,7 @@ class KnowledgeAsset(KnowledgeAssetBase, AIAsset):
     knowledge_asset_id: int | None = Field(
         foreign_key=KnowledgeAssetTable.__tablename__ + ".identifier", index=True
     )
-    knowledge_asset_identifier: KnowledgeAssetTable | None = Relationship(
-        sa_relationship_kwargs={"cascade": "all, delete"}
-    )
+    knowledge_asset_identifier: KnowledgeAssetTable | None = Relationship()
 
     documents: list[AIAssetTable] = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
 

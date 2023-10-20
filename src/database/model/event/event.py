@@ -49,7 +49,6 @@ class Event(EventBase, AIResource, table=True):  # type: ignore [call-arg]
     __tablename__ = "event"
 
     performer: list["AgentTable"] = Relationship(
-        sa_relationship_kwargs={"cascade": "all, delete"},
         link_model=many_to_many_link_factory(
             "event", AgentTable.__tablename__, table_prefix="performer"
         ),

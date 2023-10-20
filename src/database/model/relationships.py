@@ -2,6 +2,8 @@
 Together with the serializers and the resource_read_and_create, this adds additional
 functionality on top of SQLModel so that a model only needs to be defined once, but supports
 serialization and complex relationships.
+
+See src/README.md for additional information.
 """
 
 import abc
@@ -19,14 +21,34 @@ from database.model import serializers
 
 @dataclasses.dataclass
 class _ResourceRelationship(abc.ABC, Representation):
+    """
+    Configuration for handling relationships to another table.
+
+    Args:
+        serializer (Serializer): will be used to serialize the related entity into json.
+        deserializer (DeSerializer): will be used to deserialize the related entity from json.
+        description: (str): a description of the relation. Will be shown in Swagger if the
+            related entity is serialized into a field such as a string.
+        include_in_create (bool): if False, this relationship will be omitted on POSTS/PUTS,
+            and only shown on GET.
+        default_factory_orm: if a value is not included in create, this factory can be used to
+            set a default value.
+        default_factory_pydantic: a default value shown in swagger.
+        class_read: normally not needed, only needed if you want to differentiate between
+            class_read and class_create
+        class_create: normally not needed, only needed if you want to differentiate between
+            class_read and class_create
+    """
+
     serializer: serializers.Serializer | None = None
     deserializer: serializers.DeSerializer | None = None
     description: str | None = None
     include_in_create: bool = True
     default_factory_orm: Any | None = None
     default_factory_pydantic: Any | None = None
-    class_read: Any | None = None  # only needed if class_read differs from class_create
-    class_create: Any | None = None  # only needed if class_read differs from class_create
+    class_read: Any | None = None
+    class_create: Any | None = None
+    """jos"""
 
     def field(self):
         return Field(
@@ -47,21 +69,45 @@ class _ResourceRelationship(abc.ABC, Representation):
 
 @dataclasses.dataclass
 class _ResourceRelationshipSingle(_ResourceRelationship):
-    """For one-to-one and many-to-one relationships"""
+    """
+    Configuration for handling one-to-one and many-to-one relationships to another table.
+
+    Args:
+        identifier_name(str): the name of the foreign key field to another table. Only fill this
+        in if the related object is serialized to this identifier. Omit this value on casting
+        serialization.
+        example(str|int): an example value to be shown in Swagger
+    """
 
     identifier_name: str | None = None
+    """blabla"""
     example: str | int | None = None
 
 
 @dataclasses.dataclass
 class _ResourceRelationshipList(_ResourceRelationship):
-    """For many-to-many and one-to-many relationships."""
+    """
+    Configuration for handling one-to-many and many-to-many relationships to another table.
+
+    Args:
+        example(Any): an example value to be shown in Swagger
+    """
 
     example: list[Any] | None = None
 
 
 @dataclasses.dataclass
 class OneToOne(_ResourceRelationshipSingle):
+    """
+    Configuration for handling one-to-many relationships to another table.
+
+    Args:
+        on_delete_trigger_deletion_by(str): if you want to automatically delete instances of the
+            other table, you can! We assume the other table has an .identifier. This field should
+            then contain the name of the foreign key field the other table.
+
+    """
+
     on_delete_trigger_deletion_by: None | str = None
 
     def create_triggers(self, parent_class: Type[SQLModel], field_name: str):
@@ -74,7 +120,7 @@ class OneToOne(_ResourceRelationshipSingle):
                 (to_delete,) = [
                     type_ for type_ in to_delete.__args__ if not isinstance(None, type_)
                 ]
-            triggers.create_deletion_trigger_one_to_x(
+            triggers.create_deletion_trigger_one_to_one(
                 trigger=parent_class,
                 trigger_identifier_link=self.on_delete_trigger_deletion_by,
                 to_delete=to_delete,
@@ -83,6 +129,14 @@ class OneToOne(_ResourceRelationshipSingle):
 
 @dataclasses.dataclass
 class ManyToOne(_ResourceRelationshipSingle):
+    """
+    Configuration for handling many-to-one relationships to another table.
+
+    Args:
+        on_delete_trigger_deletion_of_orphan(Type[SQLModel]): automatically delete orphans of the
+            related table that are not referenced anymore.
+    """
+
     on_delete_trigger_deletion_of_orphan: None | Type[SQLModel] = None
 
     def create_triggers(self, parent_class: Type[SQLModel], field_name: str):
@@ -99,21 +153,32 @@ class ManyToOne(_ResourceRelationshipSingle):
 
 @dataclasses.dataclass
 class OneToMany(_ResourceRelationshipList):
+    """
+    Configuration for handling one-to-many relationships to another table.
+    """
+
     def create_triggers(self, parent_class: Type[SQLModel], field_name: str):
         """No deletion triggers: thus far, this could always be solved using a cascading delete."""
 
 
 @dataclasses.dataclass
 class ManyToMany(_ResourceRelationshipList):
-    on_delete_trigger_orphan_deletion: bool | Callable[[], list[str]] = False
+    """
+    Configuration for handling many-to-one relationships to another table.
+
+    Args:
+        on_delete_trigger_orphan_deletion(Callable): automatically delete orphans of the
+            related table that are not referenced anymore. This callable should return a list of
+            linking-table-names that should be checked for references.
+    """
+
+    on_delete_trigger_orphan_deletion: None | Callable[[], list[str]] = None
 
     def create_triggers(self, parent_class: Type[SQLModel], field_name: str):
-        if self.on_delete_trigger_orphan_deletion:
+        if self.on_delete_trigger_orphan_deletion is not None:
             link = parent_class.__sqlmodel_relationships__[field_name].link_model
             to_delete = parent_class.__annotations__[field_name].__args__[0]
-            other_links = None
-            if not isinstance(self.on_delete_trigger_orphan_deletion, bool):
-                other_links = self.on_delete_trigger_orphan_deletion()
+            other_links = self.on_delete_trigger_orphan_deletion()
             triggers.create_deletion_trigger_many_to_many(
                 trigger=parent_class, link=link, to_delete=to_delete, other_links=other_links
             )

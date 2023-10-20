@@ -119,11 +119,9 @@ class LocationORM(LocationBase, table=True):  # type: ignore [call-arg]
 
     identifier: int | None = Field(primary_key=True)
     address_identifier: int | None = Field(foreign_key="address.identifier")
-    address: Optional["AddressORM"] = Relationship(
-        sa_relationship_kwargs={"cascade": "all, delete"}
-    )
+    address: Optional["AddressORM"] = Relationship()
     geo_identifier: int | None = Field(foreign_key="geo.identifier")
-    geo: Optional["GeoORM"] = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
+    geo: Optional["GeoORM"] = Relationship()
 
     class RelationshipConfig:
         address: Optional[Address] = OneToOne(
