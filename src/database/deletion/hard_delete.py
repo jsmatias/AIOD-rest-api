@@ -2,7 +2,7 @@
 """
 Actual (hard) deletion of soft-deleted items.
 
-We use soft-deletion, meaning that the .date_deleted attribute is said on a delete request,
+We use soft-deletion, meaning that the .date_deleted attribute is set on a delete request,
 rather than actual deletion. This module hard deletes those items that have been soft deleted
 some time ago.
 """
