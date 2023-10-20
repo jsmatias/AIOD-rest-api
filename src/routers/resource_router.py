@@ -253,7 +253,11 @@ class ResourceRouter(abc.ABC):
             f"""Retrieve the number of {self.resource_name_plural}."""
             try:
                 with Session(engine) as session:
-                    return session.query(self.resource_class).count()
+                    return (
+                        session.query(self.resource_class)
+                        .where(is_(self.resource_class.date_deleted, None))
+                        .count()
+                    )
             except Exception as e:
                 raise _wrap_as_http_exception(e)
 

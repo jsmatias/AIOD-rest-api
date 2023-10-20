@@ -10,7 +10,6 @@ from sqlmodel import create_engine, Session, SQLModel, select
 
 from config import DB_CONFIG
 from connectors.resource_with_relations import ResourceWithRelations
-from database.deletion.triggers import add_delete_triggers
 from database.model.concept.concept import AIoDConcept
 from database.model.named_relation import NamedRelation
 from database.model.platform.platform_names import PlatformName
@@ -39,11 +38,6 @@ def connect_to_database(
     if delete_first or create_if_not_exists:
         drop_or_create_database(url, delete_first)
     engine = create_engine(url, echo=False, pool_recycle=3600)
-
-    with engine.connect() as connection:
-        add_delete_triggers(AIoDConcept)
-        AIoDConcept.metadata.create_all(connection, checkfirst=True)
-        connection.commit()
     return engine
 
 
