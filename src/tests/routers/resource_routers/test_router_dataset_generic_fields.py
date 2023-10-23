@@ -135,3 +135,73 @@ def test_happy_path(
     assert response_json["version"] == "1.b"
 
     # TODO: test delete
+
+
+def test_post_duplicate_named_relations(
+    client: TestClient,
+    engine: Engine,
+    mocked_privileged_token: Mock,
+):
+    """
+    Unittest mirroring situation reported during the data migration of AI4EU news.
+    """
+    keycloak_openid.userinfo = mocked_privileged_token
+
+    def create_body(i: int, *keywords):
+        return {"name": f"dataset{i}", "keyword": keywords}
+
+    body1 = create_body(1, "AI")
+    body2 = create_body(
+        2,
+        "AI",
+        "ArtificialIntelligence",
+        "digitaltransformation",
+        "smartcities",
+        "mobility",
+        "greendeal",
+        "energy",
+    )
+    body3 = create_body(3)
+    body4 = create_body(
+        3,
+        "AI4EU Experiments",
+        "solutions",
+        "pipelines",
+        "hybrid AI",
+        "modular AI",
+        "reliability",
+        "explainability",
+        "trustworthiness",
+        "ArtificialIntelligence",
+    )
+
+    client.post("/news/v1", json=body1, headers={"Authorization": "Fake token"})
+    response = client.post("/news/v1", json=body2, headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
+    response = client.get("/news/v1/2")
+    assert set(response.json()["keyword"]) == {
+        "AI",
+        "ArtificialIntelligence",
+        "digitaltransformation",
+        "smartcities",
+        "mobility",
+        "greendeal",
+        "energy",
+    }
+
+    client.post("/news/v1", json=body3, headers={"Authorization": "Fake token"})
+    response = client.get("/news/v1/3")
+    assert len(response.json()["keyword"]) == 0
+    client.post("/news/v1", json=body4, headers={"Authorization": "Fake token"})
+    response = client.get("/news/v1/4")
+    assert set(response.json()["keyword"]) == {
+        "AI4EU Experiments",
+        "solutions",
+        "pipelines",
+        "hybrid AI",
+        "modular AI",
+        "reliability",
+        "explainability",
+        "trustworthiness",
+        "ArtificialIntelligence",
+    }
