@@ -4,11 +4,12 @@ from sqlmodel import Field, Relationship
 
 from database.model.agent.agent_table import AgentTable
 from database.model.agent.email import Email
+from database.model.agent.location import Location, LocationORM
 from database.model.agent.telephone import Telephone
 from database.model.ai_resource.resource import AIResource, AIResourceBase
 from database.model.helper_functions import link_factory
 from database.model.relationships import ResourceRelationshipList, ResourceRelationshipSingle
-from database.model.serializers import AttributeSerializer, FindByNameDeserializer
+from database.model.serializers import AttributeSerializer, FindByNameDeserializer, CastDeserializer
 
 
 class AgentBase(AIResourceBase):
@@ -25,6 +26,7 @@ class Agent(AgentBase, AIResource):
         sa_relationship_kwargs={"cascade": "all, delete"}
     )
 
+    location: list[LocationORM] = Relationship()
     telephone: list[Telephone] = Relationship()
     email: list[Email] = Relationship()
 
@@ -37,7 +39,7 @@ class Agent(AgentBase, AIResource):
         cls.__annotations__.update(Agent.__annotations__)
         relationships = copy.deepcopy(Agent.__sqlmodel_relationships__)
         cls.update_relationships(relationships)
-        for table_to in ("email", "telephone"):
+        for table_to in ("email", "telephone", "location"):
             relationships[table_to].link_model = link_factory(
                 table_from=cls.__tablename__, table_to=table_to
             )
@@ -49,6 +51,10 @@ class Agent(AgentBase, AIResource):
             serializer=AttributeSerializer("identifier"),
             include_in_create=False,
             default_factory_orm=lambda type_: AgentTable(type=type_),
+        )
+        location: list[Location] = ResourceRelationshipList(
+            deserializer=CastDeserializer(LocationORM),
+            default_factory_pydantic=list,
         )
         email: list[str] = ResourceRelationshipList(
             description="A telephone number, including the land code, on which this agent is "

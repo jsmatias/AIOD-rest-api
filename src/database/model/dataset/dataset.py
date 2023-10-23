@@ -3,8 +3,8 @@ from typing import Optional
 from sqlmodel import Field, Relationship
 
 from database.model.agent.agent_table import AgentTable
+from database.model.agent.location import LocationORM, Location
 from database.model.ai_asset.ai_asset import AIAssetBase, AIAsset
-from database.model.ai_resource.location import LocationORM, Location
 from database.model.dataset.size import Size, SizeORM
 from database.model.field_length import NORMAL, SHORT
 from database.model.helper_functions import link_factory

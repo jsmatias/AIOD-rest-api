@@ -29,6 +29,16 @@ def test_happy_path(
     body["contact"] = [1]
     body["price_per_hour_euro"] = 10.50
     body["wants_to_be_contacted"] = True
+    locations = [
+        {
+            "address": {"country": "NED", "street": "Street Name 10", "postal_code": "1234AB"},
+        },
+        {
+            "geo": {"latitude": 37.42242, "longitude": -122.08585, "elevation_millimeters": 2000},
+        },
+    ]
+    body["location"] = locations
+
     response = client.post("/persons/v1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
 
@@ -46,3 +56,4 @@ def test_happy_path(
 
     assert response_json["price_per_hour_euro"] == 10.50
     assert response_json["wants_to_be_contacted"]
+    assert response_json["location"] == locations

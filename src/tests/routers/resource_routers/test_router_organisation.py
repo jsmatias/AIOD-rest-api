@@ -32,6 +32,15 @@ def test_happy_path(
 
     body["telephone"] = ["0031612345678"]
     body["email"] = ["a@b.com"]
+    locations = [
+        {
+            "address": {"country": "NED", "street": "Street Name 10", "postal_code": "1234AB"},
+        },
+        {
+            "geo": {"latitude": 37.42242, "longitude": -122.08585, "elevation_millimeters": 2000},
+        },
+    ]
+    body["location"] = locations
 
     response = client.post("/organisations/v1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
@@ -52,6 +61,7 @@ def test_happy_path(
 
     assert response_json["telephone"] == ["0031612345678"]
     assert response_json["email"] == ["a@b.com"]
+    assert response_json["location"] == locations
 
     # response = client.delete("/organisations/v1/1", headers={"Authorization": "Fake token"})
     # assert response.status_code == 200
