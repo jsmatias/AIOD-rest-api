@@ -4,6 +4,7 @@ from typing import Optional
 from sqlmodel import Field, Relationship
 
 from database.model.agent.agent_table import AgentTable
+from database.model.agent.location import LocationORM, Location
 from database.model.ai_resource.resource import AIResourceBase, AIResource
 from database.model.event.event_mode import EventMode
 from database.model.event.event_status import EventStatus
@@ -14,6 +15,7 @@ from database.model.serializers import (
     AttributeSerializer,
     FindByIdentifierDeserializer,
     FindByNameDeserializer,
+    CastDeserializer,
 )
 
 
@@ -48,6 +50,9 @@ class EventBase(AIResourceBase):
 class Event(EventBase, AIResource, table=True):  # type: ignore [call-arg]
     __tablename__ = "event"
 
+    location: list[LocationORM] = Relationship(
+        link_model=link_factory("event", LocationORM.__tablename__)
+    )
     performer: list["AgentTable"] = Relationship(
         sa_relationship_kwargs={"cascade": "all, delete"},
         link_model=link_factory("event", AgentTable.__tablename__, table_prefix="performer"),
@@ -60,6 +65,10 @@ class Event(EventBase, AIResource, table=True):  # type: ignore [call-arg]
     mode: Optional[EventMode] = Relationship()
 
     class RelationshipConfig(AIResource.RelationshipConfig):
+        location: list[Location] = ResourceRelationshipList(
+            deserializer=CastDeserializer(LocationORM),
+            default_factory_pydantic=list,
+        )
         performer: list[int] = ResourceRelationshipList(
             description="Links to identifiers of the agents (person or organization) that is "
             "contributing to this event ",

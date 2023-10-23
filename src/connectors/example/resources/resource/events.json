@@ -49,6 +49,12 @@
         "keyword1",
         "keyword2"
       ],
+      "location": [
+        {
+            "address": {"country": "NED", "street": "Street Name 10", "postal_code": "1234AB"},
+            "geo": {"latitude": 37.42242, "longitude": -122.08585, "elevation_millimeters": 2000}
+        }
+      ],
       "relevant_link": ["https://www.example.com/a_relevant_link", "https://www.example.com/another_relevant_link"],
       "license": "https://creativecommons.org/share-your-work/public-domain/cc0/",
       "media": [

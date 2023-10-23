@@ -31,6 +31,15 @@ def test_happy_path(
     body["organiser"] = 1
     body["status"] = "scheduled"
     body["mode"] = "offline"
+    locations = [
+        {
+            "address": {"country": "NED", "street": "Street Name 10", "postal_code": "1234AB"},
+        },
+        {
+            "geo": {"latitude": 37.42242, "longitude": -122.08585, "elevation_millimeters": 2000},
+        },
+    ]
+    body["location"] = locations
 
     response = client.post("/events/v1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
@@ -47,3 +56,4 @@ def test_happy_path(
     assert response_json["organiser"] == 1
     assert response_json["status"] == "scheduled"
     assert response_json["mode"] == "offline"
+    assert response_json["location"] == locations
