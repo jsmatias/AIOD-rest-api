@@ -60,6 +60,10 @@ def test_happy_path(
     assert response_json["description"] == "A description."
     assert set(response_json["alternate_name"]) == {"alias1", "alias2"}
     assert set(response_json["keyword"]) == {"tag1", "tag2"}
+    assert set(response_json["relevant_link"]) == {
+        "https://www.example.com/a_relevant_link",
+        "https://www.example.com/another_relevant_link",
+    }
 
     assert response_json["application_area"] == ["Voice Assistance"]
     assert response_json["industrial_sector"] == ["eCommerce"]

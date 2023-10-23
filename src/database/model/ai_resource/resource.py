@@ -11,6 +11,7 @@ from database.model.ai_resource.application_area import ApplicationArea
 from database.model.ai_resource.industrial_sector import IndustrialSector
 from database.model.ai_resource.keyword import Keyword
 from database.model.ai_resource.note import Note
+from database.model.ai_resource.relevantlink import RelevantLink
 from database.model.ai_resource.research_area import ResearchArea
 from database.model.ai_resource.resource_table import AIResourceTable
 from database.model.ai_resource.scientific_domain import ScientificDomain
@@ -60,6 +61,7 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
 
     alternate_name: list[AlternateName] = Relationship()
     keyword: list[Keyword] = Relationship()
+    relevant_link: list[RelevantLink] = Relationship()
 
     application_area: list[ApplicationArea] = Relationship()
     industrial_sector: list[IndustrialSector] = Relationship()
@@ -112,6 +114,17 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(Keyword),
             example=["keyword1", "keyword2"],
+            default_factory_pydantic=list,
+        )
+        relevant_link: list[str] = ResourceRelationshipList(
+            description="URLs of relevant resources. These resources do not have to be part of "
+            "AIoD. This field should only be used if a more specific field is not appropriate.",
+            serializer=AttributeSerializer("name"),
+            deserializer=FindByNameDeserializer(RelevantLink),
+            example=[
+                "https://www.example.com/a_relevant_link",
+                "https://www.example.com/another_relevant_link",
+            ],
             default_factory_pydantic=list,
         )
 
@@ -200,6 +213,7 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         for table_to in (
             "alternate_name",
             "keyword",
+            "relevant_link",
             "application_area",
             "industrial_sector",
             "research_area",

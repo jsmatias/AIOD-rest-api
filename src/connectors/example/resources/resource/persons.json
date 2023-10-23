@@ -39,6 +39,7 @@
       "keyword1",
       "keyword2"
     ],
+    "relevant_link": ["https://www.example.com/a_relevant_link", "https://www.example.com/another_relevant_link"],
     "language": [
       "eng",
       "fra",

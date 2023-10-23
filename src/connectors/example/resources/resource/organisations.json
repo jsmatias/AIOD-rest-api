@@ -37,6 +37,7 @@
       "keyword1",
       "keyword2"
     ],
+    "relevant_link": ["https://www.example.com/a_relevant_link", "https://www.example.com/another_relevant_link"],
     "location": [
         {
             "address": {"country": "NED", "street": "Street Name 10", "postal_code": "1234AB"},

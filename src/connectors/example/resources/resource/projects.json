@@ -49,6 +49,7 @@
         "keyword1",
         "keyword2"
       ],
+      "relevant_link": ["https://www.example.com/a_relevant_link", "https://www.example.com/another_relevant_link"],
       "license": "https://creativecommons.org/share-your-work/public-domain/cc0/",
       "media": [
         {

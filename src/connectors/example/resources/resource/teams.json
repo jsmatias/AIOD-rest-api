@@ -31,6 +31,7 @@
       "keyword1",
       "keyword2"
     ],
+    "relevant_link": ["https://www.example.com/a_relevant_link", "https://www.example.com/another_relevant_link"],
     "media": [
       {
         "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
