@@ -71,4 +71,5 @@ class Person(PersonBase, Agent, table=True):  # type: ignore [call-arg]
 
 deserializer = FindByIdentifierDeserializer(Person)
 AIResource.RelationshipConfig.contact.deserializer = deserializer  # type: ignore
+AIResource.RelationshipConfig.creator.deserializer = deserializer  # type: ignore
 AIoDEntryORM.RelationshipConfig.editor.deserializer = deserializer  # type: ignore

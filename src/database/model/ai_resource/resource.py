@@ -67,6 +67,7 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
     scientific_domain: list[ScientificDomain] = Relationship()
 
     contact: list["Person"] = Relationship()
+    creator: list["Person"] = Relationship()
 
     is_part_of: list[AIResourceTable] = Relationship()
     has_part: list[AIResourceTable] = Relationship()
@@ -151,6 +152,12 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             default_factory_pydantic=list,
             example=[],
         )
+        creator: list[int] = ResourceRelationshipList(
+            description="Links to identifiers of the persons that created this asset.",
+            serializer=AttributeSerializer("identifier"),
+            default_factory_pydantic=list,
+            example=[],
+        )
         # decided to remove Location here. What does it mean for e.g. a dataset to reside at an
         # address of at a geographical location?
         media: list[Distribution] = ResourceRelationshipList(
@@ -202,10 +209,16 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             relationships[table_to].link_model = link_factory(
                 table_from=cls.__tablename__, table_to=table_to
             )
+
         relationships["contact"].link_model = link_factory(
             table_from=cls.__tablename__,
             table_to="person",
             table_prefix="contact",
+        )
+        relationships["creator"].link_model = link_factory(
+            table_from=cls.__tablename__,
+            table_to="person",
+            table_prefix="creator",
         )
 
         if cls.__tablename__ == "person":
@@ -220,6 +233,13 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
                 == relationships["contact"].link_model.from_identifier,
                 secondaryjoin=lambda: get_identifier()
                 == relationships["contact"].link_model.linked_identifier,
+                cascade="all, delete",
+            )
+            relationships["creator"].sa_relationship_kwargs = dict(
+                primaryjoin=lambda: get_identifier()
+                == relationships["creator"].link_model.from_identifier,
+                secondaryjoin=lambda: get_identifier()
+                == relationships["creator"].link_model.linked_identifier,
                 cascade="all, delete",
             )
         relationships["has_part"].link_model = link_factory(

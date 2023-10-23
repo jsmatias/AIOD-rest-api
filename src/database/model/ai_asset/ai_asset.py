@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship
 
-from database.model.agent.person import Person
 from database.model.ai_asset.ai_asset_table import AIAssetTable
 from database.model.ai_asset.distribution import Distribution, distribution_factory
 from database.model.ai_asset.license import License
@@ -20,7 +19,6 @@ from database.model.serializers import (
     AttributeSerializer,
     CastDeserializer,
     FindByNameDeserializer,
-    FindByIdentifierDeserializer,
 )
 
 if TYPE_CHECKING:
@@ -49,7 +47,6 @@ class AIAsset(AIAssetBase, AIResource, metaclass=abc.ABCMeta):
     distribution: list = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
     license_identifier: int | None = Field(foreign_key=License.__tablename__ + ".identifier")
     license: Optional[License] = Relationship()
-    creator: list["Person"] = Relationship()
 
     def __init_subclass__(cls):
         """
@@ -85,13 +82,6 @@ class AIAsset(AIAssetBase, AIResource, metaclass=abc.ABCMeta):
             default_factory_pydantic=list,
             example=[],
         )
-        creator: list[int] = ResourceRelationshipList(
-            description="Links to identifiers of the persons that created this asset.",
-            serializer=AttributeSerializer("identifier"),
-            deserializer=FindByIdentifierDeserializer(Person),
-            default_factory_pydantic=list,
-            example=[],
-        )
 
     @classmethod
     def update_relationships_asset(cls, relationships: dict):
@@ -108,11 +98,6 @@ class AIAsset(AIAssetBase, AIResource, metaclass=abc.ABCMeta):
         deserializer = CastDeserializer(distribution)
         cls.RelationshipConfig.distribution.deserializer = deserializer  # type: ignore
 
-        relationships["creator"].link_model = link_factory(
-            table_from=cls.__tablename__,
-            table_to="person",
-            table_prefix="creator",
-        )
         relationships["citation"].link_model = link_factory(
             table_from=cls.__tablename__,
             table_to="publication",
