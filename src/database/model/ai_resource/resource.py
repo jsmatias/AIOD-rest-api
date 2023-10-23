@@ -1,5 +1,6 @@
 import abc
 import copy
+from datetime import datetime
 from typing import Any
 
 from sqlmodel import Field, Relationship
@@ -32,6 +33,15 @@ if TYPE_CHECKING:
 
 class AIResourceBase(AIoDConceptBase, metaclass=abc.ABCMeta):
     name: str = Field(max_length=NORMAL, schema_extra={"example": "The name of this resource"})
+    date_published: datetime | None = Field(
+        description="The datetime (utc) on which this resource was first published on an external "
+        "platform. Note the difference between `.aiod_entry.date_created` and "
+        "`.date_published`: the former is automatically set to the datetime the "
+        "resource was created on AIoD, while the latter can optionally be set to an "
+        "earlier datetime that the resource was published on an external platform.",
+        default=None,
+        schema_extra={"example": "2022-01-01T15:15:00.000"},
+    )
     description: str | None = Field(
         max_length=DESCRIPTION, schema_extra={"example": "A description."}, default=None
     )

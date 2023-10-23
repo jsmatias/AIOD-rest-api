@@ -1,6 +1,5 @@
 import abc
 import copy
-from datetime import datetime
 from typing import Optional, Any
 from typing import TYPE_CHECKING
 
@@ -29,12 +28,6 @@ if TYPE_CHECKING:
 
 
 class AIAssetBase(AIResourceBase, metaclass=abc.ABCMeta):
-    date_published: datetime | None = Field(
-        description="The datetime (utc) on which this AIAsset was first published on an external "
-        "platform. ",
-        default=None,
-        schema_extra={"example": "2022-01-01T15:15:00.000"},
-    )
     is_accessible_for_free: bool = Field(
         description="A flag to signal that this asset is accessible at no cost.", default=True
     )

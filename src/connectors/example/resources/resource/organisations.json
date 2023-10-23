@@ -5,6 +5,7 @@
     "name": "The name of this organisation",
     "description": "A description.",
     "same_as": "https://www.example.com/resource/this_resource",
+    "date_published": "2022-01-01T15:15:00.000",
     "date_founded": "2022-01-01",
     "legal_name": "The legal Organisation Name",
     "ai_relevance": "Part of CLAIRE, focussing on explainable AI.",

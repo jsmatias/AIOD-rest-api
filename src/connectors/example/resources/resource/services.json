@@ -4,6 +4,7 @@
   "platform_identifier": "1",
   "name": "The name of this service",
   "description": "A description.",
+  "date_published": "2022-01-01T15:15:00.000",
   "same_as": "https://www.example.com/resource/this_resource",
   "slogan": "Making your Smart Paradigm Shifts more Disruptive",
   "terms_of_service": "Your use of this service is subject to the following terms: [...].",
