@@ -43,6 +43,12 @@
       "fra",
       "spa"
     ],
+    "location": [
+        {
+            "address": {"country": "NED", "street": "Street Name 10", "postal_code": "1234AB"},
+            "geo": {"latitude": 37.42242, "longitude": -122.08585, "elevation_millimeters": 2000}
+        }
+    ],
     "media": [
       {
           "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
