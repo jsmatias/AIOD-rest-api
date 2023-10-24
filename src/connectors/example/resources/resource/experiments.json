@@ -59,6 +59,7 @@
         "eCommerce",
         "Healthcare"
       ],
+      "is_accessible_for_free": true,
       "is_part_of": [],
       "keyword": [
         "keyword1",

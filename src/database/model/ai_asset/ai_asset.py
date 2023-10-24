@@ -26,8 +26,8 @@ if TYPE_CHECKING:
 
 
 class AIAssetBase(AIResourceBase, metaclass=abc.ABCMeta):
-    is_accessible_for_free: bool = Field(
-        description="A flag to signal that this asset is accessible at no cost.", default=True
+    is_accessible_for_free: bool | None = Field(
+        description="A flag to signal that this asset is accessible at no cost.", default=None
     )
     version: str | None = Field(
         description="The version of this asset.",

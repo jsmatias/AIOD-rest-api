@@ -64,6 +64,7 @@ def test_happy_path(
         "https://www.example.com/a_relevant_link",
         "https://www.example.com/another_relevant_link",
     }
+    assert response_json["is_accessible_for_free"]
 
     assert response_json["application_area"] == ["Voice Assistance"]
     assert response_json["industrial_sector"] == ["eCommerce"]
