@@ -1,47 +1,14 @@
-from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 from http import HTTPStatus
 from httpx import AsyncClient
-from sqlalchemy.engine import Engine
 from typing import Literal
+from fastapi import APIRouter, HTTPException, status
+from sqlalchemy.engine import Engine
 
-from converters.schema.dcat import DcatApWrapper
-from converters.schema.schema_dot_org import SchemaDotOrgDataset
-from converters.schema_converters import (
-    dataset_converter_schema_dot_org_instance,
-    dataset_converter_dcatap_instance,
-)
-from converters.schema_converters.schema_converter import SchemaConverter
-from database.model.dataset.dataset import Dataset
-from routers.resource_router import ResourceRouter
+from .resource_router import ResourceRouter
 
 
-class DatasetRouter(ResourceRouter):
-    @property
-    def version(self) -> int:
-        return 1
-
-    @property
-    def resource_name(self) -> str:
-        return "dataset"
-
-    @property
-    def resource_name_plural(self) -> str:
-        return "datasets"
-
-    @property
-    def resource_class(self) -> type[Dataset]:
-        return Dataset
-
-    @property
-    def schema_converters(
-        self,
-    ) -> dict[str, SchemaConverter[Dataset, SchemaDotOrgDataset | DcatApWrapper]]:
-        return {
-            "schema.org": dataset_converter_schema_dot_org_instance,
-            "dcat-ap": dataset_converter_dcatap_instance,
-        }
-
+class ResourceAIAssetRouter(ResourceRouter):
     def create(self, engine: Engine, url_prefix: str) -> APIRouter:
         version = f"v{self.version}"
         default_kwargs = {
@@ -130,7 +97,7 @@ class DatasetRouter(ResourceRouter):
                 async with AsyncClient() as client:
                     response = await client.get(url)
 
-                if response.status_code != HTTPStatus.OK:
+                if response.status_code != status.HTTP_200_OK:
                     raise HTTPException(
                         status_code=response.status_code, detail=f"Failed to fetch data from {url}"
                     )
@@ -144,7 +111,8 @@ class DatasetRouter(ResourceRouter):
 
             except Exception as exc:
                 raise HTTPException(
-                    status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(exc)
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Unexpected exception while processing your request. {exc}",
                 ) from exc
 
         async def get_resource_data_default(
