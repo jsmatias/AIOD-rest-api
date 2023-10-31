@@ -115,8 +115,6 @@ mysql> SHOW DATABASES;
 4 rows in set (0.03 sec)
 ```
 
-For ease of use, you can also make use of the script in `scripts/run_mysql_server.sh`.
-
 #### Persistent Storage
 
 The data is persistent when simply stopping and restarting the server:
