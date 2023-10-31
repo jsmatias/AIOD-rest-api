@@ -2,6 +2,7 @@ from database.model.models_and_experiments.experiment import Experiment
 from routers.resource_ai_asset_router import ResourceAIAssetRouter
 
 
+
 class ExperimentRouter(ResourceAIAssetRouter):
     @property
     def version(self) -> int:
