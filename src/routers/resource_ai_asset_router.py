@@ -1,11 +1,10 @@
 from fastapi.responses import Response
-from http import HTTPStatus
 from httpx import AsyncClient
 from typing import Literal
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy.engine import Engine
 
-from .resource_router import ResourceRouter
+from .resource_router import ResourceRouter, _wrap_as_http_exception
 
 
 class ResourceAIAssetRouter(ResourceRouter):
@@ -50,57 +49,31 @@ class ResourceAIAssetRouter(ResourceRouter):
             distribution_idx: int,
             schema: Literal[tuple(self._possible_schemas)] = "aiod",  # type:ignore
         ):
-            """Retrieve a distribution of the actual data for a dataset
+            f"""Retrieve a distribution of the actual data for {self.resource_name}
             identified by its identifier."""
             # 1. Get resource from id
             metadata = self.get_resource(
                 engine=engine, identifier=identifier, schema=schema, platform=None
             )
-            # 2. get the url filed pointing to the actual data
+            # 2. get the url field from distribution pointing to the actual data
             distribution = metadata.distribution  # type:ignore
-            # print(distribution)
-            if distribution_idx >= len(distribution):
+            if not distribution:
                 raise HTTPException(
-                    status_code=HTTPStatus.NOT_FOUND, detail="Distribution not found!"
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Distribution not found."
+                )
+            elif distribution_idx >= len(distribution):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Distribution index out of range.",
                 )
 
-            if distribution[distribution_idx].content_url:
+            try:
                 url = distribution[distribution_idx].content_url
                 encoding_format = distribution[distribution_idx].encoding_format
                 filename = distribution[distribution_idx].name
 
-                # print(url)
-                # print(encoding_format)
-                # print(filename)
-
-            else:
-                raise HTTPException(
-                    status_code=HTTPStatus.NOT_FOUND, detail="URL to download data not found!"
-                )
-
-            # import requests
-
-            # url = metadata.same_as
-            # response = requests.get(url, allow_redirects=True)
-            # if response.ok:
-            #     url = response.json()["files"][0]["links"]["download"]
-            #     filename = response.json()["files"][0]["filename"]
-            #     encoding_format = "text/csv"
-            #     print(url)
-            # else:
-            #     raise HTTPException(
-            #         status_code=response.status_code,
-            # detail=f"Failed to fetch metadata from {url}"
-            #     )
-
-            try:
                 async with AsyncClient() as client:
                     response = await client.get(url)
-
-                if response.status_code != status.HTTP_200_OK:
-                    raise HTTPException(
-                        status_code=response.status_code, detail=f"Failed to fetch data from {url}"
-                    )
 
                 content = response.content
                 headers = {
@@ -110,17 +83,14 @@ class ResourceAIAssetRouter(ResourceRouter):
                 return Response(content=content, headers=headers)
 
             except Exception as exc:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=f"Unexpected exception while processing your request. {exc}",
-                ) from exc
+                raise _wrap_as_http_exception(exc)
 
         async def get_resource_data_default(
             identifier: str,
             schema: Literal[tuple(self._possible_schemas)] = "aiod",  # type:ignore
         ):
-            """Retrieve the first distribution (as default) of the actual data
-            for a dataset identified by its identifier."""
+            f"""Retrieve the first distribution (index 0 as default) of the actual data
+            for a {self.resource_name} identified by its identifier."""
             return await get_resource_data(identifier=identifier, schema=schema, distribution_idx=0)
 
         if default:
