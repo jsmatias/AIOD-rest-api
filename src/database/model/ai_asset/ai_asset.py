@@ -8,7 +8,7 @@ from sqlmodel import Field, Relationship
 from database.model.ai_asset.ai_asset_table import AIAssetTable
 from database.model.ai_asset.distribution import Distribution, distribution_factory
 from database.model.ai_asset.license import License
-from database.model.ai_resource.resource import AIResourceBase, AIResource
+from database.model.ai_resource.resource import AIResourceBase, AbstractAIResource
 from database.model.field_length import NORMAL
 from database.model.helper_functions import link_factory
 from database.model.models_and_experiments.runnable_distribution import (
@@ -37,9 +37,9 @@ class AIAssetBase(AIResourceBase, metaclass=abc.ABCMeta):
     )
 
 
-class AIAsset(AIAssetBase, AIResource, metaclass=abc.ABCMeta):
+class AIAsset(AIAssetBase, AbstractAIResource, metaclass=abc.ABCMeta):
     ai_asset_id: int | None = Field(
-        foreign_key=AIAssetTable.__tablename__ + ".identifier", index=True
+        foreign_key=AIAssetTable.__tablename__ + ".identifier", unique=True, index=True
     )
     ai_asset_identifier: AIAssetTable | None = Relationship()
 
@@ -62,7 +62,7 @@ class AIAsset(AIAssetBase, AIResource, metaclass=abc.ABCMeta):
             cls.update_relationships_asset(relationships)
         cls.__sqlmodel_relationships__.update(relationships)
 
-    class RelationshipConfig(AIResource.RelationshipConfig):
+    class RelationshipConfig(AbstractAIResource.RelationshipConfig):
         ai_asset_identifier: int | None = ResourceRelationshipSingle(
             identifier_name="ai_asset_id",
             serializer=AttributeSerializer("identifier"),

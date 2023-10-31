@@ -108,4 +108,5 @@ def _create_class_with_body(clz, body: dict, engine: Engine):
     with Session(engine) as session:
         deserialize_resource_relationships(session, clz, res, res_create)
         session.commit()
+    res.ai_resource.type = clz.__tablename__
     return res

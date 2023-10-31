@@ -5,7 +5,7 @@ from sqlmodel import Field, Relationship
 
 from database.model.agent.agent_table import AgentTable
 from database.model.agent.location import LocationORM, Location
-from database.model.ai_resource.resource import AIResourceBase, AIResource
+from database.model.ai_resource.resource import AIResourceBase, AbstractAIResource
 from database.model.event.event_mode import EventMode
 from database.model.event.event_status import EventStatus
 from database.model.field_length import NORMAL, DESCRIPTION
@@ -47,7 +47,7 @@ class EventBase(AIResourceBase):
     # Did not add duration here: it can be described using start_date and end_date
 
 
-class Event(EventBase, AIResource, table=True):  # type: ignore [call-arg]
+class Event(EventBase, AbstractAIResource, table=True):  # type: ignore [call-arg]
     __tablename__ = "event"
 
     location: list[LocationORM] = Relationship(
@@ -64,7 +64,7 @@ class Event(EventBase, AIResource, table=True):  # type: ignore [call-arg]
     mode_identifier: int | None = Field(foreign_key=EventMode.__tablename__ + ".identifier")
     mode: Optional[EventMode] = Relationship()
 
-    class RelationshipConfig(AIResource.RelationshipConfig):
+    class RelationshipConfig(AbstractAIResource.RelationshipConfig):
         location: list[Location] = ResourceRelationshipList(
             deserializer=CastDeserializer(LocationORM),
             default_factory_pydantic=list,

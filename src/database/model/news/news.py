@@ -1,6 +1,6 @@
 from sqlmodel import Field, Relationship
 
-from database.model.ai_resource.resource import AIResource, AIResourceBase
+from database.model.ai_resource.resource import AbstractAIResource, AIResourceBase
 from database.model.field_length import NORMAL
 from database.model.helper_functions import link_factory
 from database.model.news.news_category import NewsCategory
@@ -21,14 +21,14 @@ class NewsBase(AIResourceBase):
     )
 
 
-class News(NewsBase, AIResource, table=True):  # type: ignore [call-arg]
+class News(NewsBase, AbstractAIResource, table=True):  # type: ignore [call-arg]
     __tablename__ = "news"
 
     category: list[NewsCategory] = Relationship(
         link_model=link_factory("news", NewsCategory.__tablename__)
     )
 
-    class RelationshipConfig(AIResource.RelationshipConfig):
+    class RelationshipConfig(AbstractAIResource.RelationshipConfig):
         category: list[str] = ResourceRelationshipList(
             description="News categories related to this item.",
             serializer=AttributeSerializer("name"),

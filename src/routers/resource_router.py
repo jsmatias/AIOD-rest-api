@@ -17,7 +17,7 @@ from starlette.responses import JSONResponse
 from authentication import get_current_user
 from config import KEYCLOAK_CONFIG
 from converters.schema_converters.schema_converter import SchemaConverter
-from database.model.ai_resource.resource import AIResource
+from database.model.ai_resource.resource import AbstractAIResource
 from database.model.platform.platform import Platform
 from database.model.platform.platform_names import PlatformName
 from database.model.resource_read_and_create import (
@@ -32,7 +32,7 @@ class Pagination(BaseModel):
     limit: int = 100
 
 
-RESOURCE = TypeVar("RESOURCE", bound=AIResource)
+RESOURCE = TypeVar("RESOURCE", bound=AbstractAIResource)
 RESOURCE_CREATE = TypeVar("RESOURCE_CREATE", bound=SQLModel)
 RESOURCE_READ = TypeVar("RESOURCE_READ", bound=SQLModel)
 
@@ -349,10 +349,11 @@ class ResourceRouter(abc.ABC):
     def create_resource(self, session: Session, resource_create_instance: SQLModel):
         # Store a resource in the database
         resource = self.resource_class.from_orm(resource_create_instance)
-
         deserialize_resource_relationships(
             session, self.resource_class, resource, resource_create_instance
         )
+        if isinstance(resource, AbstractAIResource) and resource.ai_resource:
+            resource.ai_resource.type = self.resource_name
         session.add(resource)
         session.commit()
         return resource
@@ -380,8 +381,8 @@ class ResourceRouter(abc.ABC):
             try:
                 with Session(engine) as session:
                     resource = self._retrieve_resource(session, identifier)
-                    if hasattr(resource, "aiod_entry"):
-                        datetime_created = resource.aiod_entry.date_created
+                    # if hasattr(resource, "aiod_entry"):
+                    #     datetime_created = resource.aiod_entry.date_created
                     for attribute_name in resource.schema()["properties"]:
                         if hasattr(resource_create_instance, attribute_name):
                             new_value = getattr(resource_create_instance, attribute_name)
@@ -390,7 +391,8 @@ class ResourceRouter(abc.ABC):
                         session, self.resource_class, resource, resource_create_instance
                     )
                     if hasattr(resource, "aiod_entry"):
-                        resource.aiod_entry.date_created = datetime_created
+                        # resource.aiod_entry.date_created = datetime_created
+                        resource.aiod_entry.date_modified = datetime.datetime.utcnow()
                     try:
                         session.merge(resource)
                         session.commit()
@@ -398,7 +400,7 @@ class ResourceRouter(abc.ABC):
                         self._raise_clean_http_exception(e, session, resource_create_instance)
                 return self._wrap_with_headers(None)
             except Exception as e:
-                raise _wrap_as_http_exception(e)
+                raise self._raise_clean_http_exception(e, session, resource_create_instance)
 
         return put_resource
 
@@ -481,6 +483,8 @@ class ResourceRouter(abc.ABC):
     ):
         """Raise an understandable exception based on this SQL IntegrityError."""
         session.rollback()
+        if isinstance(e, HTTPException):
+            raise e
         if len(e.args) == 0:
             traceback.print_exc()
             raise HTTPException(

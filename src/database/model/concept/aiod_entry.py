@@ -56,11 +56,6 @@ class AIoDEntryCreate(AIoDEntryBase):
         default="draft",
     )
 
-    class Config:
-        getter_dict = create_getter_dict(
-            {"editor": AttributeSerializer("identifier"), "status": AttributeSerializer("name")}
-        )
-
 
 class AIoDEntryRead(AIoDEntryBase):
     editor: list[int] = Field(

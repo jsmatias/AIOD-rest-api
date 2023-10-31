@@ -1,7 +1,15 @@
+"""
+Abstract classes that need to be inherited by all AIResources.
+Not to be confused with the AIResourceORM, AIResourceRead and AIResourceCreate which are the
+AIResource tables in the database, creating an ai_resource_identifier for every AIResource and
+defining relationships between AIResources.
+"""
+
 import abc
 import copy
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
+from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship
 
@@ -13,20 +21,17 @@ from database.model.ai_resource.keyword import Keyword
 from database.model.ai_resource.note import Note
 from database.model.ai_resource.relevantlink import RelevantLink
 from database.model.ai_resource.research_area import ResearchArea
-from database.model.ai_resource.resource_table import AIResourceTable
+from database.model.ai_resource.resource_table import (
+    AIResourceRead,
+    AIResourceORM,
+    AIResourceCreate,
+)
 from database.model.ai_resource.scientific_domain import ScientificDomain
 from database.model.concept.concept import AIoDConceptBase, AIoDConcept
 from database.model.field_length import DESCRIPTION, NORMAL
 from database.model.helper_functions import link_factory
 from database.model.relationships import ResourceRelationshipSingle, ResourceRelationshipList
-from database.model.serializers import (
-    AttributeSerializer,
-    FindByNameDeserializer,
-    CastDeserializer,
-    FindByIdentifierDeserializer,
-)
-
-from typing import TYPE_CHECKING
+from database.model.serializers import AttributeSerializer, FindByNameDeserializer, CastDeserializer
 
 if TYPE_CHECKING:
     from database.model.agent.person import Person
@@ -55,9 +60,11 @@ class AIResourceBase(AIoDConceptBase, metaclass=abc.ABCMeta):
     )
 
 
-class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
-    ai_resource_id: int | None = Field(foreign_key="ai_resource.identifier", index=True)
-    ai_resource_identifier: AIResourceTable | None = Relationship()
+class AbstractAIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
+    ai_resource_identifier: int | None = Field(
+        foreign_key="ai_resource.identifier", unique=True, index=True
+    )
+    ai_resource: AIResourceORM | None = Relationship()
 
     alternate_name: list[AlternateName] = Relationship()
     keyword: list[Keyword] = Relationship()
@@ -71,9 +78,6 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
     contact: list["Person"] = Relationship()
     creator: list["Person"] = Relationship()
 
-    is_part_of: list[AIResourceTable] = Relationship()
-    has_part: list[AIResourceTable] = Relationship()
-
     media: list = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
     note: list[Note] = Relationship()
 
@@ -83,8 +87,8 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         The latter cannot be done in the class variables, because it depends on the table-name of
         the child class.
         """
-        cls.__annotations__.update(AIResource.__annotations__)
-        relationships = copy.deepcopy(AIResource.__sqlmodel_relationships__)
+        cls.__annotations__.update(AbstractAIResource.__annotations__)
+        relationships = copy.deepcopy(AbstractAIResource.__sqlmodel_relationships__)
         if cls.__tablename__ not in ("aiasset", "agent", "knowledgeasset"):
             # AIAsset, Agent and KnowledgeAsset are abstract classes, and must perform their own
             # initialization, including their own relationships.
@@ -92,13 +96,13 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         cls.__sqlmodel_relationships__.update(relationships)
 
     class RelationshipConfig(AIoDConcept.RelationshipConfig):
-        ai_resource_identifier: int | None = ResourceRelationshipSingle(
+        ai_resource: Optional[AIResourceRead] = ResourceRelationshipSingle(
             description="This resource can be identified by its own identifier, but also by the "
             "resource_identifier.",
-            identifier_name="ai_resource_id",
-            serializer=AttributeSerializer("identifier"),
-            include_in_create=False,
-            default_factory_orm=lambda type_: AIResourceTable(type=type_),
+            deserializer=CastDeserializer(AIResourceORM),
+            default_factory_pydantic=AIResourceCreate,
+            class_read=Optional[AIResourceRead],
+            class_create=Optional[AIResourceCreate],
         )
         alternate_name: list[str] = ResourceRelationshipList(
             description="An alias for the item, commonly used for the resource instead of the "
@@ -117,8 +121,9 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             default_factory_pydantic=list,
         )
         relevant_link: list[str] = ResourceRelationshipList(
-            description="URLs of relevant resources. These resources do not have to be part of "
-            "AIoD. This field should only be used if a more specific field is not appropriate.",
+            description="URLs of relevant resources. These resources should not be part of AIoD ("
+            "use relevant_resource otherwise). This field should only be used if there is no more "
+            "specific field.",
             serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(RelevantLink),
             example=[
@@ -185,22 +190,6 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             example=["A brief record of points or ideas about this AI resource."],
         )
 
-        is_part_of: list[int] = ResourceRelationshipList(
-            description="Links to identifiers of parent resources, which include this resource.",
-            serializer=AttributeSerializer("identifier"),
-            deserializer=FindByIdentifierDeserializer(AIResourceTable),
-            default_factory_pydantic=list,
-            example=[],
-        )
-        has_part: list[int] = ResourceRelationshipList(
-            description="Links to identifiers of child resources, which are included in this "
-            "resource.",
-            serializer=AttributeSerializer("identifier"),
-            deserializer=FindByIdentifierDeserializer(AIResourceTable),
-            default_factory_pydantic=list,
-            example=[],
-        )
-
     @classmethod
     def update_relationships(cls, relationships: dict[str, Any]):
         distribution: Any = distribution_factory(
@@ -209,6 +198,7 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         cls.__annotations__["media"] = list[distribution]
         cls.RelationshipConfig.media = copy.copy(cls.RelationshipConfig.media)
         cls.RelationshipConfig.media.deserializer = CastDeserializer(distribution)  # type: ignore
+        cls.RelationshipConfig.ai_resource = copy.copy(cls.RelationshipConfig.ai_resource)
 
         for table_to in (
             "alternate_name",
@@ -224,16 +214,18 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
                 table_from=cls.__tablename__, table_to=table_to
             )
 
-        relationships["contact"].link_model = link_factory(
+        link_model_contact = link_factory(
             table_from=cls.__tablename__,
             table_to="person",
             table_prefix="contact",
         )
-        relationships["creator"].link_model = link_factory(
+        link_model_creator = link_factory(
             table_from=cls.__tablename__,
             table_to="person",
             table_prefix="creator",
         )
+        relationships["contact"].link_model = link_model_contact
+        relationships["creator"].link_model = link_model_creator
 
         if cls.__tablename__ == "person":
 
@@ -243,26 +235,12 @@ class AIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
                 return Person.identifier
 
             relationships["contact"].sa_relationship_kwargs = dict(
-                primaryjoin=lambda: get_identifier()
-                == relationships["contact"].link_model.from_identifier,
-                secondaryjoin=lambda: get_identifier()
-                == relationships["contact"].link_model.linked_identifier,
+                primaryjoin=lambda: get_identifier() == link_model_contact.from_identifier,
+                secondaryjoin=lambda: get_identifier() == link_model_contact.linked_identifier,
                 cascade="all, delete",
             )
             relationships["creator"].sa_relationship_kwargs = dict(
-                primaryjoin=lambda: get_identifier()
-                == relationships["creator"].link_model.from_identifier,
-                secondaryjoin=lambda: get_identifier()
-                == relationships["creator"].link_model.linked_identifier,
+                primaryjoin=lambda: get_identifier() == link_model_creator.from_identifier,
+                secondaryjoin=lambda: get_identifier() == link_model_creator.linked_identifier,
                 cascade="all, delete",
             )
-        relationships["has_part"].link_model = link_factory(
-            table_from=cls.__tablename__,
-            table_to=AIResourceTable.__tablename__,
-            table_prefix="has_part",
-        )
-        relationships["is_part_of"].link_model = link_factory(
-            table_from=cls.__tablename__,
-            table_to=AIResourceTable.__tablename__,
-            table_prefix="is_part_of",
-        )

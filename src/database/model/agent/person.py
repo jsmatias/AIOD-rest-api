@@ -4,7 +4,7 @@ from sqlmodel import Relationship, Field
 from database.model.agent.agent import AgentBase, Agent
 from database.model.agent.expertise import Expertise
 from database.model.agent.language import Language
-from database.model.ai_resource.resource import AIResource
+from database.model.ai_resource.resource import AbstractAIResource
 from database.model.concept.aiod_entry import AIoDEntryORM
 from database.model.field_length import NORMAL
 from database.model.helper_functions import link_factory
@@ -70,6 +70,6 @@ class Person(PersonBase, Agent, table=True):  # type: ignore [call-arg]
 
 
 deserializer = FindByIdentifierDeserializer(Person)
-AIResource.RelationshipConfig.contact.deserializer = deserializer  # type: ignore
-AIResource.RelationshipConfig.creator.deserializer = deserializer  # type: ignore
+AbstractAIResource.RelationshipConfig.contact.deserializer = deserializer  # type: ignore
+AbstractAIResource.RelationshipConfig.creator.deserializer = deserializer  # type: ignore
 AIoDEntryORM.RelationshipConfig.editor.deserializer = deserializer  # type: ignore

@@ -5,12 +5,17 @@ from unittest.mock import Mock
 
 import dateutil.parser
 import pytz
+import typing
 from sqlalchemy.engine import Engine
-from sqlmodel import Session
+from sqlmodel import Session, select
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
+from database.model.agent.organisation import Organisation
 from database.model.agent.person import Person
+from database.model.concept.aiod_entry import AIoDEntryORM
+from database.model.dataset.dataset import Dataset
+from database.model.helper_functions import all_annotations
 from database.model.knowledge_asset.publication import Publication
 
 
@@ -31,6 +36,7 @@ def test_happy_path(
 
     body = copy.deepcopy(body_asset)
     body["aiod_entry"]["editor"] = [1]
+    body["aiod_entry"]["status"] = "published"
     body["contact"] = [1]
     body["creator"] = [1]
     body["citation"] = [1]
@@ -44,13 +50,13 @@ def test_happy_path(
 
     response_json = response.json()
     assert response_json["identifier"] == 1
-    assert response_json["ai_resource_identifier"] == 3
+    assert response_json["ai_resource"]["identifier"] == 3
     assert response_json["ai_asset_identifier"] == 2
 
     assert response_json["platform"] == "example"
     assert response_json["platform_identifier"] == "1"
     assert response_json["aiod_entry"]["editor"] == [1]
-    assert response_json["aiod_entry"]["status"] == "draft"
+    assert response_json["aiod_entry"]["status"] == "published"
     date_created = dateutil.parser.parse(response_json["aiod_entry"]["date_created"] + "Z")
     date_modified = dateutil.parser.parse(response_json["aiod_entry"]["date_modified"] + "Z")
     assert 0 < (date_created - datetime_create_request).total_seconds() < 0.1
@@ -108,7 +114,7 @@ def test_happy_path(
         }
     ]
 
-    time.sleep(0.5)
+    time.sleep(0.15)
     datetime_update_request = datetime.utcnow().replace(tzinfo=pytz.utc)
     response = client.put("/datasets/v1/1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
@@ -116,7 +122,7 @@ def test_happy_path(
     response = client.get("/datasets/v1/1")
     response_json = response.json()
     assert response_json["identifier"] == 1
-    assert response_json["ai_resource_identifier"] == 3
+    assert response_json["ai_resource"]["identifier"] == 3
     assert response_json["ai_asset_identifier"] == 2
 
     date_created = dateutil.parser.parse(response_json["aiod_entry"]["date_created"] + "Z")
@@ -134,8 +140,6 @@ def test_happy_path(
     assert distribution["content_url"] == "https://www.example.com/resource_new.pdf"
 
     assert response_json["version"] == "1.b"
-
-    # TODO: test delete
 
 
 def test_post_duplicate_named_relations(
@@ -206,3 +210,165 @@ def test_post_duplicate_named_relations(
         "trustworthiness",
         "ArtificialIntelligence",
     }
+
+
+def test_create_aiod_entry(client: TestClient, engine: Engine, mocked_privileged_token: Mock):
+    keycloak_openid.userinfo = mocked_privileged_token
+    body = {"name": "news"}
+    start = datetime.now(pytz.utc)
+    response = client.post("/news/v1", json=body, headers={"Authorization": "Fake token"})
+    end = datetime.now(pytz.utc)
+    assert response.status_code == 200, response.json()
+    response = client.get("/news/v1/1")
+    resource_json = response.json()
+
+    assert "aiod_entry" in resource_json
+    date_created = dateutil.parser.parse(resource_json["aiod_entry"]["date_created"] + "Z")
+    date_modified = dateutil.parser.parse(resource_json["aiod_entry"]["date_modified"] + "Z")
+    assert start < date_created < end
+    assert start < date_modified < end
+
+    assert "ai_resource" in resource_json
+    assert resource_json["ai_resource"]["type"] == "news"
+
+
+def test_update_aiod_entry(client: TestClient, engine: Engine, mocked_privileged_token: Mock):
+    keycloak_openid.userinfo = mocked_privileged_token
+    body = {"name": "news"}
+    start = datetime.now(pytz.utc)
+    response = client.post("/news/v1", json=body, headers={"Authorization": "Fake token"})
+    end = datetime.now(pytz.utc)
+    assert response.status_code == 200, response.json()
+
+    put_body = {"name": "news", "aiod_entry": {"status": "published"}}
+    response = client.put("/news/v1/1", json=put_body, headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
+
+    response = client.get("/news/v1/1")
+    resource_json = response.json()
+
+    assert "aiod_entry" in resource_json
+    date_created = dateutil.parser.parse(resource_json["aiod_entry"]["date_created"] + "Z")
+    date_modified = dateutil.parser.parse(resource_json["aiod_entry"]["date_modified"] + "Z")
+    assert start < date_created < end
+    assert end < date_modified
+
+    assert resource_json["aiod_entry"]["status"] == "published"
+    with Session(engine) as session:
+        entries = session.scalars(select(AIoDEntryORM)).all()
+        assert len(entries) == 1
+
+
+def assert_distributions(client: TestClient, engine: Engine, *content_urls: str):
+    response = client.get("/datasets/v1/1")
+    distributions = response.json()["distribution"]
+    assert {distribution["content_url"] for distribution in distributions} == set(content_urls)
+
+    (distribution_class,) = typing.get_args(all_annotations(Dataset)["distribution"])
+    with Session(engine) as session:
+        distributions = session.scalars(select(distribution_class)).all()
+        assert {distribution.content_url for distribution in distributions} == set(content_urls)
+
+
+def test_update_distribution(client: TestClient, engine: Engine, mocked_privileged_token: Mock):
+    keycloak_openid.userinfo = mocked_privileged_token
+    body = {"name": "dataset", "distribution": [{"content_url": "url"}]}
+    response = client.post("/datasets/v1", json=body, headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
+    assert_distributions(client, engine, "url")
+
+    body = {"name": "dataset", "distribution": [{"content_url": "url2"}, {"content_url": "test"}]}
+    response = client.put("/datasets/v1/1", json=body, headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
+    assert_distributions(client, engine, "url2", "test")
+
+    body = {"name": "dataset", "distribution": [{"content_url": "url"}]}
+    response = client.put("/datasets/v1/1", json=body, headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
+    assert_distributions(client, engine, "url")
+
+
+def assert_relations(
+    client: TestClient,
+    type_: str,
+    has_part: list[int] | None = None,
+    is_part_of: list[int] | None = None,
+    relevant_resource: list[int] | None = None,
+    relevant_to: list[int] | None = None,
+):
+    response = client.get(f"/{type_}/v1/1")
+    resource = response.json()
+    assert response.status_code == 200, resource
+    assert resource["ai_resource"]["has_part"] == (has_part or [])
+    assert resource["ai_resource"]["is_part_of"] == (is_part_of or [])
+    assert resource["ai_resource"]["relevant_resource"] == (relevant_resource or [])
+    assert resource["ai_resource"]["relevant_to"] == (relevant_to or [])
+
+
+def test_relations_between_resources(
+    client: TestClient,
+    engine: Engine,
+    mocked_privileged_token: Mock,
+    body_asset: dict,
+    dataset: Dataset,
+    publication: Publication,
+    organisation: Organisation,
+):
+    keycloak_openid.userinfo = mocked_privileged_token
+
+    with Session(engine) as session:
+        session.add(dataset)
+        session.merge(publication)
+        session.merge(organisation)
+        session.commit()
+
+    body = {
+        "name": "news",
+        "ai_resource": {"has_part": [1], "is_part_of": [2], "relevant_resource": [3]},
+    }
+    response = client.post("/news/v1", json=body, headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
+    response = client.get("/news/v1/1")
+    assert response.json()["ai_resource"]["type"] == "news"
+    assert_relations(client, "datasets", is_part_of=[4])
+    assert_relations(client, "publications", has_part=[4])
+    assert_relations(client, "organisations", relevant_to=[4])
+
+    body = {
+        "name": "news",
+        "ai_resource": {"has_part": [2], "is_part_of": [1, 3], "relevant_resource": []},
+    }
+    response = client.put("/news/v1/1", json=body, headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
+    assert_relations(client, "datasets", has_part=[4])
+    assert_relations(client, "publications", is_part_of=[4])
+    assert_relations(client, "organisations", has_part=[4])
+
+    body = {
+        "name": "news",
+        "ai_resource": {
+            "has_part": [],
+            "is_part_of": [],
+            "relevant_resource": [1, 2],
+            "relevant_to": [3],
+        },
+    }
+    response = client.put("/news/v1/1", json=body, headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
+    assert_relations(client, "datasets", relevant_to=[4])
+    assert_relations(client, "publications", relevant_to=[4])
+    assert_relations(client, "organisations", relevant_resource=[4])
+
+    body = {
+        "name": "news",
+        "ai_resource": {"has_part": [1], "is_part_of": [2], "relevant_resource": [3]},
+    }
+    response = client.put("/news/v1/1", json=body, headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
+    response = client.delete("/news/v1/1", headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
+
+    # TODO(jos): after merge with soft delete
+    # assert_relations(client, "datasets")
+    # assert_relations(client, "publications")
+    # assert_relations(client, "organisations")

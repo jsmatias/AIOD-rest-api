@@ -16,7 +16,7 @@ class KnowledgeAssetBase(AIAssetBase):
 
 class KnowledgeAsset(KnowledgeAssetBase, AIAsset):
     knowledge_asset_id: int | None = Field(
-        foreign_key=KnowledgeAssetTable.__tablename__ + ".identifier", index=True
+        foreign_key=KnowledgeAssetTable.__tablename__ + ".identifier", unique=True, index=True
     )
     knowledge_asset_identifier: KnowledgeAssetTable | None = Relationship(
         sa_relationship_kwargs={"cascade": "all, delete"}

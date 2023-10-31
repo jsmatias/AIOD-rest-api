@@ -2,7 +2,7 @@ from typing import Optional
 
 from sqlmodel import Field, Relationship
 
-from database.model.ai_resource.resource import AIResource, AIResourceBase
+from database.model.ai_resource.resource import AbstractAIResource, AIResourceBase
 from database.model.educational_resource.educational_resource_type import EducationalResourceType
 from database.model.field_length import NORMAL
 from database.model.relationships import ResourceRelationshipSingle
@@ -19,7 +19,7 @@ class EducationalResourceBase(AIResourceBase):
 
 
 class EducationalResource(
-    EducationalResourceBase, AIResource, table=True
+    EducationalResourceBase, AbstractAIResource, table=True
 ):  # type: ignore [call-arg]
     __tablename__ = "educational_resource"
 
@@ -28,7 +28,7 @@ class EducationalResource(
     )
     type: Optional[EducationalResourceType] = Relationship()
 
-    class RelationshipConfig(AIResource.RelationshipConfig):
+    class RelationshipConfig(AbstractAIResource.RelationshipConfig):
         type: Optional[str] = ResourceRelationshipSingle(
             description="The type of educational resource.",
             identifier_name="type_identifier",

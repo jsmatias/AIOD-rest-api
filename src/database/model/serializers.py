@@ -10,7 +10,6 @@ from starlette.status import HTTP_404_NOT_FOUND
 from database.model.helper_functions import get_relationships
 from database.model.named_relation import NamedRelation
 
-
 MODEL = TypeVar("MODEL", bound=SQLModel)
 
 
@@ -54,6 +53,8 @@ class FindByIdentifierDeserializer(DeSerializer[SQLModel]):
     def deserialize(self, session: Session, ids: list[int]) -> list[SQLModel]:
         if not isinstance(ids, list):
             raise ValueError("Expected list. This deserializer is not needed for single values.")
+        if len(ids) == 0:
+            return []
         query = select(self.clazz).where(self.clazz.identifier.in_(ids))  # noqa
         existing = session.scalars(query).all()
         ids_not_found = set(ids) - {e.identifier for e in existing}
@@ -115,6 +116,7 @@ class CastDeserializer(DeSerializer[SQLModel]):
 
     def _deserialize_single_resource(self, serialized, session):
         resource = self.clazz.from_orm(serialized)
+
         deserialize_resource_relationships(session, self.clazz, resource, serialized)
         return resource
 
@@ -153,8 +155,42 @@ def deserialize_resource_relationships(
     if hasattr(resource_class, "RelationshipConfig"):
         relationships = get_relationships(resource_class)
         for attribute, relationship in relationships.items():
-            if relationship.include_in_create:
+            new_value = None
+            if (
+                isinstance(relationship.deserializer, CastDeserializer)
+                and hasattr(resource, attribute)
+                and getattr(resource, attribute)
+            ):
+                # Update, where the related entity is a class on its own (e.g. AIoDEntry or
+                # AIoDResource).
+                children = getattr(resource, attribute)
+                children_create = getattr(resource_create_instance, attribute)
+                if not isinstance(children, list):
+                    children = [children]
+                    children_create = [children_create]
+                child_class = type(children[0])
+                for child, child_create in zip(children, children_create):
+                    for child_attribute in child_class.schema()["properties"]:
+                        if hasattr(child_create, child_attribute):
+                            child_value = getattr(child_create, child_attribute)
+                            setattr(child, child_attribute, child_value)
+                    deserialize_resource_relationships(session, child_class, child, child_create)
+                n_create = len(children_create)
+                for child in children[n_create:]:
+                    session.delete(child)
+                n_existing = len(children)
+                for child_create in children_create[n_existing:]:
+                    child = child_class.from_orm(child_create)
+                    deserialize_resource_relationships(session, child_class, child, child_create)
+                    children.append(child)
+            elif relationship.include_in_create:
                 new_value = getattr(resource_create_instance, attribute)
+                if new_value is None and relationship.default_factory_orm is not None:
+                    # e.g. .aiod_entry, which should be generated if it's not present
+                    relation = relationship.default_factory_orm(type_=resource_class.__tablename__)
+                    session.add(relation)
+                    session.flush()
+                    new_value = relation
             else:
                 # This attribute is not included in the "create instance". In other words,
                 # it is not part of the json specified in a POST or PUT request. Examples are
@@ -162,17 +198,17 @@ def deserialize_resource_relationships(
                 # not by the user.
                 if getattr(resource, attribute) is not None:
                     # The attribute is already set (so this is a PUT request). Keep existing value
-                    new_value = None
+                    pass
                 elif relationship.default_factory_orm is None:
                     raise ValueError(
                         "If a relationship is not included in create, it should "
                         "contain a default_factory_orm"
                     )
                 else:
-                    parent = relationship.default_factory_orm(type_=resource_class.__tablename__)
-                    session.add(parent)
+                    relation = relationship.default_factory_orm(type_=resource_class.__tablename__)
+                    session.add(relation)
                     session.flush()
-                    new_value = parent.identifier
+                    new_value = relation.identifier
             if new_value is not None:
                 if relationship.deserializer is not None:
                     new_value = relationship.deserializer.deserialize(session, new_value)

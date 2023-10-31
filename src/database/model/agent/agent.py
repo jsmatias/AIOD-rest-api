@@ -6,7 +6,7 @@ from database.model.agent.agent_table import AgentTable
 from database.model.agent.email import Email
 from database.model.agent.location import Location, LocationORM
 from database.model.agent.telephone import Telephone
-from database.model.ai_resource.resource import AIResource, AIResourceBase
+from database.model.ai_resource.resource import AbstractAIResource, AIResourceBase
 from database.model.helper_functions import link_factory
 from database.model.relationships import ResourceRelationshipList, ResourceRelationshipSingle
 from database.model.serializers import AttributeSerializer, FindByNameDeserializer, CastDeserializer
@@ -20,7 +20,7 @@ class AgentBase(AIResourceBase):
     """
 
 
-class Agent(AgentBase, AIResource):
+class Agent(AgentBase, AbstractAIResource):
     agent_id: int | None = Field(foreign_key=AgentTable.__tablename__ + ".identifier", index=True)
     agent_identifier: AgentTable | None = Relationship(
         sa_relationship_kwargs={"cascade": "all, delete"}
@@ -45,7 +45,7 @@ class Agent(AgentBase, AIResource):
             )
         cls.__sqlmodel_relationships__.update(relationships)
 
-    class RelationshipConfig(AIResource.RelationshipConfig):
+    class RelationshipConfig(AbstractAIResource.RelationshipConfig):
         agent_identifier: int | None = ResourceRelationshipSingle(
             identifier_name="agent_id",
             serializer=AttributeSerializer("identifier"),

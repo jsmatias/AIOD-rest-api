@@ -36,9 +36,13 @@ class AIoDConceptBase(SQLModel):
 class AIoDConcept(AIoDConceptBase):
     identifier: int = Field(default=None, primary_key=True)
     aiod_entry_identifier: int | None = Field(
-        foreign_key=AIoDEntryORM.__tablename__ + ".identifier"
+        foreign_key=AIoDEntryORM.__tablename__ + ".identifier",
+        unique=True,
     )
     aiod_entry: AIoDEntryORM = Relationship()
+
+    # body_identifier: int | None = Field(foreign_key=Body.__tablename__ + ".identifier")
+    # body: Body | None = Relationship()
 
     def __init_subclass__(cls):
         """Fixing problems with the inheritance of relationships."""
@@ -49,10 +53,13 @@ class AIoDConcept(AIoDConceptBase):
     class RelationshipConfig:
         aiod_entry: Optional[AIoDEntryRead] = ResourceRelationshipSingle(
             deserializer=CastDeserializer(AIoDEntryORM),
-            default_factory_orm=AIoDEntryORM,
+            default_factory_pydantic=AIoDEntryCreate,
             class_read=Optional[AIoDEntryRead],
             class_create=Optional[AIoDEntryCreate],
         )
+        # body: Optional[Body] = ResourceRelationshipSingle(
+        #     deserializer=CastDeserializer(Body),
+        # )
 
     @classproperty
     def __table_args__(cls) -> Tuple:

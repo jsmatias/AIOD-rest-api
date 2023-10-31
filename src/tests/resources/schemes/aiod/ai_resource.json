@@ -3,6 +3,9 @@
     "description": "A description.",
     "same_as": "https://www.example.com/resource",
     "alternate_name": ["alias1", "alias2"],
+    "ai_resource": {
+
+    },
     "keyword": ["tag1", "tag2"],
     "relevant_link": ["https://www.example.com/a_relevant_link", "https://www.example.com/another_relevant_link"],
 
