@@ -20,7 +20,7 @@ class KnowledgeAsset(KnowledgeAssetBase, AIAsset):
     )
     knowledge_asset_identifier: KnowledgeAssetTable | None = Relationship()
 
-    documents: list[AIAssetTable] = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
+    documents: list[AIAssetTable] = Relationship()
 
     def __init_subclass__(cls):
         """

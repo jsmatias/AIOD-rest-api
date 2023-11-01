@@ -30,7 +30,6 @@ class MLModel(MLModelBase, AIAsset, table=True):  # type: ignore [call-arg]
     __tablename__ = "ml_model"
 
     related_experiment: list["Experiment"] = Relationship(
-        sa_relationship_kwargs={"cascade": "all, delete"},
         link_model=many_to_many_link_factory("ml_model", Experiment.__tablename__),
     )
     type_identifier: int | None = Field(foreign_key=MLModelType.__tablename__ + ".identifier")

@@ -44,7 +44,6 @@ class Experiment(ExperimentBase, AIAsset, table=True):  # type: ignore [call-arg
     __tablename__ = "experiment"
 
     badge: list[Badge] = Relationship(
-        sa_relationship_kwargs={"cascade": "all, delete"},
         link_model=many_to_many_link_factory("experiment", Badge.__tablename__),
     )
 

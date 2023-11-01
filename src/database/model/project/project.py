@@ -37,13 +37,11 @@ class Project(ProjectBase, AIResource, table=True):  # type: ignore [call-arg]
     __tablename__ = "project"
 
     funder: list[Organisation] = Relationship(
-        sa_relationship_kwargs={"cascade": "all, delete"},
         link_model=many_to_many_link_factory(
             "project", Organisation.__tablename__, table_prefix="funder"
         ),
     )
     participant: list[Organisation] = Relationship(
-        sa_relationship_kwargs={"cascade": "all, delete"},
         link_model=many_to_many_link_factory(
             "project", Organisation.__tablename__, table_prefix="participant"
         ),

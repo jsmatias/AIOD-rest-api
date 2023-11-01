@@ -137,5 +137,4 @@ class AIAsset(AIAssetBase, AIResource, metaclass=abc.ABCMeta):
                 == relationships["citation"].link_model.from_identifier,
                 secondaryjoin=lambda: get_identifier()
                 == relationships["citation"].link_model.linked_identifier,
-                cascade="all, delete",
             )
