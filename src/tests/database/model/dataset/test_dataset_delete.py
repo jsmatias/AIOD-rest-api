@@ -6,6 +6,7 @@ from database.model.agent.agent_table import AgentTable
 from database.model.ai_asset.ai_asset_table import AIAssetTable
 from database.model.ai_resource.location import LocationORM, AddressORM, GeoORM
 from database.model.dataset.dataset import Dataset
+from database.model.dataset.size import DatasetSizeORM
 
 
 def test_happy_path(
@@ -19,6 +20,7 @@ def test_happy_path(
         spatial_coverage=LocationORM(
             address=AddressORM(country="BEL"), geo=GeoORM(latitude=37.42242, longitude=-122.08585)
         ),
+        size=DatasetSizeORM(unit="number of rows", value=10),
         funder=[AgentTable(type="person")],
     )
 
@@ -31,6 +33,7 @@ def test_happy_path(
         assert len(session.scalars(select(GeoORM)).all()) == 1
         assert len(session.scalars(select(AIAssetTable)).all()) == 1
         assert len(session.scalars(select(AgentTable)).all()) == 1
+        assert len(session.scalars(select(DatasetSizeORM)).all()) == 1
         session.delete(dataset)
         session.commit()
         assert len(session.scalars(select(Dataset)).all()) == 0
@@ -39,3 +42,4 @@ def test_happy_path(
         assert len(session.scalars(select(GeoORM)).all()) == 0
         assert len(session.scalars(select(AIAssetTable)).all()) == 0
         assert len(session.scalars(select(AgentTable)).all()) == 1
+        assert len(session.scalars(select(DatasetSizeORM)).all()) == 0

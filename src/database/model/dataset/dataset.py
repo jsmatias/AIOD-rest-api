@@ -1,11 +1,12 @@
 from typing import Optional
 
+from sqlalchemy import Column, Integer, ForeignKey
 from sqlmodel import Field, Relationship
 
 from database.model.agent.agent_table import AgentTable
 from database.model.ai_asset.ai_asset import AIAssetBase, AIAsset
 from database.model.ai_resource.location import LocationORM, Location
-from database.model.dataset.size import Size, SizeORM
+from database.model.dataset.size import DatasetSizeORM, DatasetSize
 from database.model.field_length import NORMAL, SHORT
 from database.model.helper_functions import many_to_many_link_factory
 from database.model.relationships import ManyToMany, OneToOne
@@ -52,8 +53,10 @@ class Dataset(DatasetBase, AIAsset, table=True):  # type: ignore [call-arg]
             "dataset", AgentTable.__tablename__, table_prefix="funder"
         ),
     )
-    size_identifier: int | None = Field(foreign_key=SizeORM.__tablename__ + ".identifier")
-    size: Optional[SizeORM] = Relationship()
+    size_identifier: int | None = Field(
+        sa_column=Column(Integer, ForeignKey(DatasetSizeORM.__tablename__ + ".identifier"))
+    )
+    size: Optional[DatasetSizeORM] = Relationship()
     spatial_coverage_identifier: int | None = Field(
         foreign_key=LocationORM.__tablename__ + ".identifier"
     )
@@ -68,10 +71,10 @@ class Dataset(DatasetBase, AIAsset, table=True):  # type: ignore [call-arg]
             default_factory_pydantic=list,
             example=[],
         )
-        size: Optional[Size] = OneToOne(
+        size: Optional[DatasetSize] = OneToOne(
             description="The size of this dataset, for example the number of rows. The file size "
             "should not be included here, but in distribution.content_size_kb.",
-            deserializer=CastDeserializer(SizeORM),
+            deserializer=CastDeserializer(DatasetSizeORM),
             on_delete_trigger_deletion_by="size_identifier",
         )
         spatial_coverage: Optional[Location] = OneToOne(
