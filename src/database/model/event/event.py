@@ -9,8 +9,8 @@ from database.model.ai_resource.resource import AIResourceBase, AbstractAIResour
 from database.model.event.event_mode import EventMode
 from database.model.event.event_status import EventStatus
 from database.model.field_length import NORMAL, DESCRIPTION
-from database.model.helper_functions import link_factory
-from database.model.relationships import ResourceRelationshipList, ResourceRelationshipSingle
+from database.model.helper_functions import many_to_many_link_factory
+from database.model.relationships import ManyToMany, ManyToOne, OneToMany
 from database.model.serializers import (
     AttributeSerializer,
     FindByIdentifierDeserializer,
@@ -51,11 +51,12 @@ class Event(EventBase, AbstractAIResource, table=True):  # type: ignore [call-ar
     __tablename__ = "event"
 
     location: list[LocationORM] = Relationship(
-        link_model=link_factory("event", LocationORM.__tablename__)
+        link_model=many_to_many_link_factory("event", LocationORM.__tablename__)
     )
     performer: list["AgentTable"] = Relationship(
-        sa_relationship_kwargs={"cascade": "all, delete"},
-        link_model=link_factory("event", AgentTable.__tablename__, table_prefix="performer"),
+        link_model=many_to_many_link_factory(
+            "event", AgentTable.__tablename__, table_prefix="performer"
+        ),
     )
     organiser_identifier: int | None = Field(foreign_key=AgentTable.__tablename__ + ".identifier")
     organiser: Optional[AgentTable] = Relationship()
@@ -65,11 +66,11 @@ class Event(EventBase, AbstractAIResource, table=True):  # type: ignore [call-ar
     mode: Optional[EventMode] = Relationship()
 
     class RelationshipConfig(AbstractAIResource.RelationshipConfig):
-        location: list[Location] = ResourceRelationshipList(
+        location: list[Location] = OneToMany(
             deserializer=CastDeserializer(LocationORM),
             default_factory_pydantic=list,
         )
-        performer: list[int] = ResourceRelationshipList(
+        performer: list[int] = ManyToMany(
             description="Links to identifiers of the agents (person or organization) that is "
             "contributing to this event ",
             serializer=AttributeSerializer("identifier"),
@@ -77,19 +78,19 @@ class Event(EventBase, AbstractAIResource, table=True):  # type: ignore [call-ar
             default_factory_pydantic=list,
             example=[],
         )
-        organiser: Optional[int] = ResourceRelationshipSingle(
+        organiser: Optional[int] = ManyToOne(
             identifier_name="organiser_identifier",
             description="The person or organisation responsible for organising the event.",
             serializer=AttributeSerializer("identifier"),
         )
-        status: Optional[str] = ResourceRelationshipSingle(
+        status: Optional[str] = ManyToOne(
             description="The status of the event.",
             identifier_name="status_identifier",
             serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(EventStatus),
             example="scheduled",
         )
-        mode: Optional[str] = ResourceRelationshipSingle(
+        mode: Optional[str] = ManyToOne(
             description="The attendance mode of event.",
             identifier_name="mode_identifier",
             serializer=AttributeSerializer("name"),

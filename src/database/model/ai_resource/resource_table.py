@@ -4,7 +4,7 @@ The AIResource table, which is linked to every child of the AbstractAIResource (
 
 from sqlmodel import SQLModel, Field, Relationship
 
-from database.model.relationships import ResourceRelationshipList
+from database.model.relationships import ManyToMany
 from database.model.serializers import (
     create_getter_dict,
     AttributeSerializer,
@@ -67,10 +67,10 @@ class AIResourceORM(AIResourceBase, table=True):  # type: ignore [call-arg]
     )
 
     class RelationshipConfig:
-        is_part_of: list[int] = ResourceRelationshipList()
-        has_part: list[int] = ResourceRelationshipList()
-        relevant_resource: list[int] = ResourceRelationshipList()
-        relevant_to: list[int] = ResourceRelationshipList()
+        is_part_of: list[int] = ManyToMany()
+        has_part: list[int] = ManyToMany()
+        relevant_resource: list[int] = ManyToMany()
+        relevant_to: list[int] = ManyToMany()
 
 
 deserializer = FindByIdentifierDeserializer(AIResourceORM)

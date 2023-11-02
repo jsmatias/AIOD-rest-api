@@ -12,9 +12,11 @@ from database.model.educational_resource.pace import Pace
 from database.model.educational_resource.prerequisite import Prerequisite
 from database.model.educational_resource.target_audience import TargetAudience
 from database.model.field_length import NORMAL
-from database.model.helper_functions import link_factory
-from database.model.relationships import ResourceRelationshipSingle, ResourceRelationshipList
+from database.model.helper_functions import many_to_many_link_factory
+
 from database.model.serializers import AttributeSerializer, FindByNameDeserializer, CastDeserializer
+
+from database.model.relationships import ManyToOne, ManyToMany
 
 
 class EducationalResourceBase(AIResourceBase):
@@ -38,39 +40,41 @@ class EducationalResource(
     pace_identifier: int | None = Field(foreign_key=Pace.__tablename__ + ".identifier")
     pace: Optional[Pace] = Relationship()
     access_mode: list[AccessMode] = Relationship(
-        link_model=link_factory(
+        link_model=many_to_many_link_factory(
             table_from="educational_resource", table_to=AccessMode.__tablename__
         )
     )
     educational_level: list[EducationalLevel] = Relationship(
-        link_model=link_factory(
+        link_model=many_to_many_link_factory(
             table_from="educational_resource", table_to=EducationalLevel.__tablename__
         )
     )
     in_language: list[Language] = Relationship(
-        link_model=link_factory(table_from="educational_resource", table_to=Language.__tablename__)
+        link_model=many_to_many_link_factory(
+            table_from="educational_resource", table_to=Language.__tablename__
+        )
     )
     location: list[LocationORM] = Relationship(
-        link_model=link_factory("educational_resource", LocationORM.__tablename__)
+        link_model=many_to_many_link_factory("educational_resource", LocationORM.__tablename__)
     )
     prerequisite: list[Prerequisite] = Relationship(
-        link_model=link_factory("educational_resource", Prerequisite.__tablename__)
+        link_model=many_to_many_link_factory("educational_resource", Prerequisite.__tablename__)
     )
     target_audience: list[TargetAudience] = Relationship(
-        link_model=link_factory(
+        link_model=many_to_many_link_factory(
             table_from="educational_resource", table_to=TargetAudience.__tablename__
         )
     )
 
     class RelationshipConfig(AbstractAIResource.RelationshipConfig):
-        type: Optional[str] = ResourceRelationshipSingle(
+        type: Optional[str] = ManyToOne(
             description="The type of educational resource.",
             identifier_name="type_identifier",
             serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(EducationalResourceType),
             example="presentation",
         )
-        pace: Optional[str] = ResourceRelationshipSingle(
+        pace: Optional[str] = ManyToOne(
             description="The high-level study schedule available for this educational resource. "
             '"self-paced" is mostly used for MOOCS, Tutorials and short courses '
             'without interactive elements; "scheduled" is used for scheduled courses '
@@ -82,32 +86,32 @@ class EducationalResource(
             deserializer=FindByNameDeserializer(Pace),
             example="full-time",
         )
-        access_mode: list[str] = ResourceRelationshipList(
+        access_mode: list[str] = ManyToMany(
             description="The primary mode of accessing this educational resource.",
             serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(AccessMode),
             example=["textual"],
             default_factory_pydantic=list,
         )
-        educational_level: list[str] = ResourceRelationshipList(
+        educational_level: list[str] = ManyToMany(
             description="The level or levels of education for which this resource is intended.",
             serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(EducationalLevel),
             example=["primary school", "secondary school", "university"],
             default_factory_pydantic=list,
         )
-        in_language: list[str] = ResourceRelationshipList(
+        in_language: list[str] = ManyToMany(
             description="The language(s) of the educational resource, in ISO639-3.",
             serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(Language),
             example=["eng", "fra", "spa"],
             default_factory_pydantic=list,
         )
-        location: list[Location] = ResourceRelationshipList(
+        location: list[Location] = ManyToMany(
             deserializer=CastDeserializer(LocationORM),
             default_factory_pydantic=list,
         )
-        prerequisite: list[str] = ResourceRelationshipList(
+        prerequisite: list[str] = ManyToMany(
             description="Minimum or recommended requirements to make use of this "
             "educational resource.",
             serializer=AttributeSerializer("name"),
@@ -118,7 +122,7 @@ class EducationalResource(
             ],
             default_factory_pydantic=list,
         )
-        target_audience: list[str] = ResourceRelationshipList(
+        target_audience: list[str] = ManyToMany(
             description="The intended users of this educational resource.",
             serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(TargetAudience),

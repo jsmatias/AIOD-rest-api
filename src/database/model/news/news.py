@@ -2,9 +2,9 @@ from sqlmodel import Field, Relationship
 
 from database.model.ai_resource.resource import AbstractAIResource, AIResourceBase
 from database.model.field_length import NORMAL
-from database.model.helper_functions import link_factory
+from database.model.helper_functions import many_to_many_link_factory
 from database.model.news.news_category import NewsCategory
-from database.model.relationships import ResourceRelationshipList
+from database.model.relationships import ManyToMany
 from database.model.serializers import AttributeSerializer, FindByNameDeserializer
 
 
@@ -25,11 +25,11 @@ class News(NewsBase, AbstractAIResource, table=True):  # type: ignore [call-arg]
     __tablename__ = "news"
 
     category: list[NewsCategory] = Relationship(
-        link_model=link_factory("news", NewsCategory.__tablename__)
+        link_model=many_to_many_link_factory("news", NewsCategory.__tablename__)
     )
 
     class RelationshipConfig(AbstractAIResource.RelationshipConfig):
-        category: list[str] = ResourceRelationshipList(
+        category: list[str] = ManyToMany(
             description="News categories related to this item.",
             serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(NewsCategory),
