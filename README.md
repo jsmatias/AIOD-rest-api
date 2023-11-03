@@ -76,7 +76,7 @@ To authenticate as admin to Keycloak the predefined user is: admin and password:
 To use a different DNS hostname replace localhost with it in .env and src/config.toml \
 This configuration is intended for development, DO NOT use it in production. 
 
-We use the default [MySQL Docker image](https://hub.docker.com/_/mysql).
+We use the default [MySQL Docker image](https://hub.docker.com/_/mysql).\
 To connect to the database use `./scripts/database-connect.sql`.
 
 ```bash
