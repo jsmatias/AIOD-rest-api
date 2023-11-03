@@ -70,20 +70,14 @@ Information on how to install Docker is found in [their documentation](https://d
 docker compose up
 ```
 starts the MYSQL Server, the REST API, Keycloak for Identy and access management and Nginx for reverse proxing. \
-Once started, you should be able to visit the REST API server at: http://localhost and Keycloak at http://localhost/aiod-auth \
+Once started, you should be able to visit the REST API server at: http://localhost:8000 and Keycloak at http://localhost:8080 \
 To authenticate to the REST API swagger interface the predefined user is: user, and password: password \
 To authenticate as admin to Keycloak the predefined user is: admin and password: password \
 To use a different DNS hostname replace localhost with it in .env and src/config.toml \
 This configuration is intended for development, DO NOT use it in production. 
 
-Use the following instructions if you prefer to use Docker instead of Docker Compose.
-
 We use the default [MySQL Docker image](https://hub.docker.com/_/mysql).
-To connect to the database 
-
-```bash
-./scripts/database-connect.sql
-```
+To connect to the database use `./scripts/database-connect.sql`.
 
 ```bash
 mysql> SHOW DATABASES;
@@ -97,8 +91,8 @@ mysql> SHOW DATABASES;
 +--------------------+
 4 rows in set (0.03 sec)
 
+Now, you can visit the server from your browser at `localhost:8000/docs`.
 
-At this point you should be able to visit the server from your browser at `localhost:8000/docs`.
 
 #### Local Installation
 
