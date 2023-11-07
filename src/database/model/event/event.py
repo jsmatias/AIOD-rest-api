@@ -50,9 +50,7 @@ class EventBase(AIResourceBase):
 class Event(EventBase, AbstractAIResource, table=True):  # type: ignore [call-arg]
     __tablename__ = "event"
 
-    location: list[LocationORM] = Relationship(
-        link_model=many_to_many_link_factory("event", LocationORM.__tablename__)
-    )
+    location: list[LocationORM] = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
     performer: list["AgentTable"] = Relationship(
         link_model=many_to_many_link_factory(
             "event", AgentTable.__tablename__, table_prefix="performer"

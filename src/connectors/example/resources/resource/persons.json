@@ -22,9 +22,6 @@
       "Disease Classification"
     ],
     "contact": [],
-    "email": [
-      "a@b.com"
-    ],
     "expertise": [
       "transfer learning"
     ],
@@ -44,12 +41,6 @@
       "eng",
       "fra",
       "spa"
-    ],
-    "location": [
-        {
-            "address": {"country": "NED", "street": "Street Name 10", "postal_code": "1234AB"},
-            "geo": {"latitude": 37.42242, "longitude": -122.08585, "elevation_millimeters": 2000}
-        }
     ],
     "media": [
       {
@@ -77,9 +68,6 @@
       "Anomaly Detection",
       "Voice Recognition",
       "Computer Vision."
-    ],
-    "telephone": [
-      "0032 XXXX XXXX"
     ],
     "price_per_hour_euro": 75.5
     }

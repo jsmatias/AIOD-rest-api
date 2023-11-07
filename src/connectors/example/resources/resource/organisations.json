@@ -23,9 +23,6 @@
       "Disease Classification"
     ],
     "contact": [],
-    "email": [
-      "a@b.com"
-    ],
     "has_part": [],
     "industrial_sector": [
       "Finance",
@@ -38,12 +35,6 @@
       "keyword2"
     ],
     "relevant_link": ["https://www.example.com/a_relevant_link", "https://www.example.com/another_relevant_link"],
-    "location": [
-        {
-            "address": {"country": "NED", "street": "Street Name 10", "postal_code": "1234AB"},
-            "geo": {"latitude": 37.42242, "longitude": -122.08585, "elevation_millimeters": 2000}
-        }
-    ],
     "media": [
       {
           "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -73,9 +64,6 @@
       "Anomaly Detection",
       "Voice Recognition",
       "Computer Vision."
-    ],
-    "telephone": [
-      "0032 XXXX XXXX"
     ],
     "type": "Research Institution"
   }

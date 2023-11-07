@@ -5,6 +5,10 @@ python3 connectors/synchronization.py \
   -w /opt/connectors/data/example/case_study
 
 python3 connectors/synchronization.py \
+  -c connectors.example.example.ExampleContactConnector \
+  -w /opt/connectors/data/example/contact
+
+python3 connectors/synchronization.py \
   -c connectors.example.example.ExampleComputationalAssetConnector \
   -w /opt/connectors/data/example/computational_asset
 

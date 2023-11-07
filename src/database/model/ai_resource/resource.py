@@ -10,10 +10,10 @@ import copy
 from datetime import datetime
 from typing import Any
 from typing import Optional
-from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship
 
+from database.model.agent.contact import Contact
 from database.model.ai_asset.distribution import Distribution, distribution_factory
 from database.model.ai_resource.alternate_name import AlternateName
 from database.model.ai_resource.application_area import ApplicationArea
@@ -36,10 +36,8 @@ from database.model.serializers import (
     AttributeSerializer,
     CastDeserializer,
     FindByNameDeserializer,
+    FindByIdentifierDeserializer,
 )
-
-if TYPE_CHECKING:
-    from database.model.agent.person import Person
 
 
 class AIResourceBase(AIoDConceptBase, metaclass=abc.ABCMeta):
@@ -80,8 +78,8 @@ class AbstractAIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
     research_area: list[ResearchArea] = Relationship()
     scientific_domain: list[ScientificDomain] = Relationship()
 
-    contact: list["Person"] = Relationship()
-    creator: list["Person"] = Relationship()
+    contact: list[Contact] = Relationship()
+    creator: list[Contact] = Relationship()
 
     media: list = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
     note: list = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
@@ -177,19 +175,18 @@ class AbstractAIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         )
         # TODO(jos): documentedIn - KnowledgeAsset. This should probably be defined on ResourceTable
         contact: list[int] = ManyToMany(
-            description="Links to identifiers of persons that can be contacted for this resource.",
+            description="Contact information of persons/organisations that can be contacted about "
+            "this resource.",
             serializer=AttributeSerializer("identifier"),
+            deserializer=FindByIdentifierDeserializer(Contact),
             default_factory_pydantic=list,
-            example=[],
         )
         creator: list[int] = ManyToMany(
-            description="Links to identifiers of the persons that created this asset.",
+            description="Contact information of persons/organisations that created this resource.",
             serializer=AttributeSerializer("identifier"),
+            deserializer=FindByIdentifierDeserializer(Contact),
             default_factory_pydantic=list,
-            example=[],
         )
-        # decided to remove Location here. What does it mean for e.g. a dataset to reside at an
-        # address of at a geographical location?
         media: list[Distribution] = OneToMany(
             description="Images or videos depicting the resource or associated with it. ",
             default_factory_pydantic=list,  # no deletion trigger: cascading delete is used
@@ -229,16 +226,15 @@ class AbstractAIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
 
         link_model_contact = many_to_many_link_factory(
             table_from=cls.__tablename__,
-            table_to="person",
+            table_to=Contact.__tablename__,
             table_prefix="contact",
         )
         link_model_creator = many_to_many_link_factory(
             table_from=cls.__tablename__,
-            table_to="person",
+            table_to=Contact.__tablename__,
             table_prefix="creator",
         )
         relationships["contact"].link_model = link_model_contact
-
         relationships["creator"].link_model = link_model_creator
 
         if cls.__tablename__ == "person":
@@ -248,11 +244,6 @@ class AbstractAIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
 
                 return Person.identifier
 
-            relationships["contact"].sa_relationship_kwargs = dict(
-                primaryjoin=lambda: get_identifier() == link_model_contact.from_identifier,
-                secondaryjoin=lambda: get_identifier() == link_model_contact.linked_identifier,
-                cascade="all, delete",
-            )
             relationships["creator"].sa_relationship_kwargs = dict(
                 primaryjoin=lambda: get_identifier() == link_model_creator.from_identifier,
                 secondaryjoin=lambda: get_identifier() == link_model_creator.linked_identifier,

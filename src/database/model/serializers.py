@@ -50,9 +50,14 @@ class FindByIdentifierDeserializer(DeSerializer[SQLModel]):
 
     clazz: type[SQLModel]
 
-    def deserialize(self, session: Session, ids: list[int]) -> list[SQLModel]:
-        if not isinstance(ids, list):
-            raise ValueError("Expected list. This deserializer is not needed for single values.")
+    def deserialize(self, session: Session, input_: int | list[int]) -> SQLModel | list[SQLModel]:
+        ids: list[int]
+        if isinstance(input_, int):
+            ids = [input_]
+        elif isinstance(input_, list):
+            ids = input_
+        else:
+            raise ValueError("Unexpected input type for this deserializer.")
         if len(ids) == 0:
             return []
         query = select(self.clazz).where(self.clazz.identifier.in_(ids))  # noqa
@@ -64,6 +69,9 @@ class FindByIdentifierDeserializer(DeSerializer[SQLModel]):
                 detail=f"Nested object with identifiers "
                 f"{', '.join([str(i) for i in ids_not_found])} not found",
             )
+        if isinstance(input_, int):
+            (single_result,) = existing
+            return single_result
         return sorted(existing, key=lambda o: o.identifier)
 
 
@@ -199,12 +207,7 @@ def deserialize_resource_relationships(
                 if getattr(resource, attribute) is not None:
                     # The attribute is already set (so this is a PUT request). Keep existing value
                     pass
-                elif relationship.default_factory_orm is None:
-                    raise ValueError(
-                        "If a relationship is not included in create, it should contain a "
-                        "default_factory_orm"
-                    )
-                else:
+                elif relationship.default_factory_orm is not None:
                     relation = relationship.default_factory_orm(type_=resource_class.__tablename__)
                     session.add(relation)
                     session.flush()

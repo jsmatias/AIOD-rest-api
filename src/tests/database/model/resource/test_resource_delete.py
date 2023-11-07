@@ -24,6 +24,7 @@ def test_happy_path(
     keyword_b = Keyword(name="keyword_b")
     keyword_c = Keyword(name="keyword_c")
     keyword_d = Keyword(name="keyword_d")
+
     dataset_1 = Dataset(
         name="dataset 1",
         alternate_name=[alternate_name_a, alternate_name_b, alternate_name_c],

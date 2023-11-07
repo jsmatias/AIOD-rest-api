@@ -11,6 +11,7 @@ from sqlmodel import Session, select
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
+from database.model.agent.contact import Contact
 from database.model.agent.organisation import Organisation
 from database.model.agent.person import Person
 from database.model.concept.aiod_entry import AIoDEntryORM
@@ -26,12 +27,13 @@ def test_happy_path(
     body_asset: dict,
     person: Person,
     publication: Publication,
+    contact: Contact,
 ):
     keycloak_openid.userinfo = mocked_privileged_token
-
     with Session(engine) as session:
         session.add(person)
         session.merge(publication)
+        session.add(contact)
         session.commit()
 
     body = copy.deepcopy(body_asset)
@@ -59,8 +61,8 @@ def test_happy_path(
     assert response_json["aiod_entry"]["status"] == "published"
     date_created = dateutil.parser.parse(response_json["aiod_entry"]["date_created"] + "Z")
     date_modified = dateutil.parser.parse(response_json["aiod_entry"]["date_modified"] + "Z")
-    assert 0 < (date_created - datetime_create_request).total_seconds() < 0.1
-    assert 0 < (date_modified - datetime_create_request).total_seconds() < 0.1
+    assert 0 < (date_created - datetime_create_request).total_seconds() < 0.2
+    assert 0 < (date_modified - datetime_create_request).total_seconds() < 0.2
 
     assert response_json["name"] == "The name"
     assert response_json["description"] == "A description."

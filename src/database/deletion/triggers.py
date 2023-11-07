@@ -14,7 +14,7 @@ from database.model.helper_functions import get_relationships, non_abstract_subc
 
 
 def add_delete_triggers(parent_class: Type[SQLModel]):
-    classes: list[Type[SQLModel]] = non_abstract_subclasses(parent_class)
+    classes: set[Type[SQLModel]] = non_abstract_subclasses(parent_class)
     for cls in classes:
         for name, value in get_relationships(cls).items():
             value.create_triggers(cls, name)
@@ -144,7 +144,7 @@ def create_deletion_trigger_many_to_many(
     )
     ddl = DDL(
         f"""
-        CREATE TRIGGER delete_{trigger_name}_{delete_name}
+        CREATE TRIGGER delete_{link_name}
         AFTER DELETE ON {trigger_name}
         FOR EACH ROW
         BEGIN
