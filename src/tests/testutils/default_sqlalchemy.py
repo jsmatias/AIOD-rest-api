@@ -70,7 +70,7 @@ def clear_db(request):
                         test_resource_factory(
                             title="A title",
                             platform="example",
-                            platform_identifier="1",
+                            platform_resource_identifier="1",
                         )
                     )
                 session.commit()

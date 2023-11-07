@@ -71,7 +71,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                 citations = [
                     pydantic_class_publication(
                         platform=self.platform_name,
-                        platform_identifier=citation["ID"],
+                        platform_resource_identifier=citation["ID"],
                         name=citation["title"],
                         same_as=citation["link"] if "link" in citation else None,
                         type=citation["ENTRYTYPE"],
@@ -117,7 +117,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
 
         return ResourceWithRelations[Dataset](
             resource=pydantic_class(
-                platform_identifier=dataset.id,
+                platform_resource_identifier=dataset.id,
                 platform=self.platform_name,
                 description=description,
                 name=dataset.id,

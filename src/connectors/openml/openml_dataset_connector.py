@@ -75,7 +75,7 @@ class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
         return pydantic_class(
             aiod_entry=AIoDEntryCreate(
                 platform=self.platform_name,
-                platform_identifier=identifier,
+                platform_resource_identifier=identifier,
             ),
             name=dataset_json["name"],
             same_as=url_data,

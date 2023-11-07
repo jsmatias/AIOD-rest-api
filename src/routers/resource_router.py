@@ -445,7 +445,7 @@ class ResourceRouter(abc.ABC):
                 )
             query = select(self.resource_class).where(
                 and_(
-                    self.resource_class.platform_identifier == identifier,
+                    self.resource_class.platform_resource_identifier == identifier,
                     self.resource_class.platform == platform,
                 )
             )
@@ -495,12 +495,12 @@ class ResourceRouter(abc.ABC):
         # Note that the "real" errors are different from testing errors, because we use a
         # sqlite db while testing and a mysql db when running the application. The correct error
         # handling is therefore not tested. TODO: can we improve this?
-        if "_same_platform_and_platform_identifier" in error:
+        if "_same_platform_and_platform_resource_identifier" in error:
             query = select(self.resource_class).where(
                 and_(
                     getattr(self.resource_class, "platform") == resource_create.platform,
-                    getattr(self.resource_class, "platform_identifier")
-                    == resource_create.platform_identifier,
+                    getattr(self.resource_class, "platform_resource_identifier")
+                    == resource_create.platform_resource_identifier,
                     is_(getattr(self.resource_class, "date_deleted"), None),
                 )
             )
@@ -508,7 +508,7 @@ class ResourceRouter(abc.ABC):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"There already exists a {self.resource_name} with the same platform and "
-                f"platform_identifier, with identifier={existing_resource.identifier}.",
+                f"platform_resource_identifier, with identifier={existing_resource.identifier}.",
             ) from e
 
         if "FOREIGN KEY" in error and resource_create.platform is not None:
@@ -522,7 +522,8 @@ class ResourceRouter(abc.ABC):
                 )
         if "platform_xnor_platform_id_null" in error:
             error_msg = (
-                "If platform is NULL, platform_identifier should also be NULL, and vice versa."
+                "If platform is NULL, platform_resource_identifier should also be NULL, "
+                "and vice versa."
             )
             status_code = status.HTTP_400_BAD_REQUEST
         elif "constraint failed" in error:

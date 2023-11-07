@@ -1,7 +1,7 @@
 [
   {
   "platform": "example",
-  "platform_identifier": "1",
+  "platform_resource_identifier": "1",
   "name": "The name of this service",
   "description": "A description.",
   "date_published": "2022-01-01T15:15:00.000",

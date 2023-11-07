@@ -22,11 +22,11 @@ class AIoDConceptBase(SQLModel):
         default=None,
         description="The external platform from which this resource originates. Leave empty if "
         "this item originates from AIoD. If platform is not None, the "
-        "platform_identifier should be set as well.",
+        "platform_resource_identifier should be set as well.",
         schema_extra={"example": PlatformName.example},
         foreign_key="platform.name",
     )
-    platform_identifier: str | None = Field(
+    platform_resource_identifier: str | None = Field(
         max_length=NORMAL,
         description="A unique identifier issued by the external platform that's specified in "
         "'platform'. Leave empty if this item is not part of an external platform.",
@@ -72,14 +72,14 @@ class AIoDConcept(AIoDConceptBase):
         # TODO: solve it when this becomes a problem.
         return (
             Index(
-                f"{cls.__name__}_same_platform_and_platform_identifier",
+                f"{cls.__name__}_same_platform_and_platform_resource_identifier",
                 cls.platform,
-                cls.platform_identifier,
+                cls.platform_resource_identifier,
                 coalesce(cls.date_deleted, "2000-01-01"),
                 unique=True,
             ),
             CheckConstraint(
-                "(platform IS NULL) <> (platform_identifier IS NOT NULL)",
+                "(platform IS NULL) <> (platform_resource_identifier IS NOT NULL)",
                 name=f"{cls.__name__}_platform_xnor_platform_id_null",
             ),
         )

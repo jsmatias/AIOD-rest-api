@@ -6,7 +6,7 @@
     "same_as": "https://www.example.com/resource/this_resource",
     "aiod_entry": {
       "platform": "example",
-      "platform_identifier": "1",
+      "platform_resource_identifier": "1",
       "editor": [],
       "status": "draft"
     },

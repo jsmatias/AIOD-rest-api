@@ -1,7 +1,7 @@
 [
     {
     "platform": "example",
-    "platform_identifier": "1",
+    "platform_resource_identifier": "1",
     "name": "Jane Doe",
     "given_name": "Jane",
     "surname": "Doe",

@@ -1,7 +1,7 @@
 [
     {
       "platform": "example",
-      "platform_identifier": "1",
+      "platform_resource_identifier": "1",
       "name": "Name of the Educational Resource",
       "description": "A description.",
       "same_as": "https://www.example.com/resource/this_resource",

@@ -24,7 +24,7 @@ def test_fetch_happy_path():
     assert dataset.date_published == datetime.datetime(2023, 5, 6)
     assert dataset.license == "https://creativecommons.org/licenses/by/4.0/legalcode"
     assert dataset.platform == "zenodo"
-    assert dataset.platform_identifier == "zenodo.org:7961614"
+    assert dataset.platform_resource_identifier == "zenodo.org:7961614"
     assert set(dataset.keyword) == {
         "Mass casualty",
         "Major incident",
@@ -65,7 +65,7 @@ def test_retry_happy_path():
     )
     assert dataset.license == "CC-BY-4.0"
     assert dataset.platform == "zenodo"
-    assert dataset.platform_identifier == "7902672"
+    assert dataset.platform_resource_identifier == "7902672"
 
     assert len(dataset.keyword) == 5
     assert set(dataset.keyword) == {

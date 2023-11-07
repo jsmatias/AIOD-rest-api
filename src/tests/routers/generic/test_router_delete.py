@@ -25,13 +25,13 @@ def test_happy_path(
                 test_resource_factory(
                     title="my_test_resource",
                     platform="example",
-                    platform_identifier=1,
+                    platform_resource_identifier=1,
                     status=draft,
                 ),
                 test_resource_factory(
                     title="second_test_resource",
                     platform="example",
-                    platform_identifier=2,
+                    platform_resource_identifier=2,
                     status=draft,
                 ),
             ]
@@ -63,13 +63,13 @@ def test_non_existent(
                 test_resource_factory(
                     title="my_test_resource",
                     platform="example",
-                    platform_identifier=1,
+                    platform_resource_identifier=1,
                     status=draft,
                 ),
                 test_resource_factory(
                     title="second_test_resource",
                     platform="example",
-                    platform_identifier=2,
+                    platform_resource_identifier=2,
                     status=draft,
                 ),
             ]
