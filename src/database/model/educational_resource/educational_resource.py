@@ -13,10 +13,8 @@ from database.model.educational_resource.prerequisite import Prerequisite
 from database.model.educational_resource.target_audience import TargetAudience
 from database.model.field_length import NORMAL
 from database.model.helper_functions import many_to_many_link_factory
-
-from database.model.serializers import AttributeSerializer, FindByNameDeserializer, CastDeserializer
-
 from database.model.relationships import ManyToOne, ManyToMany
+from database.model.serializers import AttributeSerializer, FindByNameDeserializer, CastDeserializer
 
 
 class EducationalResourceBase(AIResourceBase):

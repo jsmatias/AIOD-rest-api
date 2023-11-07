@@ -11,7 +11,6 @@ def test_happy_path(
     client: TestClient,
     engine: Engine,
 ):
-
     organisation = Organisation(
         name="organisation",
         agent_identifier=AgentTable(type="organisation"),

@@ -31,7 +31,7 @@ from database.model.ai_resource.scientific_domain import ScientificDomain
 from database.model.concept.concept import AIoDConceptBase, AIoDConcept
 from database.model.field_length import DESCRIPTION, NORMAL
 from database.model.helper_functions import many_to_many_link_factory, non_abstract_subclasses
-from database.model.relationships import ManyToMany, OneToOne, OneToMany
+from database.model.relationships import OneToMany, OneToOne, ManyToMany
 from database.model.serializers import (
     AttributeSerializer,
     CastDeserializer,
@@ -90,7 +90,6 @@ class AbstractAIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         The latter cannot be done in the class variables, because it depends on the table-name of
         the child class.
         """
-
         cls.__annotations__.update(AbstractAIResource.__annotations__)
         relationships = copy.deepcopy(AbstractAIResource.__sqlmodel_relationships__)
         is_not_abstract = cls.__tablename__ not in ("aiasset", "agent", "knowledgeasset")
@@ -132,8 +131,8 @@ class AbstractAIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         )
         relevant_link: list[str] = ManyToMany(
             description="URLs of relevant resources. These resources should not be part of AIoD ("
-            "use relevant_resource otherwise). This field should only be used if there is no more "
-            "specific field.",
+            "use relevant_resource otherwise). This field should only be used if there "
+            "is no more specific field.",
             serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(RelevantLink),
             example=[
@@ -142,7 +141,6 @@ class AbstractAIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             ],
             default_factory_pydantic=list,
         )
-
         application_area: list[str] = ManyToMany(
             description="The objective of this AI resource.",
             serializer=AttributeSerializer("name"),
@@ -236,16 +234,3 @@ class AbstractAIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         )
         relationships["contact"].link_model = link_model_contact
         relationships["creator"].link_model = link_model_creator
-
-        if cls.__tablename__ == "person":
-
-            def get_identifier():
-                from database.model.agent.person import Person
-
-                return Person.identifier
-
-            relationships["creator"].sa_relationship_kwargs = dict(
-                primaryjoin=lambda: get_identifier() == link_model_creator.from_identifier,
-                secondaryjoin=lambda: get_identifier() == link_model_creator.linked_identifier,
-                cascade="all, delete",
-            )

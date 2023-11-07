@@ -77,6 +77,7 @@ class ParentRouter(abc.ABC):
                     if hasattr(child_class, self.resource_name + "_id")
                     else self.resource_name + "_identifier"
                 )
+
                 query_child = select(child_class).where(
                     getattr(child_class, identifier_name) == identifier
                 )

@@ -10,6 +10,7 @@ from database.model.event.event_mode import EventMode
 from database.model.event.event_status import EventStatus
 from database.model.field_length import NORMAL, DESCRIPTION
 from database.model.helper_functions import many_to_many_link_factory
+
 from database.model.relationships import ManyToMany, ManyToOne, OneToMany
 from database.model.serializers import (
     AttributeSerializer,

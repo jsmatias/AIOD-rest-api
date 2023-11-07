@@ -14,7 +14,7 @@ from database.model.helper_functions import get_relationships, non_abstract_subc
 
 
 def add_delete_triggers(parent_class: Type[SQLModel]):
-    classes: set[Type[SQLModel]] = non_abstract_subclasses(parent_class)
+    classes: list[Type[SQLModel]] = non_abstract_subclasses(parent_class)
     for cls in classes:
         for name, value in get_relationships(cls).items():
             value.create_triggers(cls, name)
