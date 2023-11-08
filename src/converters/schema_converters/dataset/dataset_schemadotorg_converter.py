@@ -34,9 +34,14 @@ class DatasetConverterSchemaDotOrg(SchemaConverter[Dataset, SchemaDotOrgDataset]
         funder = [_agent(session, agent_table) for agent_table in aiod.funder]
         funder = [f for f in funder if f]
         citations = [_publication(publication) for publication in aiod.citation]
-
+        if aiod.description and aiod.description.plain:
+            description = aiod.description.plain
+        elif aiod.description and aiod.description.html:
+            description = aiod.description.html
+        else:
+            description = None
         return SchemaDotOrgDataset(
-            description=aiod.description,
+            description=description,
             identifier=aiod.identifier,
             name=aiod.name,
             alternateName=_list_to_one_or_none([a.name for a in aiod.alternate_name]),

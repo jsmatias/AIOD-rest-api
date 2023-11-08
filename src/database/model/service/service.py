@@ -1,7 +1,7 @@
 from sqlmodel import Field
 
 from database.model.ai_resource.resource import AIResourceBase, AbstractAIResource
-from database.model.field_length import NORMAL, DESCRIPTION
+from database.model.field_length import NORMAL, LONG
 
 
 class ServiceBase(AIResourceBase):
@@ -13,7 +13,7 @@ class ServiceBase(AIResourceBase):
     )
     terms_of_service: str | None = Field(
         description="Human-readable terms of service documentation.",
-        max_length=DESCRIPTION,
+        max_length=LONG,
         schema_extra={
             "example": "Your use of this service is subject to the following terms: [...]."
         },

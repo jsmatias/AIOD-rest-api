@@ -8,8 +8,7 @@ defining relationships between AIResources.
 import abc
 import copy
 from datetime import datetime
-from typing import Any
-from typing import Optional
+from typing import Any, Optional
 
 from sqlmodel import Field, Relationship
 
@@ -28,8 +27,9 @@ from database.model.ai_resource.resource_table import (
     AIResourceCreate,
 )
 from database.model.ai_resource.scientific_domain import ScientificDomain
+from database.model.ai_resource.text import TextORM, Text
 from database.model.concept.concept import AIoDConceptBase, AIoDConcept
-from database.model.field_length import DESCRIPTION, NORMAL
+from database.model.field_length import NORMAL
 from database.model.helper_functions import many_to_many_link_factory, non_abstract_subclasses
 from database.model.relationships import OneToMany, OneToOne, ManyToMany
 from database.model.serializers import (
@@ -51,9 +51,6 @@ class AIResourceBase(AIoDConceptBase, metaclass=abc.ABCMeta):
         default=None,
         schema_extra={"example": "2022-01-01T15:15:00.000"},
     )
-    description: str | None = Field(
-        max_length=DESCRIPTION, schema_extra={"example": "A description."}, default=None
-    )
     same_as: str | None = Field(
         description="Url of a reference Web page that unambiguously indicates this resource's "
         "identity.",
@@ -68,6 +65,9 @@ class AbstractAIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         foreign_key="ai_resource.identifier", unique=True, index=True
     )
     ai_resource: AIResourceORM | None = Relationship()
+
+    description_identifier: int | None = Field(foreign_key="text.identifier", index=True)
+    description: TextORM | None = Relationship()
 
     alternate_name: list[AlternateName] = Relationship()
     keyword: list[Keyword] = Relationship()
@@ -104,6 +104,10 @@ class AbstractAIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
             class_read=Optional[AIResourceRead],
             class_create=Optional[AIResourceCreate],
             on_delete_trigger_deletion_by="ai_resource_identifier",
+        )
+        description: Optional[Text] = OneToOne(
+            deserializer=CastDeserializer(TextORM),
+            on_delete_trigger_deletion_by="description_identifier",
         )
         alternate_name: list[str] = ManyToMany(
             description="An alias for the item, commonly used for the resource instead of the "

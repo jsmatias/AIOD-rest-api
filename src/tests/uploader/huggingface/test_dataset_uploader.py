@@ -60,7 +60,6 @@ def test_repo_already_exists(client: TestClient, engine: Engine, mocked_privileg
                     name="Parent",
                     platform="example",
                     platform_resource_identifier="1",
-                    description="description text",
                     same_as="",
                 ),
             ]

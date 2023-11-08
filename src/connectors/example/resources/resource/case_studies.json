@@ -3,7 +3,7 @@
       "platform": "example",
       "platform_resource_identifier": "1",
       "name": "Name of the Case Study",
-      "description": "A description.",
+      "description": {"plain": "A description."},
       "same_as": "https://www.example.com/resource/this_resource",
       "date_published": "2022-01-01T15:15:00.000",
       "version": "1.1.0",

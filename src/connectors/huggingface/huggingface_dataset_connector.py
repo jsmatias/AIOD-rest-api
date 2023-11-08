@@ -13,6 +13,7 @@ from connectors.resource_with_relations import ResourceWithRelations
 from database.model import field_length
 from database.model.agent.person import Person
 from database.model.ai_asset.distribution import Distribution
+from database.model.ai_resource.text import Text
 from database.model.dataset.dataset import Dataset
 from database.model.knowledge_asset.publication import Publication
 from database.model.platform.platform_names import PlatformName
@@ -111,9 +112,11 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
         if dataset.author is not None:
             related_resources["creator"] = [Person(name=dataset.author)]
         description = dataset.description
-        if len(description) > field_length.DESCRIPTION:
+        if len(description) > field_length.LONG:
             text_break = " [...]"
-            description = description[: field_length.DESCRIPTION - len(text_break)] + text_break
+            description = description[: field_length.LONG - len(text_break)] + text_break
+        if description:
+            description = Text(plain=description)
 
         return ResourceWithRelations[Dataset](
             resource=pydantic_class(

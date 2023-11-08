@@ -11,6 +11,7 @@ from sqlmodel import Session, select
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
+from database.model import field_length
 from database.model.agent.contact import Contact
 from database.model.agent.organisation import Organisation
 from database.model.agent.person import Person
@@ -42,6 +43,9 @@ def test_happy_path(
     body["contact"] = [1]
     body["creator"] = [1]
     body["citation"] = [1]
+    description_plain = "a" * field_length.MAX_TEXT
+    description_html = f"<p>{'a' * (field_length.MAX_TEXT - 7)}</p>"
+    body["description"] = {"plain": description_plain, "html": description_html}
 
     datetime_create_request = datetime.utcnow().replace(tzinfo=pytz.utc)
     response = client.post("/datasets/v1", json=body, headers={"Authorization": "Fake token"})
@@ -65,7 +69,8 @@ def test_happy_path(
     assert 0 < (date_modified - datetime_create_request).total_seconds() < 0.2
 
     assert response_json["name"] == "The name"
-    assert response_json["description"] == "A description."
+    assert response_json["description"]["plain"] == description_plain
+    assert response_json["description"]["html"] == description_html
     assert set(response_json["alternate_name"]) == {"alias1", "alias2"}
     assert set(response_json["keyword"]) == {"tag1", "tag2"}
     assert set(response_json["relevant_link"]) == {

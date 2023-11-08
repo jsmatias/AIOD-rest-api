@@ -7,7 +7,7 @@ from database.model.agent.agent import AgentBase, Agent
 from database.model.agent.agent_table import AgentTable
 from database.model.agent.contact import Contact
 from database.model.agent.organisation_type import OrganisationType
-from database.model.field_length import NORMAL, DESCRIPTION
+from database.model.field_length import NORMAL, LONG
 from database.model.helper_functions import many_to_many_link_factory
 from database.model.relationships import ManyToOne, ManyToMany, OneToOne
 from database.model.serializers import (
@@ -31,7 +31,7 @@ class OrganisationBase(AgentBase):
         description="A description of positioning of the organisation within "
         "the broader European AI ecosystem.",
         schema_extra={"example": "Part of CLAIRE, focussing on explainable AI."},
-        max_length=DESCRIPTION,
+        max_length=LONG,
     )
 
 

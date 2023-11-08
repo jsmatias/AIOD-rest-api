@@ -8,7 +8,7 @@ from database.model.agent.location import LocationORM, Location
 from database.model.ai_resource.resource import AIResourceBase, AbstractAIResource
 from database.model.event.event_mode import EventMode
 from database.model.event.event_status import EventStatus
-from database.model.field_length import NORMAL, DESCRIPTION
+from database.model.field_length import NORMAL, LONG
 from database.model.helper_functions import many_to_many_link_factory
 
 from database.model.relationships import ManyToMany, ManyToOne, OneToMany
@@ -35,7 +35,7 @@ class EventBase(AIResourceBase):
     )
     schedule: str | None = Field(
         description="The agenda of the event.",
-        max_length=DESCRIPTION,
+        max_length=LONG,
         default=None,
         schema_extra={"example": "10:00-10:30: Opening. 10:30-11:00 ..."},
     )
