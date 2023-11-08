@@ -41,3 +41,28 @@ def test_happy_path(client: TestClient, mocked_privileged_token: Mock, body_asse
         }
     ]
     assert response_json["person"] == 1
+
+
+def test_post_duplicate_email(
+    client: TestClient,
+    mocked_privileged_token: Mock,
+):
+    """
+    It should be possible to add same email in different contacts, to enable
+    """
+    keycloak_openid.userinfo = mocked_privileged_token
+
+    body1 = {"email": ["a@example.com", "b@example.com"]}
+    body2 = {"email": ["c@example.com", "b@example.com"]}
+    response = client.post("/contacts/v1", json=body1, headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
+    response = client.post("/contacts/v1", json=body2, headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
+
+    contact = client.get("/contacts/v1/2").json()
+    assert set(contact["email"]) == {"b@example.com", "c@example.com"}
+    body3 = {"email": ["d@example.com", "b@example.com"]}
+    client.put("/contacts/v1/1", json=body3, headers={"Authorization": "Fake token"})
+    contact = client.get("/contacts/v1/2").json()
+    msg = "changing emails of contact 1 should not change emails of contact 2."
+    assert set(contact["email"]) == {"b@example.com", "c@example.com"}, msg
