@@ -70,7 +70,7 @@ Information on how to install Docker is found in [their documentation](https://d
 docker compose up
 ```
 starts the MYSQL Server, the REST API, Keycloak for Identy and access management and Nginx for reverse proxing. \
-Once started, you should be able to visit the REST API server at: http://localhost:8000 and Keycloak at http://localhost:8080 \
+Once started, you should be able to visit the REST API server at: http://localhost and Keycloak at http://localhost/aiod-auth \
 To authenticate to the REST API swagger interface the predefined user is: user, and password: password \
 To authenticate as admin to Keycloak the predefined user is: admin and password: password \
 To use a different DNS hostname replace localhost with it in .env and src/config.toml \
@@ -89,6 +89,7 @@ mysql> SHOW DATABASES;
 | sys                |
 +--------------------+
 4 rows in set (0.03 sec)
+```
 
 Now, you can visit the server from your browser at `localhost:8000/docs`.
 
@@ -134,7 +135,7 @@ The `--reload` argument will automatically restart the app if changes are made t
 3. Run using DevContainer (see next subsection)
 
 ### Authentication
-Currently, the code is on default coupled with a keycloak running on test.openml.org. To make 
+Currently, the code is by default running using the local Keycloak. To make 
 this work, you need to set an environment variable. You can do this by setting the 
 `KEYCLOAK_CLIENT_SECRET` in `src/.env`.
 
