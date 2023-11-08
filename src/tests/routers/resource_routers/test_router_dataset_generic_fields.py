@@ -214,6 +214,39 @@ def test_post_duplicate_named_relations(
     }
 
 
+def test_post_editors(
+    client: TestClient,
+    engine: Engine,
+    mocked_privileged_token: Mock,
+):
+    """
+    Unittest mirroring situation reported during the data migration of AI4EU events.
+    """
+    keycloak_openid.userinfo = mocked_privileged_token
+    headers = {"Authorization": "Fake token"}
+    client.post("/persons/v1", json={"name": "1"}, headers=headers)
+    client.post("/persons/v1", json={"name": "2"}, headers=headers)
+    client.post("/persons/v1", json={"name": "3"}, headers=headers)
+
+    def assert_editors_are_stored(id_: str, *editors: int):
+        body = {
+            "platform": "example",
+            "platform_resource_identifier": id_,
+            "name": "How user evaluation changed in times of COVID-19",
+            "aiod_entry": {"editor": editors, "status": "published"},
+        }
+        response = client.post("/events/v1", json=body, headers=headers)
+        assert response.status_code == 200, response.json()
+        response = client.get(f"/events/v1/{response.json()['identifier']}")
+        assert response.status_code == 200, response.json()
+        editors_actual = response.json()["aiod_entry"]["editor"]
+        assert set(editors_actual) == set(editors)
+
+    assert_editors_are_stored("34", 1, 2, 3)
+    assert_editors_are_stored("37", 1, 2)
+    assert_editors_are_stored("36", 1, 2)
+
+
 def test_create_aiod_entry(client: TestClient, engine: Engine, mocked_privileged_token: Mock):
     keycloak_openid.userinfo = mocked_privileged_token
     body = {"name": "news"}

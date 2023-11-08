@@ -72,7 +72,7 @@ class AIoDConcept(AIoDConceptBase):
         # TODO: solve it when this becomes a problem.
         return (
             Index(
-                f"{cls.__name__}_same_platform_and_platform_resource_identifier",
+                f"{cls.__name__}_same_platform_and_platform_id",
                 cls.platform,
                 cls.platform_resource_identifier,
                 coalesce(cls.date_deleted, "2000-01-01"),

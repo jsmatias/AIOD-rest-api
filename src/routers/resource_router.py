@@ -495,7 +495,7 @@ class ResourceRouter(abc.ABC):
         # Note that the "real" errors are different from testing errors, because we use a
         # sqlite db while testing and a mysql db when running the application. The correct error
         # handling is therefore not tested. TODO: can we improve this?
-        if "_same_platform_and_platform_resource_identifier" in error:
+        if "_same_platform_and_platform_id" in error:
             query = select(self.resource_class).where(
                 and_(
                     getattr(self.resource_class, "platform") == resource_create.platform,
