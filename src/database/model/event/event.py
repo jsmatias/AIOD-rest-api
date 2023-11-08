@@ -6,12 +6,12 @@ from sqlmodel import Field, Relationship
 from database.model.agent.agent_table import AgentTable
 from database.model.agent.location import LocationORM, Location
 from database.model.ai_resource.resource import AIResourceBase, AbstractAIResource
+from database.model.ai_resource.text import TextORM, Text
 from database.model.event.event_mode import EventMode
 from database.model.event.event_status import EventStatus
 from database.model.field_length import NORMAL, LONG
 from database.model.helper_functions import many_to_many_link_factory
-
-from database.model.relationships import ManyToMany, ManyToOne, OneToMany
+from database.model.relationships import ManyToMany, ManyToOne, OneToMany, OneToOne
 from database.model.serializers import (
     AttributeSerializer,
     FindByIdentifierDeserializer,
@@ -51,6 +51,15 @@ class EventBase(AIResourceBase):
 class Event(EventBase, AbstractAIResource, table=True):  # type: ignore [call-arg]
     __tablename__ = "event"
 
+    content_identifier: int | None = Field(
+        index=True,
+        foreign_key="text.identifier",
+        description="Alternative for using .distributions[*].content_url, to make it easier to add "
+        "textual content. ",
+    )
+    content: TextORM | None = Relationship(
+        sa_relationship_kwargs=dict(foreign_keys="[Event.content_identifier]")
+    )
     location: list[LocationORM] = Relationship(sa_relationship_kwargs={"cascade": "all, delete"})
     performer: list["AgentTable"] = Relationship(
         link_model=many_to_many_link_factory(
@@ -65,6 +74,10 @@ class Event(EventBase, AbstractAIResource, table=True):  # type: ignore [call-ar
     mode: Optional[EventMode] = Relationship()
 
     class RelationshipConfig(AbstractAIResource.RelationshipConfig):
+        content: Optional[Text] = OneToOne(
+            deserializer=CastDeserializer(TextORM),
+            on_delete_trigger_deletion_by="content_identifier",
+        )
         location: list[Location] = OneToMany(
             deserializer=CastDeserializer(LocationORM),
             default_factory_pydantic=list,

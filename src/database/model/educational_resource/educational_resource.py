@@ -1,10 +1,10 @@
 from typing import Optional
-
 from sqlmodel import Field, Relationship
 
 from database.model.agent.language import Language
 from database.model.agent.location import Location, LocationORM
 from database.model.ai_resource.resource import AbstractAIResource, AIResourceBase
+from database.model.ai_resource.text import TextORM, Text
 from database.model.educational_resource.access_mode import AccessMode
 from database.model.educational_resource.educational_level import EducationalLevel
 from database.model.educational_resource.educational_resource_type import EducationalResourceType
@@ -13,7 +13,7 @@ from database.model.educational_resource.prerequisite import Prerequisite
 from database.model.educational_resource.target_audience import TargetAudience
 from database.model.field_length import NORMAL
 from database.model.helper_functions import many_to_many_link_factory
-from database.model.relationships import ManyToOne, ManyToMany
+from database.model.relationships import ManyToOne, ManyToMany, OneToOne
 from database.model.serializers import AttributeSerializer, FindByNameDeserializer, CastDeserializer
 
 
@@ -41,6 +41,16 @@ class EducationalResource(
         link_model=many_to_many_link_factory(
             table_from="educational_resource", table_to=AccessMode.__tablename__
         )
+    )
+
+    content_identifier: int | None = Field(
+        index=True,
+        foreign_key="text.identifier",
+        description="Alternative for using .distributions[*].content_url, to make it easier to add "
+        "textual content. ",
+    )
+    content: TextORM | None = Relationship(
+        sa_relationship_kwargs=dict(foreign_keys="[EducationalResource.content_identifier]")
     )
     educational_level: list[EducationalLevel] = Relationship(
         link_model=many_to_many_link_factory(
@@ -90,6 +100,10 @@ class EducationalResource(
             deserializer=FindByNameDeserializer(AccessMode),
             example=["textual"],
             default_factory_pydantic=list,
+        )
+        content: Optional[Text] = OneToOne(
+            deserializer=CastDeserializer(TextORM),
+            on_delete_trigger_deletion_by="content_identifier",
         )
         educational_level: list[str] = ManyToMany(
             description="The level or levels of education for which this resource is intended.",

@@ -36,6 +36,7 @@ def test_happy_path(
         "graduate knowledge of linear algebra",
     ]
     body["target_audience"] = ["professionals", "professors"]
+    body["content"] = {"plain": "plain content"}
 
     response = client.post(
         "/educational_resources/v1", json=body, headers={"Authorization": "Fake token"}
@@ -59,3 +60,4 @@ def test_happy_path(
         "graduate knowledge of linear algebra",
     }
     assert set(response_json["target_audience"]) == {"professionals", "professors"}
+    assert response_json["content"] == {"plain": "plain content"}

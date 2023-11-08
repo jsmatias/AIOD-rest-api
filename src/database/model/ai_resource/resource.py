@@ -66,7 +66,7 @@ class AbstractAIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
     )
     ai_resource: AIResourceORM | None = Relationship()
 
-    description_identifier: int | None = Field(foreign_key="text.identifier", index=True)
+    description_identifier: int | None = Field(index=True, foreign_key="text.identifier")
     description: TextORM | None = Relationship()
 
     alternate_name: list[AlternateName] = Relationship()
@@ -238,3 +238,7 @@ class AbstractAIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         )
         relationships["contact"].link_model = link_model_contact
         relationships["creator"].link_model = link_model_creator
+
+        relationships["description"].sa_relationship_kwargs = dict(
+            foreign_keys=f"[{cls.__name__}.description_identifier]"
+        )

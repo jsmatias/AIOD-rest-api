@@ -16,6 +16,7 @@ def test_happy_path(
     body["headline"] = "A headline to show on top of the page."
     body["alternative_headline"] = "An alternative headline."
     body["category"] = ["Research: Education", "Research: Awards", "Business: Health"]
+    body["content"] = {"plain": "plain content"}
 
     response = client.post("/news/v1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
@@ -31,3 +32,4 @@ def test_happy_path(
         "Research: Awards",
         "Business: Health",
     }
+    assert response_json["content"] == {"plain": "plain content"}
