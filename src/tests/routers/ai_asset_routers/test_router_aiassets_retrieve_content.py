@@ -280,7 +280,6 @@ def test_headers_when_distribution_has_missing_fields(
     body["distribution"][0]["encoding_format"] = encoding_format
 
     alternate_filename = body["distribution"][0]["content_url"].split("/")[-1]
-    alternate_encoding_format = "unknown"
 
     set_up(client, engine, mocked_privileged_token, body, person, SAMPLE_RESOURCE_NAME)
 
@@ -293,9 +292,7 @@ def test_headers_when_distribution_has_missing_fields(
             response.headers.get("Content-Disposition")
             == f"attachment; filename={alternate_filename}"
         ), response.headers
-        assert (
-            response.headers.get("Content-Type") == f"{alternate_encoding_format}"
-        ), response.headers
+        assert "content-type" not in response.headers.keys(), response.headers
 
         response0 = client.get(SAMPLE_ENDPOINT + "/0")
         assert response0.status_code == status.HTTP_200_OK, response0.json()
@@ -303,6 +300,4 @@ def test_headers_when_distribution_has_missing_fields(
             response0.headers.get("Content-Disposition")
             == f"attachment; filename={alternate_filename}"
         ), response0.headers
-        assert (
-            response0.headers.get("Content-Type") == f"{alternate_encoding_format}"
-        ), response0.headers
+        assert "content-type" not in response0.headers.keys(), response0.headers

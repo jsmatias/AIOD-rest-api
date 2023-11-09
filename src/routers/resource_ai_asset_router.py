@@ -83,9 +83,11 @@ class ResourceAIAssetRouter(ResourceRouter):
                 headers = {
                     "Content-Disposition": (
                         "attachment; " f"filename={filename or url.split('/')[-1]}"
-                    ),
-                    "Content-Type": f"{encoding_format or 'unknown'}",
+                    )
                 }
+                if encoding_format:
+                    headers.update({"Content-Type": encoding_format})
+
                 return Response(content=content, headers=headers)
 
             except Exception as exc:
