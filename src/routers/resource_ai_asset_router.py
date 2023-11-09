@@ -86,7 +86,7 @@ class ResourceAIAssetRouter(ResourceRouter):
                     )
                 }
                 if encoding_format:
-                    headers.update({"Content-Type": encoding_format})
+                    headers["Content-Type"] = encoding_format
 
                 return Response(content=content, headers=headers)
 
