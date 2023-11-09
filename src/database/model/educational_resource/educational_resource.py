@@ -78,7 +78,7 @@ class EducationalResource(
         type: Optional[str] = ManyToOne(
             description="The type of educational resource.",
             identifier_name="type_identifier",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(EducationalResourceType),
             example="presentation",
         )
@@ -90,13 +90,13 @@ class EducationalResource(
             '"full-time" is used for programmes or intensive courses that require a '
             "full-time engagement from the student.",
             identifier_name="pace_identifier",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(Pace),
             example="full-time",
         )
         access_mode: list[str] = ManyToMany(
             description="The primary mode of accessing this educational resource.",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(AccessMode),
             example=["textual"],
             default_factory_pydantic=list,
@@ -107,14 +107,14 @@ class EducationalResource(
         )
         educational_level: list[str] = ManyToMany(
             description="The level or levels of education for which this resource is intended.",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(EducationalLevel),
             example=["primary school", "secondary school", "university"],
             default_factory_pydantic=list,
         )
         in_language: list[str] = ManyToMany(
             description="The language(s) of the educational resource, in ISO639-3.",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(Language),
             example=["eng", "fra", "spa"],
             default_factory_pydantic=list,
@@ -126,7 +126,7 @@ class EducationalResource(
         prerequisite: list[str] = ManyToMany(
             description="Minimum or recommended requirements to make use of this "
             "educational resource.",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(Prerequisite),
             example=[
                 "undergraduate knowledge of statistics",
@@ -136,7 +136,7 @@ class EducationalResource(
         )
         target_audience: list[str] = ManyToMany(
             description="The intended users of this educational resource.",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(TargetAudience),
             example=[
                 "professionals",

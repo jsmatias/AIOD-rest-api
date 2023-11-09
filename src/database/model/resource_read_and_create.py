@@ -68,7 +68,6 @@ def resource_create(resource_class: Type["AIoDConcept"]) -> Type[SQLModel]:
     """
     relationships = get_relationships(resource_class)
     field_definitions = _get_field_definitions_create(resource_class, relationships)
-
     model = create_model(
         resource_class.__name__ + "Create", __base__=resource_class.__base__, **field_definitions
     )

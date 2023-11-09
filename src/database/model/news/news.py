@@ -43,7 +43,7 @@ class News(NewsBase, AbstractAIResource, table=True):  # type: ignore [call-arg]
     class RelationshipConfig(AbstractAIResource.RelationshipConfig):
         category: list[str] = ManyToMany(
             description="News categories related to this item.",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(NewsCategory),
             example=["research: education", "research: awards", "business: robotics"],
             default_factory_pydantic=list,

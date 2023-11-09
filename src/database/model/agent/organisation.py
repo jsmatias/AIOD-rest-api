@@ -51,19 +51,19 @@ class Organisation(OrganisationBase, Agent, table=True):  # type: ignore [call-a
         contact_details: int | None = OneToOne(
             description="The contact details by which this organisation can be reached",
             deserializer=FindByIdentifierDeserializer(Contact),
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
         )
         type: Optional[str] = ManyToOne(
             description="The type of organisation.",
             identifier_name="type_identifier",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(OrganisationType),
             example="Research Institution",
         )
         member: list[int] = ManyToMany(
             description="The identifier of an agent (e.g. organisation or person) that is a "
             "member of this organisation.",
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
             deserializer=FindByIdentifierDeserializer(AgentTable),
             default_factory_pydantic=list,
         )

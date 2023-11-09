@@ -59,11 +59,11 @@ class Person(PersonBase, Agent, table=True):  # type: ignore [call-arg]
         contact_details: int | None = OneToOne(
             description="The contact details by which this person can be reached",
             deserializer=FindByIdentifierDeserializer(Contact),
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
         )
         expertise: list[str] = ManyToMany(
             description="A skill this person masters.",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(Expertise),
             example=["transfer learning"],
             default_factory_pydantic=list,
@@ -71,7 +71,7 @@ class Person(PersonBase, Agent, table=True):  # type: ignore [call-arg]
         )
         language: list[str] = ManyToMany(
             description="A language this person masters, in ISO639-3",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(Language),
             example=["eng", "fra", "spa"],
             default_factory_pydantic=list,

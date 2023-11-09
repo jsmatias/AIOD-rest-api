@@ -64,7 +64,7 @@ class Publication(PublicationBase, KnowledgeAsset, table=True):  # type: ignore 
         type: str | None = ManyToOne(
             description="The type of publication.",
             identifier_name="type_identifier",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(PublicationType),
             example="journal",
         )

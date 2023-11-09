@@ -41,7 +41,7 @@ class KnowledgeAsset(KnowledgeAssetBase, AIAsset):
         documents: list[int] = ManyToMany(
             description="The identifier of an AI asset for which the Knowledge Asset acts as an "
             "information source",
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
             deserializer=FindByIdentifierDeserializer(AIAssetTable),
             example=[],
             default_factory_pydantic=list,

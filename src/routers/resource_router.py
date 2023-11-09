@@ -359,8 +359,8 @@ class ResourceRouter(abc.ABC):
         deserialize_resource_relationships(
             session, self.resource_class, resource, resource_create_instance
         )
-        if isinstance(resource, AbstractAIResource) and resource.ai_resource:
-            resource.ai_resource.type = self.resource_name
+        # if isinstance(resource, AbstractAIResource) and resource.ai_:
+        #     resource.ai_resource.type = self.resource_name
         session.add(resource)
         session.commit()
         return resource

@@ -85,7 +85,7 @@ class Event(EventBase, AbstractAIResource, table=True):  # type: ignore [call-ar
         performer: list[int] = ManyToMany(
             description="Links to identifiers of the agents (person or organization) that is "
             "contributing to this event ",
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
             deserializer=FindByIdentifierDeserializer(AgentTable),
             default_factory_pydantic=list,
             example=[],
@@ -93,19 +93,19 @@ class Event(EventBase, AbstractAIResource, table=True):  # type: ignore [call-ar
         organiser: Optional[int] = ManyToOne(
             identifier_name="organiser_identifier",
             description="The person or organisation responsible for organising the event.",
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
         )
         status: Optional[str] = ManyToOne(
             description="The status of the event.",
             identifier_name="status_identifier",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(EventStatus),
             example="scheduled",
         )
         mode: Optional[str] = ManyToOne(
             description="The attendance mode of event.",
             identifier_name="mode_identifier",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(EventMode),
             example="offline",
         )

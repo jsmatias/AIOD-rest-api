@@ -50,7 +50,7 @@ class Experiment(ExperimentBase, AIAsset, table=True):  # type: ignore [call-arg
     class RelationshipConfig(AIAsset.RelationshipConfig):
         badge: list[str] = ManyToMany(
             description="Labels awarded on the basis of the reproducibility of this experiment.",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(Badge),
             default_factory_pydantic=list,
             example=["ACM Artifacts Evaluated - Reusable"],

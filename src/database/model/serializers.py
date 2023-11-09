@@ -20,6 +20,10 @@ class Serializer(abc.ABC, Generic[MODEL]):
     def serialize(self, model: MODEL) -> Any:
         pass
 
+    def value(self, model: SQLModel, attribute_name):
+        """Return the value, for most serializers just model.attribute_name"""
+        return getattr(model, attribute_name)
+
 
 class DeSerializer(abc.ABC, Generic[MODEL]):
     """Deserialization from ORM class to Pydantic class"""
@@ -40,6 +44,26 @@ class AttributeSerializer(Serializer):
 
     def serialize(self, model: MODEL) -> Any:
         return getattr(model, self.attribute_name)
+
+
+class GetPathSerializer(Serializer):
+    """
+    Serializes to a nested path.
+
+    E.g., dataset.has_path is serialized to dataset.ai_resource_identifier.has_path.
+    """
+
+    def __init__(self, path: str, inner_serializer: Serializer):
+        self.path = path
+        self.other_serializer = inner_serializer
+
+    def serialize(self, model: MODEL) -> Any:
+        return self.other_serializer.serialize(model)
+
+    def value(self, model: SQLModel, attribute_name):
+        """Return the value: model.[self.path].attribute_name"""
+        inner_model = getattr(model, self.path)
+        return getattr(inner_model, attribute_name)
 
 
 @dataclasses.dataclass
@@ -140,13 +164,15 @@ def create_getter_dict(attribute_serializers: Dict[str, Serializer]):
 
     class GetterDictSerializer(GetterDict):
         def get(self, key: Any, default: Any = None) -> Any:
+            # if key == "has_part" and hasattr(self._obj, "ai_resource"):
+            #     return [p.identifier for p in self._obj.ai_resource.has_part]
             if key in attribute_names:
-                attribute = getattr(self._obj, key)
-                if attribute is not None:
-                    serializer = attribute_serializers[key]
-                    if isinstance(attribute, list):
-                        return [serializer.serialize(v) for v in attribute]
-                    return serializer.serialize(attribute)
+                serializer = attribute_serializers[key]
+                attribute_value = serializer.value(model=self._obj, attribute_name=key)
+                if attribute_value is not None:
+                    if isinstance(attribute_value, list):
+                        return [serializer.serialize(v) for v in attribute_value]
+                    return serializer.serialize(attribute_value)
             return super().get(key, default)
 
     return GetterDictSerializer
@@ -164,41 +190,53 @@ def deserialize_resource_relationships(
         return
     relationships = get_relationships(resource_class)
     for attribute, relationship in relationships.items():
-        new_value = None
-        if (
-            isinstance(relationship.deserializer, CastDeserializer)
-            and hasattr(resource, attribute)
-            and getattr(resource, attribute)
-        ):
-            deserialize_object_relationship(session, resource, resource_create_instance, attribute)
-        elif relationship.include_in_create:
-            new_value = getattr(resource_create_instance, attribute)
-            if new_value is None and relationship.default_factory_orm is not None:
-                # e.g. .aiod_entry, which should be generated if it's not present
-                relation = relationship.default_factory_orm(type_=resource_class.__tablename__)
-                session.add(relation)
-                session.flush()
-                new_value = relation
-        else:
-            # This attribute is not included in the "create instance". In other words,
-            # it is not part of the json specified in a POST or PUT request. Examples are
-            # Dataset.asset_identifier. This identifier is assigned by the AIoD platform,
-            # not by the user.
-            if getattr(resource, attribute) is not None:
-                # The attribute is already set (so this is a PUT request). Keep existing value
-                pass
-            elif relationship.default_factory_orm is not None:
-                relation = relationship.default_factory_orm(type_=resource_class.__tablename__)
-                session.add(relation)
-                session.flush()
-                new_value = relation.identifier
-        if new_value is not None:
-            if relationship.deserializer is not None:
-                new_value = relationship.deserializer.deserialize(session, new_value)
-            if hasattr(relationship, "identifier_name") and relationship.identifier_name:
-                setattr(resource, relationship.identifier_name, new_value)
+        if relationship.deserialized_path is None:
+            new_value = None
+            if (
+                isinstance(relationship.deserializer, CastDeserializer)
+                and hasattr(resource, attribute)
+                and getattr(resource, attribute)
+            ):
+                deserialize_object_relationship(
+                    session, resource, resource_create_instance, attribute
+                )
+            elif relationship.include_in_create:
+                new_value = getattr(resource_create_instance, attribute)
+                if new_value is None and relationship.default_factory_orm is not None:
+                    # e.g. .aiod_entry, which should be generated if it's not present
+                    relation = relationship.default_factory_orm(type_=resource_class.__tablename__)
+                    session.add(relation)
+                    session.flush()
+                    new_value = relation
             else:
-                setattr(resource, attribute, new_value)
+                # This attribute is not included in the "create instance". In other words,
+                # it is not part of the json specified in a POST or PUT request. Examples are
+                # Dataset.asset_identifier. This identifier is assigned by the AIoD platform,
+                # not by the user.
+                if getattr(resource, attribute) is not None:
+                    # The attribute is already set (so this is a PUT request). Keep existing value
+                    pass
+                elif relationship.default_factory_orm is not None:
+                    if not hasattr(relationship, "identifier_name"):
+                        raise ValueError()
+                    relation = relationship.default_factory_orm(type_=resource_class.__tablename__)
+                    session.add(relation)
+                    session.flush()
+                    setattr(resource, attribute, relation)
+                    setattr(resource, relationship.identifier_name, relation.identifier)
+
+            if new_value is not None:
+                if relationship.deserializer is not None:
+                    new_value = relationship.deserializer.deserialize(session, new_value)
+                setattr(resource, relationship.attribute(attribute), new_value)
+
+    for attribute, relationship in relationships.items():
+        if relationship.deserialized_path is not None:
+            new_value = getattr(resource_create_instance, attribute)
+            if relationship.deserializer:
+                new_value = relationship.deserializer.deserialize(session, new_value)
+            inner_model = getattr(resource, relationship.deserialized_path)
+            setattr(inner_model, attribute, new_value)
 
 
 def deserialize_object_relationship(session, resource, resource_create_instance, attribute):

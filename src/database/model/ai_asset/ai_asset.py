@@ -64,7 +64,7 @@ class AIAsset(AIAssetBase, AbstractAIResource, metaclass=abc.ABCMeta):
     class RelationshipConfig(AbstractAIResource.RelationshipConfig):
         ai_asset_identifier: int | None = OneToOne(
             identifier_name="ai_asset_id",
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
             include_in_create=False,
             default_factory_orm=lambda type_: AIAssetTable(type=type_),
             on_delete_trigger_deletion_by="ai_asset_id",
@@ -72,13 +72,13 @@ class AIAsset(AIAssetBase, AbstractAIResource, metaclass=abc.ABCMeta):
         distribution: list[Distribution] = OneToMany(default_factory_pydantic=list)
         license: Optional[str] = ManyToOne(
             identifier_name="license_identifier",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(License),
             example="https://creativecommons.org/share-your-work/public-domain/cc0/",
         )
         citation: list[int] = ManyToMany(
             description="A bibliographic reference.",
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
             default_factory_pydantic=list,
             example=[],
         )

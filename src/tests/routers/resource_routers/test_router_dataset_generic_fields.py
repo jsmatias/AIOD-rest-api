@@ -56,7 +56,7 @@ def test_happy_path(
 
     response_json = response.json()
     assert response_json["identifier"] == 1
-    assert response_json["ai_resource"]["identifier"] == 3
+    assert response_json["ai_resource_identifier"] == 3
     assert response_json["ai_asset_identifier"] == 2
 
     assert response_json["platform"] == "example"
@@ -129,7 +129,7 @@ def test_happy_path(
     response = client.get("/datasets/v1/1")
     response_json = response.json()
     assert response_json["identifier"] == 1
-    assert response_json["ai_resource"]["identifier"] == 3
+    assert response_json["ai_resource_identifier"] == 3
     assert response_json["ai_asset_identifier"] == 2
 
     date_created = dateutil.parser.parse(response_json["aiod_entry"]["date_created"] + "Z")
@@ -268,8 +268,7 @@ def test_create_aiod_entry(client: TestClient, engine: Engine, mocked_privileged
     assert start < date_created < end
     assert start < date_modified < end
 
-    assert "ai_resource" in resource_json
-    assert resource_json["ai_resource"]["type"] == "news"
+    assert resource_json["ai_resource_identifier"] == 1
 
 
 def test_update_aiod_entry(client: TestClient, engine: Engine, mocked_privileged_token: Mock):
@@ -339,10 +338,10 @@ def assert_relations(
     response = client.get(f"/{type_}/v1/1")
     resource = response.json()
     assert response.status_code == 200, resource
-    assert resource["ai_resource"]["has_part"] == (has_part or [])
-    assert resource["ai_resource"]["is_part_of"] == (is_part_of or [])
-    assert resource["ai_resource"]["relevant_resource"] == (relevant_resource or [])
-    assert resource["ai_resource"]["relevant_to"] == (relevant_to or [])
+    assert resource["has_part"] == (has_part or [])
+    assert resource["is_part_of"] == (is_part_of or [])
+    assert resource["relevant_resource"] == (relevant_resource or [])
+    assert resource["relevant_to"] == (relevant_to or [])
 
 
 def test_relations_between_resources(
@@ -362,21 +361,18 @@ def test_relations_between_resources(
         session.merge(organisation)
         session.commit()
 
-    body = {
-        "name": "news",
-        "ai_resource": {"has_part": [1], "is_part_of": [2], "relevant_resource": [3]},
-    }
+    body = {"name": "news", "has_part": [1], "is_part_of": [2], "relevant_resource": [3]}
     response = client.post("/news/v1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
-    response = client.get("/news/v1/1")
-    assert response.json()["ai_resource"]["type"] == "news"
     assert_relations(client, "datasets", is_part_of=[4])
     assert_relations(client, "publications", has_part=[4])
     assert_relations(client, "organisations", relevant_to=[4])
 
     body = {
         "name": "news",
-        "ai_resource": {"has_part": [2], "is_part_of": [1, 3], "relevant_resource": []},
+        "has_part": [2],
+        "is_part_of": [1, 3],
+        "relevant_resource": [],
     }
     response = client.put("/news/v1/1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
@@ -386,12 +382,10 @@ def test_relations_between_resources(
 
     body = {
         "name": "news",
-        "ai_resource": {
-            "has_part": [],
-            "is_part_of": [],
-            "relevant_resource": [1, 2],
-            "relevant_to": [3],
-        },
+        "has_part": [],
+        "is_part_of": [],
+        "relevant_resource": [1, 2],
+        "relevant_to": [3],
     }
     response = client.put("/news/v1/1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
@@ -399,16 +393,8 @@ def test_relations_between_resources(
     assert_relations(client, "publications", relevant_to=[4])
     assert_relations(client, "organisations", relevant_resource=[4])
 
-    body = {
-        "name": "news",
-        "ai_resource": {"has_part": [1], "is_part_of": [2], "relevant_resource": [3]},
-    }
+    body = {"name": "news", "has_part": [1], "is_part_of": [2], "relevant_resource": [3]}
     response = client.put("/news/v1/1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
     response = client.delete("/news/v1/1", headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
-
-    # TODO(jos): after merge with soft delete
-    # assert_relations(client, "datasets")
-    # assert_relations(client, "publications")
-    # assert_relations(client, "organisations")

@@ -66,7 +66,7 @@ class Dataset(DatasetBase, AIAsset, table=True):  # type: ignore [call-arg]
         funder: list[int] = ManyToMany(
             description="Links to identifiers of the agents (person or organization) that supports "
             "this dataset through some kind of financial contribution. ",
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
             deserializer=FindByIdentifierDeserializer(AgentTable),
             default_factory_pydantic=list,
             example=[],

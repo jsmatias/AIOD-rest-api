@@ -35,7 +35,7 @@ class Agent(AgentBase, AbstractAIResource):
     class RelationshipConfig(AbstractAIResource.RelationshipConfig):
         agent_identifier: int | None = OneToOne(
             identifier_name="agent_id",
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
             include_in_create=False,
             default_factory_orm=lambda type_: AgentTable(type=type_),
             on_delete_trigger_deletion_by="agent_id",

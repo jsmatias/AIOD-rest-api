@@ -71,14 +71,14 @@ class Project(ProjectBase, AbstractAIResource, table=True):  # type: ignore [cal
         funder: list[int] = ManyToMany(
             description="Identifiers of organizations that support this project through some kind "
             "of financial contribution. ",
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
             deserializer=FindByIdentifierDeserializer(Organisation),
             default_factory_pydantic=list,
             example=[],
         )
         participant: list[int] = ManyToMany(
             description="Identifiers of members of this project. ",
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
             deserializer=FindByIdentifierDeserializer(Organisation),
             default_factory_pydantic=list,
             example=[],
@@ -86,18 +86,18 @@ class Project(ProjectBase, AbstractAIResource, table=True):  # type: ignore [cal
         coordinator: Optional[int] = ManyToOne(
             identifier_name="coordinator_identifier",
             description="The coordinating organisation of this project.",
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
         )
         produced: list[int] = ManyToMany(
             description="Identifiers of AIAssets that are created in this project.",
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
             deserializer=FindByIdentifierDeserializer(AIAssetTable),
             default_factory_pydantic=list,
             example=[],
         )
         used: list[int] = ManyToMany(
             description="Identifiers of AIAssets that are used (but not created) in this project.",
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
             deserializer=FindByIdentifierDeserializer(AIAssetTable),
             default_factory_pydantic=list,
             example=[],

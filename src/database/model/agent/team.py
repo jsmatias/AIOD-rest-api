@@ -40,12 +40,12 @@ class Team(TeamBase, AbstractAIResource, table=True):  # type: ignore [call-arg]
         organisation: int | None = ManyToOne(
             description="The organisation of which this team is a part.",
             identifier_name="organisation_identifier",
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
         )
         member: list[int] = ManyToMany(
             description="The persons that are a member of this team. The leader should "
             "also be added as contact.",
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
             deserializer=FindByIdentifierDeserializer(Person),
             example=[],
             default_factory_pydantic=list,

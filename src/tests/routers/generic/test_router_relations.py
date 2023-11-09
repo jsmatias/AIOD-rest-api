@@ -91,13 +91,13 @@ class TestObject(TestObjectBase, AIoDConcept, table=True):  # type: ignore [call
         named_string: Optional[str] = ManyToOne(
             description="this is a test for a string stored in a separate table",
             identifier_name="named_string_identifier",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(TestEnum),
             example="test",
         )
         named_string_list: List[str] = ManyToMany(
             description="this is a test for a list of strings",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(TestEnum2),
             example=["test1", "test2"],
         )

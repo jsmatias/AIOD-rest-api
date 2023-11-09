@@ -34,7 +34,7 @@ def test_happy_path(
             dataset_media(content_url="example.com/dataset1-b"),
         ],
         note=[dataset_note(value="dataset1-a"), dataset_note(value="dataset1-b")],
-        ai_resource=AIResourceORM(type="dataset"),
+        ai_resource_identifier=AIResourceORM(type="dataset"),
     )
     dataset_2 = Dataset(
         name="dataset 2",
@@ -45,13 +45,13 @@ def test_happy_path(
             dataset_media(content_url="example.com/dataset2-b"),
         ],
         note=[dataset_note(value="dataset2-a"), dataset_note(value="dataset2-b")],
-        ai_resource=AIResourceORM(type="dataset"),
+        ai_resource_identifier=AIResourceORM(type="dataset"),
     )
     publication = Publication(
         name="publication",
         alternate_name=[alternate_name_b],
         keyword=[keyword_b],
-        ai_resource=AIResourceORM(type="publication"),
+        ai_resource_identifier=AIResourceORM(type="publication"),
     )
 
     with Session(engine) as session:

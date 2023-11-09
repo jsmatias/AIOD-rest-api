@@ -62,7 +62,7 @@ class Contact(ContactBase, AIoDConcept, table=True):  # type: ignore [call-arg]
     class RelationshipConfig(AIoDConcept.RelationshipConfig):
         email: list[str] = ManyToMany(
             description="An email address.",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(Email),
             on_delete_trigger_orphan_deletion=lambda: ["contact_email_link"],
             default_factory_pydantic=list,
@@ -73,16 +73,16 @@ class Contact(ContactBase, AIoDConcept, table=True):  # type: ignore [call-arg]
         )
         telephone: list[str] = ManyToMany(
             description="A telephone number, including the land code.",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(Telephone),
             on_delete_trigger_orphan_deletion=lambda: ["contact_telephone_link"],
             default_factory_pydantic=list,
         )
         organisation: Optional[int] = OneToOne(
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
         )
         person: Optional[int] = OneToOne(
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
         )
 
     @property

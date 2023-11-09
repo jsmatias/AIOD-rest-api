@@ -4,13 +4,6 @@ The AIResource table, which is linked to every child of the AbstractAIResource (
 
 from sqlmodel import SQLModel, Field, Relationship
 
-from database.model.relationships import ManyToMany
-from database.model.serializers import (
-    create_getter_dict,
-    AttributeSerializer,
-    FindByIdentifierDeserializer,
-)
-
 
 class AIResourcePartLink(SQLModel, table=True):  # type: ignore [call-arg]
     __tablename__ = "ai_resource_part_link"
@@ -65,76 +58,3 @@ class AIResourceORM(AIResourceBase, table=True):  # type: ignore [call-arg]
             "secondaryjoin": "AIResourceORM.identifier==AIResourceRelevantLink.relevant_identifier",
         },
     )
-
-    class RelationshipConfig:
-        is_part_of: list[int] = ManyToMany()
-        has_part: list[int] = ManyToMany()
-        relevant_resource: list[int] = ManyToMany()
-        relevant_to: list[int] = ManyToMany()
-
-
-deserializer = FindByIdentifierDeserializer(AIResourceORM)
-AIResourceORM.RelationshipConfig.is_part_of.deserializer = deserializer  # type: ignore
-AIResourceORM.RelationshipConfig.has_part.deserializer = deserializer  # type: ignore
-AIResourceORM.RelationshipConfig.relevant_resource.deserializer = deserializer  # type: ignore
-AIResourceORM.RelationshipConfig.relevant_to.deserializer = deserializer  # type: ignore
-
-
-class AIResourceCreate(AIResourceBase):
-    is_part_of: list[int] = Field(
-        description="A list of resource identifiers that this resource is a part of.",
-        default_factory=list,
-        schema_extra={"example": []},
-    )
-    has_part: list[int] = Field(
-        description="A list of resource identifiers that are part of this resource.",
-        default_factory=list,
-        schema_extra={"example": []},
-    )
-    relevant_resource: list[int] = Field(
-        description="A list of resource identifiers that are relevant to this resource.",
-        default_factory=list,
-        schema_extra={"example": []},
-    )
-    relevant_to: list[int] = Field(
-        description="A list of resource identifiers to which this resource is relevant.",
-        default_factory=list,
-        schema_extra={"example": []},
-    )
-
-
-class AIResourceRead(AIResourceBase):
-    identifier: int = Field(default=None, primary_key=True)
-    type: str = Field(
-        description="The name of the resource.",
-    )
-    is_part_of: list[int] = Field(
-        description="A list of resource identifiers that this resource is a part of.",
-        default_factory=list,
-        schema_extra={"example": []},
-    )
-    has_part: list[int] = Field(
-        description="A list of resource identifiers that are part of this resource.",
-        default_factory=list,
-        schema_extra={"example": []},
-    )
-    relevant_resource: list[int] = Field(
-        description="A list of resource identifiers that are relevant to this resource.",
-        default_factory=list,
-        schema_extra={"example": []},
-    )
-    relevant_to: list[int] = Field(
-        description="A list of resource identifiers to which this resource is relevant.",
-        default_factory=list,
-        schema_extra={"example": []},
-    )
-
-    class Config:
-        getter_dict = create_getter_dict(
-            {
-                "is_part_of": AttributeSerializer("identifier"),
-                "has_part": AttributeSerializer("identifier"),
-                "relevant_resource": AttributeSerializer("identifier"),
-                "relevant_to": AttributeSerializer("identifier"),
-            }
-        )
