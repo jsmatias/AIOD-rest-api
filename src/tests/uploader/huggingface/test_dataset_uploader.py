@@ -13,9 +13,10 @@ from database.model.dataset.dataset import Dataset
 from tests.testutils.paths import path_test_resources
 
 
-@pytest.mark.skip(
-    reason="Wierd behaviour when the pytest is run on pre-commit in git hub. Skipping it for now."
-)
+@pytest.mark.skip(reason="We'll fix this in a separate PR")
+# TODO: there are errors when running these tests: "... is not bound to a Session; lazy load
+#  operation of attribute 'license' cannot proceed".
+#  See TODOs at hugging_face_uploader.py.
 def test_happy_path_new_repository(
     client: TestClient, engine: Engine, mocked_privileged_token: Mock, dataset: Dataset
 ):
