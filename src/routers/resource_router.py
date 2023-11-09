@@ -103,9 +103,6 @@ class ResourceRouter(abc.ABC):
         return {}
 
     def create(self, engine: Engine, url_prefix: str) -> APIRouter:
-        return self._create(engine, url_prefix)
-
-    def _create(self, engine: Engine, url_prefix: str) -> APIRouter:
         router = APIRouter()
         version = f"v{self.version}"
         default_kwargs = {

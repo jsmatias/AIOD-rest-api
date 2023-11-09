@@ -1,35 +1,36 @@
 from fastapi.responses import Response
-from httpx import AsyncClient
-from typing import Literal
 from fastapi import APIRouter, HTTPException, status
+import requests
 from sqlalchemy.engine import Engine
+
+from database.model.ai_asset.ai_asset import AIAsset
 
 from .resource_router import ResourceRouter, _wrap_as_http_exception
 
 
 class ResourceAIAssetRouter(ResourceRouter):
     def create(self, engine: Engine, url_prefix: str) -> APIRouter:
-        version = f"v{self.version}"
+        version = "v1"
         default_kwargs = {
             "response_model_exclude_none": True,
-            "deprecated": self.deprecated_from is not None,
+            "deprecated": False,
             "tags": [self.resource_name_plural],
         }
 
-        router = self._create(engine, url_prefix)
+        router = super().create(engine, url_prefix)
 
         router.add_api_route(
-            path=f"{url_prefix}/{self.resource_name_plural}/{version}/{{identifier}}/data",
-            endpoint=self.get_resource_data_func(engine, default=True),
+            path=f"{url_prefix}/{self.resource_name_plural}/{version}/{{identifier}}/content",
+            endpoint=self.get_resource_content_func(engine, default=True),
             name=self.resource_name,
             response_model=str,
             **default_kwargs,
         )
 
         router.add_api_route(
-            path=f"{url_prefix}/{self.resource_name_plural}/{version}/{{identifier}}/data/"
+            path=f"{url_prefix}/{self.resource_name_plural}/{version}/{{identifier}}/content/"
             f"{{distribution_idx}}",
-            endpoint=self.get_resource_data_func(engine, default=False),
+            endpoint=self.get_resource_content_func(engine, default=False),
             name=self.resource_name,
             response_model=str,
             **default_kwargs,
@@ -37,63 +38,65 @@ class ResourceAIAssetRouter(ResourceRouter):
 
         return router
 
-    def get_resource_data_func(self, engine: Engine, default: bool):
+    def get_resource_content_func(self, engine: Engine, default: bool):
         """
-        Returns a function to download the actual data from resources.
+        Returns a function to download the content from resources.
         This function returns a function (instead of being that function directly) because the
         docstring and the variables are dynamic, and used in Swagger.
         """
 
-        async def get_resource_data(
-            identifier: str,
-            distribution_idx: int,
-            schema: Literal[tuple(self._possible_schemas)] = "aiod",  # type:ignore
-        ):
-            f"""Retrieve a distribution of the actual data for {self.resource_name}
+        def get_resource_content(identifier: str, distribution_idx: int, default: bool = False):
+            f"""Retrieve a distribution of the content for {self.resource_name}
             identified by its identifier."""
-            # 1. Get resource from id
-            metadata = self.get_resource(
-                engine=engine, identifier=identifier, schema=schema, platform=None
-            )
-            # 2. get the url field from distribution pointing to the actual data
-            distribution = metadata.distribution  # type:ignore
-            if not distribution:
+
+            metadata: AIAsset = self.get_resource(
+                engine=engine, identifier=identifier, schema="aiod", platform=None
+            )  # type: ignore
+
+            distributions = metadata.distribution
+            if not distributions:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND, detail="Distribution not found."
                 )
-            elif distribution_idx >= len(distribution):
+            elif default and (len(distributions) > 1):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=(
+                        "Multiple distributions encountered. "
+                        "Use another endpoint indicating the distribution index `distribution_idx` "
+                        "at the end of the url for a especific distribution.",
+                    ),
+                )
+            elif distribution_idx >= len(distributions):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Distribution index out of range.",
                 )
 
             try:
-                url = distribution[distribution_idx].content_url
-                encoding_format = distribution[distribution_idx].encoding_format
-                filename = distribution[distribution_idx].name
+                url = distributions[distribution_idx].content_url
+                encoding_format = distributions[distribution_idx].encoding_format
+                filename = distributions[distribution_idx].name
 
-                async with AsyncClient() as client:
-                    response = await client.get(url)
-
+                response = requests.get(url)
                 content = response.content
                 headers = {
-                    "Content-Disposition": f"attachment; filename={filename}",
-                    "Content-Type": f"{encoding_format}",
+                    "Content-Disposition": (
+                        "attachment; " f"filename={filename or url.split('/')[-1]}"
+                    ),
+                    "Content-Type": f"{encoding_format or 'unknown'}",
                 }
                 return Response(content=content, headers=headers)
 
             except Exception as exc:
                 raise _wrap_as_http_exception(exc)
 
-        async def get_resource_data_default(
-            identifier: str,
-            schema: Literal[tuple(self._possible_schemas)] = "aiod",  # type:ignore
-        ):
-            f"""Retrieve the first distribution (index 0 as default) of the actual data
+        def get_resource_content_default(identifier: str):
+            f"""Retrieve the first distribution (index 0 as default) of the content
             for a {self.resource_name} identified by its identifier."""
-            return await get_resource_data(identifier=identifier, schema=schema, distribution_idx=0)
+            return get_resource_content(identifier=identifier, distribution_idx=0, default=True)
 
         if default:
-            return get_resource_data_default
+            return get_resource_content_default
 
-        return get_resource_data
+        return get_resource_content
