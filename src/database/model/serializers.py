@@ -159,63 +159,72 @@ def deserialize_resource_relationships(
     resource_create_instance: SQLModel,
 ):
     """After deserialization of a resource, this function will deserialize all it's related
-    objects."""
-    if hasattr(resource_class, "RelationshipConfig"):
-        relationships = get_relationships(resource_class)
-        for attribute, relationship in relationships.items():
-            new_value = None
-            if (
-                isinstance(relationship.deserializer, CastDeserializer)
-                and hasattr(resource, attribute)
-                and getattr(resource, attribute)
-            ):
-                # Update, where the related entity is a class on its own (e.g. AIoDEntry or
-                # AIoDResource).
-                children = getattr(resource, attribute)
-                children_create = getattr(resource_create_instance, attribute)
-                if not isinstance(children, list):
-                    children = [children]
-                    children_create = [children_create]
-                child_class = type(children[0])
-                for child, child_create in zip(children, children_create):
-                    for child_attribute in child_class.schema()["properties"]:
-                        if hasattr(child_create, child_attribute):
-                            child_value = getattr(child_create, child_attribute)
-                            setattr(child, child_attribute, child_value)
-                    deserialize_resource_relationships(session, child_class, child, child_create)
-                n_create = len(children_create)
-                for child in children[n_create:]:
-                    session.delete(child)
-                n_existing = len(children)
-                for child_create in children_create[n_existing:]:
-                    child = child_class.from_orm(child_create)
-                    deserialize_resource_relationships(session, child_class, child, child_create)
-                    children.append(child)
-            elif relationship.include_in_create:
-                new_value = getattr(resource_create_instance, attribute)
-                if new_value is None and relationship.default_factory_orm is not None:
-                    # e.g. .aiod_entry, which should be generated if it's not present
-                    relation = relationship.default_factory_orm(type_=resource_class.__tablename__)
-                    session.add(relation)
-                    session.flush()
-                    new_value = relation
+    objects in place."""
+    if not hasattr(resource_class, "RelationshipConfig"):
+        return
+    relationships = get_relationships(resource_class)
+    for attribute, relationship in relationships.items():
+        new_value = None
+        if (
+            isinstance(relationship.deserializer, CastDeserializer)
+            and hasattr(resource, attribute)
+            and getattr(resource, attribute)
+        ):
+            deserialize_object_relationship(session, resource, resource_create_instance, attribute)
+        elif relationship.include_in_create:
+            new_value = getattr(resource_create_instance, attribute)
+            if new_value is None and relationship.default_factory_orm is not None:
+                # e.g. .aiod_entry, which should be generated if it's not present
+                relation = relationship.default_factory_orm(type_=resource_class.__tablename__)
+                session.add(relation)
+                session.flush()
+                new_value = relation
+        else:
+            # This attribute is not included in the "create instance". In other words,
+            # it is not part of the json specified in a POST or PUT request. Examples are
+            # Dataset.asset_identifier. This identifier is assigned by the AIoD platform,
+            # not by the user.
+            if getattr(resource, attribute) is not None:
+                # The attribute is already set (so this is a PUT request). Keep existing value
+                pass
+            elif relationship.default_factory_orm is not None:
+                relation = relationship.default_factory_orm(type_=resource_class.__tablename__)
+                session.add(relation)
+                session.flush()
+                new_value = relation.identifier
+        if new_value is not None:
+            if relationship.deserializer is not None:
+                new_value = relationship.deserializer.deserialize(session, new_value)
+            if hasattr(relationship, "identifier_name") and relationship.identifier_name:
+                setattr(resource, relationship.identifier_name, new_value)
             else:
-                # This attribute is not included in the "create instance". In other words,
-                # it is not part of the json specified in a POST or PUT request. Examples are
-                # Dataset.resource_identifier. This identifier is assigned by the AIoD platform,
-                # not by the user.
-                if getattr(resource, attribute) is not None:
-                    # The attribute is already set (so this is a PUT request). Keep existing value
-                    pass
-                elif relationship.default_factory_orm is not None:
-                    relation = relationship.default_factory_orm(type_=resource_class.__tablename__)
-                    session.add(relation)
-                    session.flush()
-                    new_value = relation.identifier
-            if new_value is not None:
-                if relationship.deserializer is not None:
-                    new_value = relationship.deserializer.deserialize(session, new_value)
-                if hasattr(relationship, "identifier_name") and relationship.identifier_name:
-                    setattr(resource, relationship.identifier_name, new_value)
-                else:
-                    setattr(resource, attribute, new_value)
+                setattr(resource, attribute, new_value)
+
+
+def deserialize_object_relationship(session, resource, resource_create_instance, attribute):
+    """
+    In place deserialization of an object relationship (a relationship to an object that is
+    completely present in the json, instead of linked using an identifier).
+
+    e.g., AIoDEntry or AIoDResource.
+    """
+    children = getattr(resource, attribute)
+    children_create = getattr(resource_create_instance, attribute)
+    if not isinstance(children, list):
+        children = [children]
+        children_create = [children_create]
+    child_class = type(children[0])
+    for child, child_create in zip(children, children_create):
+        for child_attribute in child_class.schema()["properties"]:
+            if hasattr(child_create, child_attribute):
+                child_value = getattr(child_create, child_attribute)
+                setattr(child, child_attribute, child_value)
+        deserialize_resource_relationships(session, child_class, child, child_create)
+    n_create = len(children_create)
+    for child in children[n_create:]:
+        session.delete(child)
+    n_existing = len(children)
+    for child_create in children_create[n_existing:]:
+        child = child_class.from_orm(child_create)
+        deserialize_resource_relationships(session, child_class, child, child_create)
+        children.append(child)
