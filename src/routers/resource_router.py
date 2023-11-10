@@ -160,21 +160,22 @@ class ResourceRouter(abc.ABC):
             name=self.resource_name,
             **default_kwargs,
         )
-        router.add_api_route(
-            path=f"{url_prefix}/platforms/{{platform}}/{self.resource_name_plural}/{version}",
-            endpoint=self.get_platform_resources_func(engine),
-            response_model=response_model_plural,  # type: ignore
-            name=f"List {self.resource_name_plural}",
-            **default_kwargs,
-        )
-        router.add_api_route(
-            path=f"{url_prefix}/platforms/{{platform}}/{self.resource_name_plural}/{version}"
-            f"/{{identifier}}",
-            endpoint=self.get_platform_resource_func(engine),
-            response_model=response_model,  # type: ignore
-            name=self.resource_name,
-            **default_kwargs,
-        )
+        if hasattr(self.resource_class, "platform"):
+            router.add_api_route(
+                path=f"{url_prefix}/platforms/{{platform}}/{self.resource_name_plural}/{version}",
+                endpoint=self.get_platform_resources_func(engine),
+                response_model=response_model_plural,  # type: ignore
+                name=f"List {self.resource_name_plural}",
+                **default_kwargs,
+            )
+            router.add_api_route(
+                path=f"{url_prefix}/platforms/{{platform}}/{self.resource_name_plural}/{version}"
+                f"/{{identifier}}",
+                endpoint=self.get_platform_resource_func(engine),
+                response_model=response_model,  # type: ignore
+                name=self.resource_name,
+                **default_kwargs,
+            )
         return router
 
     def get_resources(
@@ -425,8 +426,14 @@ class ResourceRouter(abc.ABC):
                 with Session(engine) as session:
                     # Raise error if it does not exist
                     resource = self._retrieve_resource(session, identifier)
-                    resource.date_deleted = datetime.datetime.utcnow()
-                    session.add(resource)
+                    if (
+                        hasattr(self.resource_class, "__deletion_config__")
+                        and not self.resource_class.__deletion_config__["soft_delete"]
+                    ):
+                        session.delete(resource)
+                    else:
+                        resource.date_deleted = datetime.datetime.utcnow()
+                        session.add(resource)
                     session.commit()
                 return self._wrap_with_headers(None)
             except Exception as e:
@@ -507,6 +514,13 @@ class ResourceRouter(abc.ABC):
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"There already exists a {self.resource_name} with the same platform and "
                 f"platform_identifier, with identifier={existing_resource.identifier}.",
+            ) from e
+        if ("UNIQUE" in error and "platform.name" in error) or (
+            "Duplicate entry" in error and "platform_name" in error
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"There already exists a {self.resource_name} with the same name.",
             ) from e
 
         if "FOREIGN KEY" in error and resource_create.platform is not None:
