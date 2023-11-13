@@ -3,8 +3,8 @@ import datetime
 from typing import Optional, Tuple
 
 from sqlalchemy import CheckConstraint, Index
+from sqlalchemy.orm import declared_attr
 from sqlalchemy.sql.functions import coalesce
-from sqlalchemy.util import classproperty
 from sqlmodel import SQLModel, Field, Relationship
 
 from database.model.concept.aiod_entry import AIoDEntryORM, AIoDEntryRead, AIoDEntryCreate
@@ -65,7 +65,7 @@ class AIoDConcept(AIoDConceptBase):
         #     deserializer=CastDeserializer(Body),
         # )
 
-    @classproperty
+    @declared_attr
     def __table_args__(cls) -> Tuple:
         # Note to developer: this will give problems if we'll add another child which has extra
         # constraints, because this might lead to a duplicate check constraint name.
