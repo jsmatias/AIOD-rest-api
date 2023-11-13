@@ -88,7 +88,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
             Distribution(
                 name=pq_file["filename"],
                 description=f"{pq_file['dataset']}. Config: {pq_file['config']}. Split: "
-                            f"{pq_file['split']}",
+                f"{pq_file['split']}",
                 content_url=pq_file["url"],
                 content_size_kb=pq_file["size"],
             )
@@ -121,9 +121,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
 
         return ResourceWithRelations[Dataset](
             resource=pydantic_class(
-                aiod_entry=AIoDEntryCreate(
-                    status="published"
-                ),
+                aiod_entry=AIoDEntryCreate(status="published"),
                 platform_resource_identifier=dataset.id,
                 platform=self.platform_name,
                 name=dataset.id,

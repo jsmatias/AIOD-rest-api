@@ -67,9 +67,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
 
         pydantic_class = resource_create(Dataset)
         dataset = pydantic_class(
-            aiod_entry=AIoDEntryCreate(
-                status="published"
-            ),
+            aiod_entry=AIoDEntryCreate(status="published"),
             platform="zenodo",
             platform_resource_identifier=_id,
             date_published=record.get("created"),
@@ -167,9 +165,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
 
         pydantic_class = resource_create(Dataset)
         dataset = pydantic_class(
-            aiod_entry=AIoDEntryCreate(
-                status="published"
-            ),
+            aiod_entry=AIoDEntryCreate(status="published"),
             platform="zenodo",
             platform_resource_identifier=identifier,
             name=title,

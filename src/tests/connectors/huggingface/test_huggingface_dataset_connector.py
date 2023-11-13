@@ -1,6 +1,5 @@
 import json
 
-import pytest
 import responses
 
 from connectors.huggingface.huggingface_dataset_connector import HuggingFaceDatasetConnector
