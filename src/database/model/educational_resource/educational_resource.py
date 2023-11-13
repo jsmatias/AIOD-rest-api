@@ -133,6 +133,9 @@ class EducationalResource(
                 "graduate knowledge of linear algebra",
             ],
             default_factory_pydantic=list,
+            on_delete_trigger_orphan_deletion=lambda: [
+                "educational_resource_edu_prerequisite_link"
+            ],
         )
         target_audience: list[str] = ManyToMany(
             description="The intended users of this educational resource.",

@@ -142,6 +142,10 @@ class AbstractAIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
                 "https://www.example.com/another_relevant_link",
             ],
             default_factory_pydantic=list,
+            on_delete_trigger_orphan_deletion=lambda: [
+                f"{a.__tablename__}_relevant_link_link"
+                for a in non_abstract_subclasses(AbstractAIResource)
+            ],
         )
         application_area: list[str] = ManyToMany(
             description="The objective of this AI resource.",
