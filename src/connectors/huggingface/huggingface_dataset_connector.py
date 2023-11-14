@@ -1,4 +1,3 @@
-import itertools
 import logging
 import typing
 
@@ -52,7 +51,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
     ) -> typing.Iterator[ResourceWithRelations[Dataset] | RecordError]:
         pydantic_class = resource_create(Dataset)
         pydantic_class_publication = resource_create(Publication)
-        for dataset in itertools.islice(list_datasets(full=True), limit):
+        for dataset in list_datasets(full=True, limit=limit):
             try:
                 yield self.fetch_dataset(dataset, pydantic_class, pydantic_class_publication)
             except Exception as e:
