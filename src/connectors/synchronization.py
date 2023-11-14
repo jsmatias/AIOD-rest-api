@@ -8,7 +8,7 @@ import sys
 from datetime import datetime
 from typing import Optional
 
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from connectors.abstract.resource_connector import ResourceConnector, RESOURCE
 from connectors.record_error import RecordError
@@ -136,18 +136,22 @@ def main():
     module = importlib.import_module(module_path)
     connector: ResourceConnector = getattr(module, connector_cls_name)()
 
+    working_dir.mkdir(parents=True, exist_ok=True)
     error_path = working_dir / RELATIVE_PATH_ERROR_CSV
     state_path = working_dir / RELATIVE_PATH_STATE_JSON
-    error_path.parents[0].mkdir(parents=True, exist_ok=True)
-    state_path.parents[0].mkdir(parents=True, exist_ok=True)
     first_run = not state_path.exists()
 
-    if first_run:
+    engine = sqlmodel_engine(rebuild_db="never")
+    with Session(engine) as session:
+        db_empty = session.scalars(select(connector.resource_class)).first() is None
+
+    if first_run or db_empty:
         state = {}
+        state_path.unlink(missing_ok=True)
+        error_path.unlink(missing_ok=True)
     else:
         with open(state_path, "r") as f:
             state = json.load(f)
-
     items = connector.run(
         state=state,
         from_identifier=args.from_identifier,
@@ -160,8 +164,6 @@ def main():
         for router in resource_routers.router_list + enum_routers.router_list
         if router.resource_class == connector.resource_class
     ]
-
-    engine = sqlmodel_engine(rebuild_db="never")
 
     with Session(engine) as session:
         for i, item in enumerate(items):
