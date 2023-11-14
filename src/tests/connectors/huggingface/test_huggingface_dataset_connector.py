@@ -117,7 +117,6 @@ def test_incorrect_citation():
         for dataset_id in ids_expected:
             mock_parquet(mocked_requests, dataset_id)
         resources_with_relations = list(connector.fetch())
-    (dataset,) = [r.resource for r in resources_with_relations]
     (related_resources,) = [r.related_resources for r in resources_with_relations]
     (citation,) = related_resources["citation"]
     assert citation.aiod_entry.status == "published"

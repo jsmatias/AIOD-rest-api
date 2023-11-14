@@ -183,9 +183,7 @@ def main():
                 logging.info(f"Saving state after handling {i}th result: {json.dumps(state)}")
                 with open(state_path, "w") as f:
                     json.dump(state, f, indent=4)
-                session.commit()
     with open(state_path, "w") as f:
-        session.commit()
         json.dump(state, f, indent=4)
     logging.info("Done")
 

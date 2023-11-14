@@ -57,40 +57,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                 yield RecordError(identifier=dataset.id, error=e)
 
     def fetch_dataset(self, dataset: DatasetInfo, pydantic_class, pydantic_class_publication):
-        citations = []
-        raw_citation = getattr(dataset, "citation", None)
-        if raw_citation is not None:
-            parsed_citations = bibtexparser.loads(raw_citation).entries
-            if len(parsed_citations) == 0 and raw_citation.startswith("@"):
-                # Ugly fix: many HF datasets have a wrong citation (see testcase)
-                parsed_citations = bibtexparser.loads(raw_citation + "}").entries
-            if len(parsed_citations) == 0 and (
-                raw_citation.startswith("@") or len(raw_citation) > field_length.NORMAL
-            ):
-                # incorrect bibtex. There are many mistakes in the HF citations. E.g.,
-                # @Inproceedings(Conference) instead of @inproceedings (note the capitals).
-                pass
-            elif len(parsed_citations) == 0:
-                citations = [
-                    pydantic_class_publication(
-                        name=raw_citation, aiod_entry=AIoDEntryCreate(status="published")
-                    )
-                ]
-            else:
-                citations = [
-                    pydantic_class_publication(
-                        platform=self.platform_name,
-                        platform_resource_identifier=citation["ID"],
-                        name=citation["title"],
-                        same_as=citation["link"] if "link" in citation else None,
-                        type=citation["ENTRYTYPE"],
-                        description=Text(plain=f"By {citation['author']}")
-                        if "author" in citation
-                        else None,
-                        aiod_entry=AIoDEntryCreate(status="published"),
-                    )
-                    for citation in parsed_citations
-                ]
+        citations = self._parse_citations(dataset, pydantic_class_publication)
 
         parquet_info = HuggingFaceDatasetConnector._get(
             url="https://datasets-server.huggingface.co/parquet",
@@ -155,3 +122,39 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
             ),
             related_resources=related_resources,
         )
+
+    def _parse_citations(self, dataset, pydantic_class_publication) -> list:
+        """Best effort parsing of the citations. There are many"""
+        raw_citation = getattr(dataset, "citation", None)
+        if raw_citation is None:
+            return []
+
+        try:
+            parsed_citations = bibtexparser.loads(raw_citation).entries
+            if len(parsed_citations) == 0 and raw_citation.startswith("@"):
+                # Ugly fix: many HF datasets have a wrong citation (see testcase)
+                parsed_citations = bibtexparser.loads(raw_citation + "}").entries
+            elif len(parsed_citations) == 0 and len(raw_citation) <= field_length.NORMAL:
+                return [
+                    pydantic_class_publication(
+                        name=raw_citation, aiod_entry=AIoDEntryCreate(status="published")
+                    )
+                ]
+            return [
+                pydantic_class_publication(
+                    platform=self.platform_name,
+                    platform_resource_identifier=citation["ID"],
+                    name=citation["title"],
+                    same_as=citation["link"] if "link" in citation else None,
+                    type=citation["ENTRYTYPE"],
+                    description=Text(plain=f"By {citation['author']}")
+                    if "author" in citation
+                    else None,
+                    aiod_entry=AIoDEntryCreate(status="published"),
+                )
+                for citation in parsed_citations
+            ]
+        except Exception:
+            return []
+            # Probably an incorrect bibtex. There are many mistakes in the HF citations. E.g.,
+            # @Inproceedings(Conference) instead of @inproceedings (note the capitals).
