@@ -60,7 +60,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
 
     def fetch_dataset(self, dataset: DatasetInfo, pydantic_class, pydantic_class_publication):
         citations = []
-        if dataset.citation:
+        if hasattr(dataset, "citation") and dataset.citation:
             parsed_citations = bibtexparser.loads(dataset.citation).entries
             if len(parsed_citations) == 0:
                 if dataset.citation:
@@ -97,11 +97,11 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
         ]
         size = None
         ds_license = None
-        if dataset.cardData is not None and "license" in dataset.cardData:
-            if isinstance(dataset.cardData["license"], str):
-                ds_license = dataset.cardData["license"]
+        if dataset.card_data is not None and "license" in dataset.card_data:
+            if isinstance(dataset.card_data["license"], str):
+                ds_license = dataset.card_data["license"]
             else:
-                (ds_license,) = dataset.cardData["license"]
+                (ds_license,) = dataset.card_data["license"]
 
             # TODO(issue 8): implement
             # if "dataset_info" in dataset.cardData:
@@ -113,7 +113,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
         if dataset.author is not None:
             related_resources["creator"] = [Person(name=dataset.author)]
 
-        description = dataset.description
+        description = getattr(dataset, "description", None)
         if description and len(description) > field_length.LONG:
             text_break = " [...]"
             description = description[: field_length.LONG - len(text_break)] + text_break
