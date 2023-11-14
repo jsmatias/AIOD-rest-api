@@ -67,7 +67,7 @@ Information on how to install Docker is found in [their documentation](https://d
 
 ### Using docker compose
 ```bash
-docker compose up
+docker compose --profile examples up
 ```
 starts the MYSQL Server, the REST API, Keycloak for Identy and access management and Nginx for reverse proxing. \
 Once started, you should be able to visit the REST API server at: http://localhost and Keycloak at http://localhost/aiod-auth \
@@ -93,6 +93,13 @@ mysql> SHOW DATABASES;
 
 Now, you can visit the server from your browser at `localhost:8000/docs`.
 
+#### Using connectors
+You can specify different connectors using
+
+```bash
+docker compose --profile examples --profile huggingface-datasets --profile openml-datasets up -d
+docker compose --profile examples --profile huggingface-datasets --profile openml-datasets down
+```
 
 #### Local Installation
 
