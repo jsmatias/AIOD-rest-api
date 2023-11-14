@@ -5,6 +5,7 @@ import typing
 import bibtexparser
 import requests
 from huggingface_hub import list_datasets
+from huggingface_hub.hf_api import DatasetInfo
 
 from connectors.abstract.resource_connector_on_start_up import ResourceConnectorOnStartUp
 from connectors.record_error import RecordError
@@ -57,9 +58,9 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
             except Exception as e:
                 yield RecordError(identifier=dataset.id, error=e)
 
-    def fetch_dataset(self, dataset, pydantic_class, pydantic_class_publication):
+    def fetch_dataset(self, dataset: DatasetInfo, pydantic_class, pydantic_class_publication):
         citations = []
-        if hasattr(dataset, "citation") and isinstance(dataset.citation, str):
+        if dataset.citation:
             parsed_citations = bibtexparser.loads(dataset.citation).entries
             if len(parsed_citations) == 0:
                 if dataset.citation:
@@ -96,11 +97,11 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
         ]
         size = None
         ds_license = None
-        if dataset.card_data is not None and "license" in dataset.card_data:
-            if isinstance(dataset.card_data["license"], str):
-                ds_license = dataset.card_data["license"]
+        if dataset.cardData is not None and "license" in dataset.cardData:
+            if isinstance(dataset.cardData["license"], str):
+                ds_license = dataset.cardData["license"]
             else:
-                (ds_license,) = dataset.card_data["license"]
+                (ds_license,) = dataset.cardData["license"]
 
             # TODO(issue 8): implement
             # if "dataset_info" in dataset.cardData:
@@ -112,8 +113,8 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
         if dataset.author is not None:
             related_resources["creator"] = [Person(name=dataset.author)]
 
-        description = getattr(dataset, "description", "")
-        if len(description) > field_length.LONG:
+        description = dataset.description
+        if description and len(description) > field_length.LONG:
             text_break = " [...]"
             description = description[: field_length.LONG - len(text_break)] + text_break
         if description:
@@ -127,7 +128,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                 name=dataset.id,
                 same_as=f"https://huggingface.co/datasets/{dataset.id}",
                 description=description,
-                date_published=dataset.createdAt,
+                date_published=dataset.createdAt if hasattr(dataset, "createdAt") else None,
                 license=ds_license,
                 distributions=distributions,
                 is_accessible_for_free=True,
