@@ -13,7 +13,7 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - ./src:/app
+      - ./src:/app:ro
     command: >
       python main.py
       --rebuild-db only-if-empty
@@ -36,9 +36,9 @@ services:
     environment:
       - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
     volumes:
-      - ./src:/app
+      - ./src:/app:ro
       - ./data/connectors:/opt/connectors/data
-      - ./connectors:/opt/connectors/script
+      - ./connectors:/opt/connectors/script:ro
     command: >
       /bin/bash -c "/opt/connectors/script/fill-examples.sh"
     depends_on:
@@ -69,9 +69,9 @@ services:
     environment:
       - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
     volumes:
-      - ./src:/app
+      - ./src:/app:ro
       - ./data/connectors:/opt/connectors/data
-      - ./connectors/huggingface/:/opt/connectors/script
+      - ./connectors/huggingface/:/opt/connectors/script:ro
     command: >
       /bin/bash -c "/opt/connectors/script/datasets.sh"
     depends_on:
@@ -88,9 +88,9 @@ services:
     environment:
       - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
     volumes:
-      - ./src:/app
+      - ./src:/app:ro
       - ./data/connectors:/opt/connectors/data
-      - ./connectors/openml/:/opt/connectors/script
+      - ./connectors/openml/:/opt/connectors/script:ro
     command: >
       /bin/bash -c "/opt/connectors/script/entry.sh"
     depends_on:
@@ -142,7 +142,7 @@ services:
     ports:
       - 8080:8080
     volumes:
-     - ./quay-keycloak:/opt/keycloak/data/import
+     - ./quay-keycloak:/opt/keycloak/data/import:ro
     command: >
       start-dev
       --hostname-url http://${HOSTNAME}/aiod-auth
@@ -157,7 +157,7 @@ services:
     container_name: nginx
     restart: unless-stopped
     volumes:
-      - ./nginx:/etc/nginx/conf.d
+      - ./nginx:/etc/nginx/conf.d:ro
     ports:
       - 80:80
     depends_on:

@@ -1,6 +1,5 @@
 import logging
 import typing
-
 import bibtexparser
 import requests
 from huggingface_hub import list_datasets
@@ -59,15 +58,24 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
 
     def fetch_dataset(self, dataset: DatasetInfo, pydantic_class, pydantic_class_publication):
         citations = []
-        if hasattr(dataset, "citation") and dataset.citation:
-            parsed_citations = bibtexparser.loads(dataset.citation).entries
-            if len(parsed_citations) == 0:
-                if dataset.citation:
-                    citations = [
-                        pydantic_class_publication(
-                            name=dataset.citation,
-                        )
-                    ]
+        raw_citation = getattr(dataset, "citation", None)
+        if raw_citation is not None:
+            parsed_citations = bibtexparser.loads(raw_citation).entries
+            if len(parsed_citations) == 0 and raw_citation.startswith("@"):
+                # Ugly fix: many HF datasets have a wrong citation (see testcase)
+                parsed_citations = bibtexparser.loads(raw_citation + "}").entries
+            if len(parsed_citations) == 0 and (
+                raw_citation.startswith("@") or len(raw_citation) > field_length.NORMAL
+            ):
+                # incorrect bibtex. There are many mistakes in the HF citations. E.g.,
+                # @Inproceedings(Conference) instead of @inproceedings (note the capitals).
+                pass
+            elif len(parsed_citations) == 0:
+                citations = [
+                    pydantic_class_publication(
+                        name=raw_citation, aiod_entry=AIoDEntryCreate(status="published")
+                    )
+                ]
             else:
                 citations = [
                     pydantic_class_publication(
@@ -76,6 +84,10 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                         name=citation["title"],
                         same_as=citation["link"] if "link" in citation else None,
                         type=citation["ENTRYTYPE"],
+                        description=Text(plain=f"By {citation['author']}")
+                        if "author" in citation
+                        else None,
+                        aiod_entry=AIoDEntryCreate(status="published"),
                     )
                     for citation in parsed_citations
                 ]
@@ -96,11 +108,18 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
         ]
         size = None
         ds_license = None
-        if dataset.card_data is not None and "license" in dataset.card_data:
+        if (
+            dataset.card_data is not None
+            and "license" in dataset.card_data
+            and dataset.card_data["license"]
+        ):
             if isinstance(dataset.card_data["license"], str):
                 ds_license = dataset.card_data["license"]
             else:
-                (ds_license,) = dataset.card_data["license"]
+                # There can be more than one license in HF, e.g., ['cc-by-sa-3.0', 'gfdl']. This
+                # seems weird, what does it mean to have two different licenses? That's why we're
+                # only saving the first.
+                ds_license = dataset.card_data["license"][0]
 
             # TODO(issue 8): implement
             # if "dataset_info" in dataset.cardData:
@@ -129,10 +148,10 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                 description=description,
                 date_published=dataset.createdAt if hasattr(dataset, "createdAt") else None,
                 license=ds_license,
-                distributions=distributions,
+                distribution=distributions,
                 is_accessible_for_free=True,
                 size=size,
-                keywords=dataset.tags,
+                keyword=dataset.tags,
             ),
             related_resources=related_resources,
         )
