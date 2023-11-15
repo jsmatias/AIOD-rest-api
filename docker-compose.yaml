@@ -23,8 +23,8 @@ services:
       start_interval: 1s
       start_period: 30s
       interval: 5s
-      timeout: 30s
-      retries: 5
+      timeout: 120s
+      retries: 24
     depends_on:
       sqlserver:
         condition: service_healthy
