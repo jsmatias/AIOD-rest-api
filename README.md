@@ -69,12 +69,18 @@ Information on how to install Docker is found in [their documentation](https://d
 ```bash
 docker compose --profile examples up
 ```
+
 starts the MYSQL Server, the REST API, Keycloak for Identy and access management and Nginx for reverse proxing. \
 Once started, you should be able to visit the REST API server at: http://localhost and Keycloak at http://localhost/aiod-auth \
 To authenticate to the REST API swagger interface the predefined user is: user, and password: password \
 To authenticate as admin to Keycloak the predefined user is: admin and password: password \
 To use a different DNS hostname replace localhost with it in .env and src/config.toml \
 This configuration is intended for development, DO NOT use it in production. 
+
+To turn if off again, use 
+```bash
+docker compose --profile examples down
+```
 
 To connect to the database use `./scripts/database-connect.sql`.
 
@@ -100,6 +106,9 @@ You can specify different connectors using
 docker compose --profile examples --profile huggingface-datasets --profile openml-datasets up -d
 docker compose --profile examples --profile huggingface-datasets --profile openml-datasets down
 ```
+
+Make sure you use the same profile for `up` and `down`, otherwise some containers might keep 
+running.
 
 #### Local Installation
 
