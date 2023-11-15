@@ -13,7 +13,7 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - ./src:/app
+      - ./src:/app:ro
     command: >
       python main.py
       --rebuild-db only-if-empty
@@ -30,15 +30,16 @@ services:
         condition: service_healthy
 
   fill-db-with-examples:
+    profiles: ["examples"]
     image: ai4eu_server
     container_name: fill-db-with-examples
     env_file: .env
     environment:
       - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
     volumes:
-      - ./src:/app
+      - ./src:/app:ro
       - ./data/connectors:/opt/connectors/data
-      - ./connectors:/opt/connectors/script
+      - ./connectors:/opt/connectors/script:ro
     command: >
       /bin/bash -c "/opt/connectors/script/fill-examples.sh"
     depends_on:
@@ -63,15 +64,16 @@ services:
         condition: service_healthy
 
   huggingface-dataset-connector:
+    profiles: ["huggingface-datasets"]
     image: ai4eu_server
     container_name: huggingface-dataset-connector
     env_file: .env
     environment:
       - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
     volumes:
-      - ./src:/app
+      - ./src:/app:ro
       - ./data/connectors:/opt/connectors/data
-      - ./connectors/huggingface/:/opt/connectors/script
+      - ./connectors/huggingface/:/opt/connectors/script:ro
     command: >
       /bin/bash -c "/opt/connectors/script/datasets.sh"
     depends_on:
@@ -79,6 +81,7 @@ services:
         condition: service_healthy
 
   openml-dataset-connector:
+    profiles: ["openml-datasets"]
     build:
       context: connectors/openml
       dockerfile: Dockerfile
@@ -88,9 +91,9 @@ services:
     environment:
       - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
     volumes:
-      - ./src:/app
+      - ./src:/app:ro
       - ./data/connectors:/opt/connectors/data
-      - ./connectors/openml/:/opt/connectors/script
+      - ./connectors/openml/:/opt/connectors/script:ro
     command: >
       /bin/bash -c "/opt/connectors/script/entry.sh"
     depends_on:
@@ -98,6 +101,7 @@ services:
         condition: service_healthy
 
   zenodo-dataset-connector:
+    profiles: ["zenodo-datasets"]
     build:
       context: connectors/zenodo
       dockerfile: Dockerfile
@@ -142,7 +146,7 @@ services:
     ports:
       - 8080:8080
     volumes:
-     - ./quay-keycloak:/opt/keycloak/data/import
+     - ./quay-keycloak:/opt/keycloak/data/import:ro
     command: >
       start-dev
       --hostname-url http://${HOSTNAME}/aiod-auth
@@ -157,7 +161,7 @@ services:
     container_name: nginx
     restart: unless-stopped
     volumes:
-      - ./nginx:/etc/nginx/conf.d
+      - ./nginx:/etc/nginx/conf.d:ro
     ports:
       - 80:80
     depends_on:
