@@ -59,7 +59,9 @@ filterwarnings = [
 env_override_existing_values = 1
 env_files = [
     "src/.env",
-    "src/tests/.env"
+    "src/tests/.env",
+    ".env",  # If running from docker container
+    "tests/.env"  # For running from docker container
 ]
 
 
