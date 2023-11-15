@@ -135,6 +135,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                 # Ugly fix: many HF datasets have a wrong citation (see testcase)
                 parsed_citations = bibtexparser.loads(raw_citation + "}").entries
             elif len(parsed_citations) == 0 and len(raw_citation) <= field_length.NORMAL:
+                # Sometimes dataset.citation is not a bibtex field, but just the title of an article
                 return [
                     pydantic_class_publication(
                         name=raw_citation, aiod_entry=AIoDEntryCreate(status="published")

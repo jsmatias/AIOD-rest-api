@@ -50,7 +50,7 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--from-date",
-        type=lambda d: datetime.strptime(d, "%Y-%m-%d").date(),
+        type=lambda d: datetime.strptime(d, "%Y-%m-%d"),
         help="The start date. Only relevant for the first run of date-based connectors. "
         "In subsequent runs, date-based connectors will synchronize from the previous "
         "end-time. Format: YYYY-MM-DD",
@@ -155,7 +155,7 @@ def main():
     items = connector.run(
         state=state,
         from_identifier=args.from_identifier,
-        from_date=args.from_date,
+        from_incl=args.from_date,
         limit=args.limit,
     )
 
