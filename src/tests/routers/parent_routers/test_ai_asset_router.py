@@ -1,9 +1,9 @@
 from sqlalchemy.engine import Engine
-from sqlmodel import Session
 from starlette.testclient import TestClient
 
 from database.model.dataset.dataset import Dataset
 from database.model.knowledge_asset.publication import Publication
+from database.session import DbSession
 
 
 def test_happy_path(
@@ -15,7 +15,7 @@ def test_happy_path(
 
     dataset.name = "Dataset"
     publication.name = "Publication"
-    with Session(engine) as session:
+    with DbSession() as session:
         session.add(dataset)
         session.merge(publication)
         session.commit()

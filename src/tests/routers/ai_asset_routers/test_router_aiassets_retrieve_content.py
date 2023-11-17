@@ -1,19 +1,17 @@
 import copy
-import pytest
-import responses
-
-from pytest import FixtureRequest
 from unittest.mock import Mock
 
+import pytest
+import responses
 from fastapi import status
+from pytest import FixtureRequest
 from sqlalchemy.engine import Engine
-from sqlmodel import Session
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
 from database.model.agent.person import Person
+from database.session import DbSession
 from tests.testutils.paths import path_test_resources
-
 
 TEST_URL1 = "https://www.example.com/example1.csv/content"
 TEST_URL2 = "https://www.example.com/example2.tsv/content"
@@ -66,7 +64,7 @@ def set_up(
     specified endpoint for the given resource.
     """
     keycloak_openid.userinfo = mocked_privileged_token
-    with Session(engine) as session:
+    with DbSession() as session:
         session.add(person)
         session.commit()
 
