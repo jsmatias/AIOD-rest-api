@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 from fastapi import FastAPI
-from sqlmodel import Session, Field, Relationship, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
@@ -13,6 +13,7 @@ from database.model.concept.status import Status
 from database.model.named_relation import NamedRelation
 from database.model.relationships import ManyToOne, ManyToMany
 from database.model.serializers import AttributeSerializer, FindByNameDeserializer, CastDeserializer
+from database.session import DbSession
 from routers import ResourceRouter
 
 
@@ -126,8 +127,8 @@ class RouterTestObject(ResourceRouter):
 
 
 @pytest.fixture
-def client_with_testobject(engine_test_resource) -> TestClient:
-    with Session(engine_test_resource) as session:
+def client_with_testobject() -> TestClient:
+    with DbSession() as session:
         named1, named2 = TestEnum(name="named_string1"), TestEnum(name="named_string2")
         enum1, enum2, enum3 = TestEnum2(name="1"), TestEnum2(name="2"), TestEnum2(name="3")
         draft = Status(name="draft")
@@ -158,7 +159,7 @@ def client_with_testobject(engine_test_resource) -> TestClient:
         )
         session.commit()
     app = FastAPI()
-    app.include_router(RouterTestObject().create(engine_test_resource, ""))
+    app.include_router(RouterTestObject().create(""))
     return TestClient(app)
 
 

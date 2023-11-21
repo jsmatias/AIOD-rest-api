@@ -1,16 +1,13 @@
-from sqlalchemy.engine import Engine
-from sqlmodel import Session, select
+from sqlmodel import select
 from starlette.testclient import TestClient
 
 from database.model.ai_asset.ai_asset_table import AIAssetTable
 from database.model.dataset.dataset import Dataset
 from database.model.knowledge_asset.publication import Publication
+from database.session import DbSession
 
 
-def test_happy_path(
-    client: TestClient,
-    engine: Engine,
-):
+def test_happy_path(client: TestClient):
     dataset_distribution = Dataset.__annotations__["distribution"].__args__[0]
     publication_distribution = Publication.__annotations__["distribution"].__args__[0]
     dataset_1 = Dataset(
@@ -38,7 +35,7 @@ def test_happy_path(
         ai_asset_identifier=AIAssetTable(type="publication"),
     )
 
-    with Session(engine) as session:
+    with DbSession() as session:
         session.add_all([dataset_1, dataset_2, publication])
         session.commit()
         session.delete(dataset_1)
