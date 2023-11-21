@@ -5,7 +5,6 @@ import pytest
 import responses
 from fastapi import status
 from pytest import FixtureRequest
-from sqlalchemy.engine import Engine
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
@@ -51,7 +50,6 @@ def mock_response2(mocked_requests: responses.RequestsMock):
 
 def set_up(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     body: dict,
     person: Person,
@@ -79,9 +77,8 @@ def resource_name(request: FixtureRequest) -> str:
     return request.param
 
 
-def test_ai_asset_has_endopoints(
+def test_ai_asset_has_endpoints(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     body_asset_with_single_distribution: dict,
     person: Person,
@@ -96,7 +93,7 @@ def test_ai_asset_has_endopoints(
     return a response with status code 200.
     """
     body = copy.deepcopy(body_asset_with_single_distribution)
-    set_up(client, engine, mocked_privileged_token, body, person, resource_name)
+    set_up(client, mocked_privileged_token, body, person, resource_name)
 
     default_endpoint = f"{resource_name}/v1/1/content"
 
@@ -111,7 +108,6 @@ def test_ai_asset_has_endopoints(
 
 def test_endpoints_when_empty_distribution(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     body_asset: dict,
     person: Person,
@@ -125,7 +121,7 @@ def test_endpoints_when_empty_distribution(
     """
     body = copy.deepcopy(body_asset)
     body["distribution"] = []
-    set_up(client, engine, mocked_privileged_token, body, person, SAMPLE_RESOURCE_NAME)
+    set_up(client, mocked_privileged_token, body, person, SAMPLE_RESOURCE_NAME)
 
     response = client.get(SAMPLE_ENDPOINT)
     assert response.status_code == status.HTTP_404_NOT_FOUND, response.json()
@@ -147,7 +143,6 @@ def body_asset_with_single_distribution(body_asset: dict) -> dict:
 
 def test_endpoints_when_single_distribution(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     body_asset_with_single_distribution: dict,
     person: Person,
@@ -160,7 +155,7 @@ def test_endpoints_when_single_distribution(
     content, headers, and filename are returned.
     """
     body = copy.deepcopy(body_asset_with_single_distribution)
-    set_up(client, engine, mocked_privileged_token, body, person, SAMPLE_RESOURCE_NAME)
+    set_up(client, mocked_privileged_token, body, person, SAMPLE_RESOURCE_NAME)
 
     with responses.RequestsMock() as mocked_requests:
         mock_response1(mocked_requests)
@@ -203,7 +198,6 @@ def body_asset_with_two_distributions(body_asset_with_single_distribution: dict)
 
 def test_endpoints_when_two_distributions(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     body_asset_with_two_distributions: dict,
     person: Person,
@@ -216,7 +210,7 @@ def test_endpoints_when_two_distributions(
     content, headers, and filename are returned.
     """
     body = copy.deepcopy(body_asset_with_two_distributions)
-    set_up(client, engine, mocked_privileged_token, body, person, SAMPLE_RESOURCE_NAME)
+    set_up(client, mocked_privileged_token, body, person, SAMPLE_RESOURCE_NAME)
 
     with responses.RequestsMock() as mocked_requests:
         mock_response1(mocked_requests)
@@ -259,7 +253,6 @@ def encoding_format(request: FixtureRequest) -> str:
 
 def test_headers_when_distribution_has_missing_fields(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     body_asset_with_single_distribution: dict,
     person: Person,
@@ -279,7 +272,7 @@ def test_headers_when_distribution_has_missing_fields(
 
     alternate_filename = body["distribution"][0]["content_url"].split("/")[-1]
 
-    set_up(client, engine, mocked_privileged_token, body, person, SAMPLE_RESOURCE_NAME)
+    set_up(client, mocked_privileged_token, body, person, SAMPLE_RESOURCE_NAME)
 
     with responses.RequestsMock() as mocked_requests:
         mock_response1(mocked_requests)

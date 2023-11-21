@@ -2,7 +2,6 @@ from unittest.mock import Mock
 
 import huggingface_hub
 import responses
-from sqlalchemy.engine import Engine
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
@@ -13,7 +12,7 @@ from tests.testutils.paths import path_test_resources
 
 
 def test_happy_path_new_repository(
-    client: TestClient, engine: Engine, mocked_privileged_token: Mock, dataset: Dataset
+    client: TestClient, mocked_privileged_token: Mock, dataset: Dataset
 ):
     keycloak_openid.userinfo = mocked_privileged_token
     with DbSession() as session:
@@ -48,7 +47,7 @@ def test_happy_path_new_repository(
     assert id_response == 1
 
 
-def test_repo_already_exists(client: TestClient, engine: Engine, mocked_privileged_token: Mock):
+def test_repo_already_exists(client: TestClient, mocked_privileged_token: Mock):
     keycloak_openid.userinfo = mocked_privileged_token
     dataset_id = 1
     with DbSession() as session:

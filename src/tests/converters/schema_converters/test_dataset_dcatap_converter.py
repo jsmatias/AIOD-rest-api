@@ -1,7 +1,5 @@
 import datetime
 
-from sqlalchemy.engine import Engine
-
 from converters.schema_converters import dataset_converter_dcatap_instance
 from database.model.agent.person import Person
 from database.model.ai_asset.license import License
@@ -13,7 +11,7 @@ from database.session import DbSession
 from tests.testutils.paths import path_test_resources
 
 
-def test_aiod_to_dcatap_happy_path(engine: Engine, dataset: Dataset):
+def test_aiod_to_dcatap_happy_path(dataset: Dataset):
     dataset.identifier = 1
     dataset.license = License(name="a license")
     dataset.alternate_name = [AlternateName(name="alias1"), AlternateName(name="alias2")]

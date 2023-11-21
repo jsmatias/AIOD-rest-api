@@ -1,4 +1,3 @@
-from sqlalchemy.engine import Engine
 from starlette.testclient import TestClient
 
 from database.model.dataset.dataset import Dataset
@@ -8,7 +7,6 @@ from database.session import DbSession
 
 def test_happy_path(
     client: TestClient,
-    engine: Engine,
     dataset: Dataset,
     publication: Publication,
 ):

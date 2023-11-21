@@ -1,6 +1,5 @@
 import datetime
 
-from sqlalchemy.engine import Engine
 from starlette.testclient import TestClient
 
 from database.model.agent.organisation import Organisation
@@ -10,7 +9,6 @@ from database.session import DbSession
 
 def test_happy_path(
     client: TestClient,
-    engine: Engine,
     organisation: Organisation,
     person: Person,
 ):
@@ -39,7 +37,6 @@ def test_happy_path(
 
 def test_ignore_deleted(
     client: TestClient,
-    engine: Engine,
     organisation: Organisation,
     person: Person,
 ):

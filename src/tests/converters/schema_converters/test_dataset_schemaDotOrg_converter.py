@@ -1,7 +1,5 @@
 import datetime
 
-from sqlalchemy.engine import Engine
-
 from converters.schema_converters import dataset_converter_schema_dot_org_instance
 from database.model.agent.agent_table import AgentTable
 from database.model.agent.contact import Contact
@@ -15,7 +13,7 @@ from database.session import DbSession
 from tests.testutils.paths import path_test_resources
 
 
-def test_aiod_to_schema_dot_org_happy_path(engine: Engine, dataset: Dataset):
+def test_aiod_to_schema_dot_org_happy_path(dataset: Dataset):
     dataset.identifier = 1
     dataset.license = License(name="a license")
     dataset.alternate_name = [AlternateName(name="alias1"), AlternateName(name="alias2")]
