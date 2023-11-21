@@ -100,7 +100,7 @@ def create_app() -> FastAPI:
             "scopes": KEYCLOAK_CONFIG.get("scopes"),
         },
     )
-    drop_or_create_database(delete_first=args.rebuild_db == "allways")
+    drop_or_create_database(delete_first=args.rebuild_db == "always")
     AIoDConcept.metadata.create_all(EngineSingleton().engine, checkfirst=True)
     with DbSession() as session:
         existing_platforms = session.scalars(select(Platform)).all()
