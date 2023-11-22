@@ -54,3 +54,12 @@ def test_happy_path(
     assert response_json["coordinator"] == 1
     assert response_json["produced"] == [1]  # the dataset
     assert response_json["used"] == [2]  # the publication
+
+    # Cleanup, so that all resources can be deleted in the teardown
+    body["funder"] = []
+    body["participant"] = []
+    body["coordinator"] = None
+    body["produced"] = []
+    body["used"] = []
+    response = client.put("/projects/v1/1", json=body, headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
