@@ -1,13 +1,12 @@
 import copy
 import time
+import typing
 from datetime import datetime
 from unittest.mock import Mock
 
 import dateutil.parser
 import pytz
-import typing
-from sqlalchemy.engine import Engine
-from sqlmodel import Session, select
+from sqlmodel import select
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
@@ -19,11 +18,11 @@ from database.model.concept.aiod_entry import AIoDEntryORM
 from database.model.dataset.dataset import Dataset
 from database.model.helper_functions import all_annotations
 from database.model.knowledge_asset.publication import Publication
+from database.session import DbSession
 
 
 def test_happy_path(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     body_asset: dict,
     person: Person,
@@ -31,7 +30,7 @@ def test_happy_path(
     contact: Contact,
 ):
     keycloak_openid.userinfo = mocked_privileged_token
-    with Session(engine) as session:
+    with DbSession() as session:
         session.add(person)
         session.merge(publication)
         session.add(contact)
@@ -151,7 +150,6 @@ def test_happy_path(
 
 def test_post_duplicate_named_relations(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
 ):
     """
@@ -221,7 +219,6 @@ def test_post_duplicate_named_relations(
 
 def test_post_duplicate_named_relations_with_different_capitals(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
 ):
     keycloak_openid.userinfo = mocked_privileged_token
@@ -238,7 +235,6 @@ def test_post_duplicate_named_relations_with_different_capitals(
 
 def test_post_editors(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
 ):
     """
@@ -269,7 +265,7 @@ def test_post_editors(
     assert_editors_are_stored("36", 1, 2)
 
 
-def test_create_aiod_entry(client: TestClient, engine: Engine, mocked_privileged_token: Mock):
+def test_create_aiod_entry(client: TestClient, mocked_privileged_token: Mock):
     keycloak_openid.userinfo = mocked_privileged_token
     body = {"name": "news"}
     start = datetime.now(pytz.utc)
@@ -288,7 +284,7 @@ def test_create_aiod_entry(client: TestClient, engine: Engine, mocked_privileged
     assert resource_json["ai_resource_identifier"] == 1
 
 
-def test_update_aiod_entry(client: TestClient, engine: Engine, mocked_privileged_token: Mock):
+def test_update_aiod_entry(client: TestClient, mocked_privileged_token: Mock):
     keycloak_openid.userinfo = mocked_privileged_token
     body = {"name": "news"}
     start = datetime.now(pytz.utc)
@@ -310,38 +306,38 @@ def test_update_aiod_entry(client: TestClient, engine: Engine, mocked_privileged
     assert end < date_modified
 
     assert resource_json["aiod_entry"]["status"] == "published"
-    with Session(engine) as session:
+    with DbSession() as session:
         entries = session.scalars(select(AIoDEntryORM)).all()
         assert len(entries) == 1
 
 
-def assert_distributions(client: TestClient, engine: Engine, *content_urls: str):
+def assert_distributions(client: TestClient, *content_urls: str):
     response = client.get("/datasets/v1/1")
     distributions = response.json()["distribution"]
     assert {distribution["content_url"] for distribution in distributions} == set(content_urls)
 
     (distribution_class,) = typing.get_args(all_annotations(Dataset)["distribution"])
-    with Session(engine) as session:
+    with DbSession() as session:
         distributions = session.scalars(select(distribution_class)).all()
         assert {distribution.content_url for distribution in distributions} == set(content_urls)
 
 
-def test_update_distribution(client: TestClient, engine: Engine, mocked_privileged_token: Mock):
+def test_update_distribution(client: TestClient, mocked_privileged_token: Mock):
     keycloak_openid.userinfo = mocked_privileged_token
     body = {"name": "dataset", "distribution": [{"content_url": "url"}]}
     response = client.post("/datasets/v1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
-    assert_distributions(client, engine, "url")
+    assert_distributions(client, "url")
 
     body = {"name": "dataset", "distribution": [{"content_url": "url2"}, {"content_url": "test"}]}
     response = client.put("/datasets/v1/1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
-    assert_distributions(client, engine, "url2", "test")
+    assert_distributions(client, "url2", "test")
 
     body = {"name": "dataset", "distribution": [{"content_url": "url"}]}
     response = client.put("/datasets/v1/1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
-    assert_distributions(client, engine, "url")
+    assert_distributions(client, "url")
 
 
 def assert_relations(
@@ -363,7 +359,6 @@ def assert_relations(
 
 def test_relations_between_resources(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     body_asset: dict,
     dataset: Dataset,
@@ -372,7 +367,7 @@ def test_relations_between_resources(
 ):
     keycloak_openid.userinfo = mocked_privileged_token
 
-    with Session(engine) as session:
+    with DbSession() as session:
         session.add(dataset)
         session.merge(publication)
         session.merge(organisation)
