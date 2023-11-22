@@ -2,14 +2,15 @@ from sqlmodel import select
 from starlette.testclient import TestClient
 
 from database.model.ai_asset.ai_asset_table import AIAssetTable
+from database.model.annotations import datatype_of_field
 from database.model.dataset.dataset import Dataset
 from database.model.knowledge_asset.publication import Publication
 from database.session import DbSession
 
 
 def test_happy_path(client: TestClient):
-    dataset_distribution = Dataset.__annotations__["distribution"].__args__[0]
-    publication_distribution = Publication.__annotations__["distribution"].__args__[0]
+    dataset_distribution = datatype_of_field(Dataset, "distribution")
+    publication_distribution = datatype_of_field(Publication, "distribution")
     dataset_1 = Dataset(
         name="dataset 1",
         distribution=[
