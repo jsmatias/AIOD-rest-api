@@ -2,6 +2,9 @@
 # data/ is intended for database data from the mysql container
 data/
 
+# MacOS 
+.DS_Store
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
