@@ -27,6 +27,7 @@ class ResourceConnectorById(ResourceConnector, Generic[RESOURCE]):
     def run(
         self, state: dict, from_identifier: int | None = None, limit: int | None = None, **kwargs
     ) -> Iterator[RESOURCE | ResourceWithRelations[RESOURCE] | RecordError]:
+
         if limit is not None:
             logging.warning(
                 "Limiting the results! Please remove the limit command line argument "

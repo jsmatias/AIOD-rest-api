@@ -1,0 +1,16 @@
+{
+    "flows":
+    {
+        "flow":
+        [
+            {
+                "id":3,
+                "full_name":"openml.evaluation.RBFKernel(1.0)",
+                "name":"openml.evaluation.RBFKernel",
+                "version":1,
+                "external_version":"",
+                "uploader":1	   
+            }
+    ]
+}
+}
