@@ -50,7 +50,11 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
         mlmodel_json = response.json()["flow"]
 
         pydantic_class = resource_create(MLModel)
-        description = mlmodel_json["description"]
+        description = (
+            mlmodel_json["full_description"]
+            if "full_description" in mlmodel_json
+            else mlmodel_json["description"]
+        )
         if isinstance(description, list) and len(description) == 0:
             description = ""
         elif not isinstance(description, str):
@@ -60,16 +64,27 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
             description = description[: field_length.LONG - len(text_break)] + text_break
         if description:
             description = Text(plain=description)
-        # No distribution if empty
-        distribution = [
-            RunnableDistribution(
-                dependency=mlmodel_json["dependencies"] if "dependencies" in mlmodel_json else None,
-                installation=mlmodel_json["installation_notes"]
-                if "installation_notes" in mlmodel_json
-                else None,
-                content_url=mlmodel_json["binary_url"] if "binary_url" in mlmodel_json else None,
-            )
-        ]
+        if (
+            "dependencies" not in mlmodel_json
+            and "installation_notes" not in mlmodel_json
+            and "binary_url" not in mlmodel_json
+        ):
+            distribution = None
+        else:
+            distribution = [
+                RunnableDistribution(
+                    dependency=mlmodel_json["dependencies"]
+                    if "dependencies" in mlmodel_json
+                    else None,
+                    installation=mlmodel_json["installation_notes"]
+                    if "installation_notes" in mlmodel_json
+                    else None,
+                    content_url=mlmodel_json["binary_url"]
+                    if "binary_url" in mlmodel_json
+                    else None,
+                )
+            ]
+
         return pydantic_class(
             aiod_entry=AIoDEntryCreate(
                 status="published",
