@@ -15,7 +15,7 @@ from database.model.ai_resource.text import Text
 from database.model.concept.aiod_entry import AIoDEntryCreate
 from database.model.models_and_experiments.ml_model import MLModel
 
-# from database.model.models_and_experiments.runnable_distribution import RunnableDistribution
+from database.model.models_and_experiments.runnable_distribution import RunnableDistribution
 from database.model.platform.platform_names import PlatformName
 from database.model.resource_read_and_create import resource_create
 
@@ -60,16 +60,16 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
             description = description[: field_length.LONG - len(text_break)] + text_break
         if description:
             description = Text(plain=description)
-        # distribution = [
-        #     RunnableDistribution(
-        #         dependency=mlmodel_json["dependencies"]
-        #         if "dependencies" in mlmodel_json else None,
-        #         installation=mlmodel_json["installation_notes"]
-        #         if "installation_notes" in mlmodel_json
-        #         else None,
-        #         content_url=mlmodel_json["binary_url"] if "binary_url" in mlmodel_json else None,
-        #     )
-        # ]
+        # No distribution if empty
+        distribution = [
+            RunnableDistribution(
+                dependency=mlmodel_json["dependencies"] if "dependencies" in mlmodel_json else None,
+                installation=mlmodel_json["installation_notes"]
+                if "installation_notes" in mlmodel_json
+                else None,
+                content_url=mlmodel_json["binary_url"] if "binary_url" in mlmodel_json else None,
+            )
+        ]
         return pydantic_class(
             aiod_entry=AIoDEntryCreate(
                 status="published",
@@ -81,9 +81,8 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
             description=description,
             date_published=dateutil.parser.parse(mlmodel_json["upload_date"]),
             license=mlmodel_json["licence"] if "licence" in mlmodel_json else None,
-            # distribution=distribution,
+            distribution=distribution,
             is_accessible_for_free=True,
-            # size=size,
             keyword=[tag for tag in mlmodel_json["tag"]] if "tag" in mlmodel_json else [],
             version=mlmodel_json["version"],
         )
