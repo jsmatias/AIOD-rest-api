@@ -12,7 +12,12 @@ from database.model.concept.concept import AIoDConceptBase, AIoDConcept
 from database.model.concept.status import Status
 from database.model.named_relation import NamedRelation
 from database.model.relationships import ManyToOne, ManyToMany
-from database.model.serializers import AttributeSerializer, FindByNameDeserializer, CastDeserializer
+from database.model.serializers import (
+    AttributeSerializer,
+    FindByNameDeserializer,
+    CastDeserializerList,
+    FindByNameDeserializerList,
+)
 from database.session import DbSession
 from routers import ResourceRouter
 
@@ -99,12 +104,12 @@ class TestObject(TestObjectBase, AIoDConcept, table=True):  # type: ignore [call
         named_string_list: List[str] = ManyToMany(
             description="this is a test for a list of strings",
             _serializer=AttributeSerializer("name"),
-            deserializer=FindByNameDeserializer(TestEnum2),
+            deserializer=FindByNameDeserializerList(TestEnum2),
             example=["test1", "test2"],
         )
         related_objects: List[TestRelatedObject] = ManyToMany(
             description="this is a test for a list of objects",
-            deserializer=CastDeserializer(TestRelatedObjectOrm),
+            deserializer=CastDeserializerList(TestRelatedObjectOrm),
         )
 
 

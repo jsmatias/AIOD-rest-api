@@ -5,16 +5,16 @@ from unittest.mock import Mock
 
 import pytest
 from fastapi import FastAPI
-from sqlalchemy import event, text
+from sqlalchemy import event
 from sqlalchemy.engine import Engine
-from sqlmodel import create_engine, SQLModel
+from sqlmodel import create_engine, SQLModel, Session, select
 from starlette.testclient import TestClient
 
 from database.deletion.triggers import add_delete_triggers
 from database.model.concept.concept import AIoDConcept
 from database.model.platform.platform import Platform
 from database.model.platform.platform_names import PlatformName
-from database.session import EngineSingleton, DbSession
+from database.session import EngineSingleton
 from main import add_routes
 from tests.testutils.test_resource import RouterTestResource, factory
 
@@ -54,15 +54,10 @@ def clear_db(request, engine: Engine):
     This fixture will be used by every test and checks if the test uses an engine.
     If it does, it deletes the content of the database, so the test has a fresh db to work with.
     """
-
-    with engine.connect() as connection:
-        transaction = connection.begin()
-        connection.execute(text("PRAGMA foreign_keys=OFF"))
-        for table in SQLModel.metadata.sorted_tables:
-            connection.execute(table.delete())
-        connection.execute(text("PRAGMA foreign_keys=ON"))
-        transaction.commit()
-    with DbSession() as session:
+    with Session(engine) as session:
+        if session.scalars(select(Platform)).first():
+            pytest.exit("A previous test did not clean properly. See other errors.")
+    with Session(engine) as session:
         session.add_all([Platform(name=name) for name in PlatformName])
         if any("engine" in fixture and "filled" in fixture for fixture in request.fixturenames):
             session.add(
@@ -73,6 +68,14 @@ def clear_db(request, engine: Engine):
                 )
             )
         session.commit()
+
+    yield
+
+    with engine.connect() as connection:
+        transaction = connection.begin()
+        for table in reversed(SQLModel.metadata.sorted_tables):
+            connection.execute(table.delete())
+        transaction.commit()
 
 
 @event.listens_for(Engine, "connect")

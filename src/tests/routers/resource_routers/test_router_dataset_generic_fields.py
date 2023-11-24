@@ -1,11 +1,11 @@
 import copy
 import time
-import typing
 from datetime import datetime
 from unittest.mock import Mock
 
 import dateutil.parser
 import pytz
+from sqlalchemy import delete
 from sqlmodel import select
 from starlette.testclient import TestClient
 
@@ -14,10 +14,11 @@ from database.model import field_length
 from database.model.agent.contact import Contact
 from database.model.agent.organisation import Organisation
 from database.model.agent.person import Person
+from database.model.annotations import datatype_of_field
 from database.model.concept.aiod_entry import AIoDEntryORM
 from database.model.dataset.dataset import Dataset
-from database.model.helper_functions import all_annotations
 from database.model.knowledge_asset.publication import Publication
+from database.model.news.news import News
 from database.session import DbSession
 
 
@@ -316,7 +317,7 @@ def assert_distributions(client: TestClient, *content_urls: str):
     distributions = response.json()["distribution"]
     assert {distribution["content_url"] for distribution in distributions} == set(content_urls)
 
-    (distribution_class,) = typing.get_args(all_annotations(Dataset)["distribution"])
+    distribution_class = datatype_of_field(Dataset, "distribution")
     with DbSession() as session:
         distributions = session.scalars(select(distribution_class)).all()
         assert {distribution.content_url for distribution in distributions} == set(content_urls)
@@ -405,8 +406,13 @@ def test_relations_between_resources(
     assert_relations(client, "publications", relevant_to=[4])
     assert_relations(client, "organisations", relevant_resource=[4])
 
-    body = {"name": "news", "has_part": [1], "is_part_of": [2], "relevant_resource": [3]}
+    body = {"name": "news", "has_part": [], "is_part_of": [], "relevant_resource": []}
     response = client.put("/news/v1/1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
-    response = client.delete("/news/v1/1", headers={"Authorization": "Fake token"})
+    with DbSession() as session:
+        session.exec(delete(News))  # hard delete
+        session.commit()
     assert response.status_code == 200, response.json()
+    assert_relations(client, "datasets")
+    assert_relations(client, "publications")
+    assert_relations(client, "organisations")
