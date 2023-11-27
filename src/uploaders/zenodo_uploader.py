@@ -79,7 +79,9 @@ class ZenodoUploader:
         return dataset
 
     def _create_repo(self, token: str, metadata: dict) -> dict:
-        """ """
+        """
+        Creates an empty repo with some metadata on Zenodo.
+        """
         params = {"access_token": token}
         try:
             res = requests.post(
@@ -113,7 +115,9 @@ class ZenodoUploader:
         return res.json()
 
     def _update_zenodo_metadata(self, repo_id: str, token: str, metadata: dict) -> None:
-        """"""
+        """
+        Updates the zenodo repo with some metadata.
+        """
         headers = {"Content-Type": "application/json"}
         try:
             res = requests.put(
@@ -130,7 +134,9 @@ class ZenodoUploader:
             raise HTTPException(status_code=res.status_code, detail=f"{msg} {res.text}")
 
     def _upload_file(self, repo_url: str, token: str, file: UploadFile) -> None:
-        """"""
+        """
+        Uploads a file to zenodo using a bucket url where the files are stored.
+        """
         params = {"access_token": token}
         try:
             res = requests.put(
