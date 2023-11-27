@@ -115,7 +115,7 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
             version=mlmodel_json["version"],
         )
 
-        return ResourceWithRelations[MLModel](
+        return ResourceWithRelations[pydantic_class](  # type:ignore
             resource=mlmodel, related_resources={"creator": creator_names}
         )
 
