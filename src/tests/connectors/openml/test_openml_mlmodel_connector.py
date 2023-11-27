@@ -15,7 +15,6 @@ def test_first_run():
             mock_list_data(mocked_requests, offset)
         for i in range(1, 4):
             mock_get_data(mocked_requests, str(i))
-
         mlmodels = list(connector.run(state={}, from_identifier=0, limit=None))
 
     assert {m.name for m in mlmodels} == {

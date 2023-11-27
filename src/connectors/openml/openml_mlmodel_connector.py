@@ -15,6 +15,9 @@ from database.model.ai_resource.text import Text
 from database.model.concept.aiod_entry import AIoDEntryCreate
 from database.model.models_and_experiments.ml_model import MLModel
 
+# from database.model.ai_resource.resource import AbstractAIResource
+# from database.model.agent.agent import Agent
+# from database.model.agent.contact import Contact
 from database.model.models_and_experiments.runnable_distribution import RunnableDistribution
 from database.model.platform.platform_names import PlatformName
 from database.model.resource_read_and_create import resource_create
@@ -85,6 +88,18 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
                 )
             ]
 
+        # creator_mlmodel = None
+        # if "creator" and "contributor" in mlmodel_json:
+        #     creator_names = (
+        #         [mlmodel_json["creator"]] + mlmodel_json["contributor"]
+        #         if "contributor" in mlmodel_json
+        #         else [mlmodel_json["creator"]]
+        #     )
+        #     creator_names_ = []
+        #     for c in creator_names:
+        #         creator_names_.append(Contact(name=c))
+
+        #     creator_mlmodel = [Agent(name="creators of the mlmodel", creator=creator_names_)]
         return pydantic_class(
             aiod_entry=AIoDEntryCreate(
                 status="published",
@@ -124,14 +139,19 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
 
         for summary in mlmodel_summaries:
             identifier = None
-            try:
-                identifier = summary["id"]
-                if identifier < from_identifier:
-                    yield RecordError(identifier=identifier, error="Id too low", ignore=True)
-                if from_identifier is None or identifier >= from_identifier:
-                    yield self.fetch_record(identifier)
-            except Exception as e:
-                yield RecordError(identifier=identifier, error=e)
+            # ToDo: dicuss how to accomodate pipelines. Excluding pipelines for now.
+            # Note: weka doesn't have a standard method to define pipeline.
+            # There are no mlr pipeline in OpenML.
+            if "sklearn.pipeline" not in summary["name"]:
+                try:
+                    identifier = summary["id"]
+
+                    if identifier < from_identifier:
+                        yield RecordError(identifier=identifier, error="Id too low", ignore=True)
+                    if from_identifier is None or identifier >= from_identifier:
+                        yield self.fetch_record(identifier)
+                except Exception as e:
+                    yield RecordError(identifier=identifier, error=e)
 
 
 def _as_int(v: str) -> int:
