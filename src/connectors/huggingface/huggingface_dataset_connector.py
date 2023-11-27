@@ -9,7 +9,7 @@ from connectors.abstract.resource_connector_on_start_up import ResourceConnector
 from connectors.record_error import RecordError
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model import field_length
-from database.model.agent.person import Person
+from database.model.agent.contact import Contact
 from database.model.ai_asset.distribution import Distribution
 from database.model.ai_resource.text import Text
 from database.model.concept.aiod_entry import AIoDEntryCreate
@@ -96,7 +96,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
             #     )
         related_resources = {"citation": citations}
         if dataset.author is not None:
-            related_resources["creator"] = [Person(name=dataset.author)]
+            related_resources["creator"] = [Contact(name=dataset.author)]
 
         description = getattr(dataset, "description", None)
         if description and len(description) > field_length.LONG:
