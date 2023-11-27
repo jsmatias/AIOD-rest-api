@@ -13,7 +13,6 @@ from pydantic import Json
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, select
 
-import routers
 from authentication import get_current_user
 from config import KEYCLOAK_CONFIG
 from database.deletion.triggers import add_delete_triggers
@@ -80,7 +79,6 @@ def add_routes(app: FastAPI, engine: Engine, url_prefix=""):
         resource_routers.router_list
         + parent_routers.router_list
         + enum_routers.router_list
-        + routers.other_routers
         + uploader_routers.router_list
     ):
         app.include_router(router.create(engine, url_prefix))

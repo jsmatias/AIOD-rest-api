@@ -14,7 +14,7 @@ from database.model.agent.person import Person
 from tests.testutils.paths import path_test_resources
 
 from tests.uploader.zenodo.mock_zenodo import MockZenodoResponse
-from uploader.zenodo_uploader import ZenodoUploader
+from uploaders.zenodo_uploader import ZenodoUploader
 
 ENDPOINT = "/upload/datasets/1/zenodo"
 FILE1 = "example1.csv"

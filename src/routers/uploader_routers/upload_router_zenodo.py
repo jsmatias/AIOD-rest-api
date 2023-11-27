@@ -2,12 +2,14 @@ from fastapi import APIRouter
 from fastapi import File, Query, UploadFile
 from sqlalchemy.engine import Engine
 
-from uploader.zenodo_uploader import ZenodoUploader
+from uploaders.zenodo_uploader import ZenodoUploader
+from routers.uploader_router import UploaderRouter
 
 
-class UploadRouterZenodo:
+class UploadRouterZenodo(UploaderRouter):
     def create(self, engine: Engine, url_prefix: str) -> APIRouter:
-        router = APIRouter()
+        router = super().create(engine, url_prefix)
+
         zenodo_uploader = ZenodoUploader()
 
         @router.post(url_prefix + "/upload/datasets/{identifier}/zenodo", tags=["upload"])
