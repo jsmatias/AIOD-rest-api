@@ -17,7 +17,7 @@ def test_first_run():
             mock_get_data(mocked_requests, str(i))
         mlmodels = list(connector.run(state={}, from_identifier=0, limit=None))
 
-    assert {m.name for m in mlmodels} == {
+    assert {m.resource.name for m in mlmodels} == {
         "openml.evaluation.EuclideanDistance",
         "openml.evaluation.PolynomialKernel",
         "openml.evaluation.RBFKernel",
@@ -35,7 +35,7 @@ def test_second_run():
             connector.run(state={"offset": 2, "last_id": 2}, from_identifier=0, limit=None)
         )
     assert len(mlmodels) == 1
-    assert {m.name for m in mlmodels} == {"openml.evaluation.RBFKernel"}
+    assert {m.resource.name for m in mlmodels} == {"openml.evaluation.RBFKernel"}
 
 
 def test_second_run_wrong_identifier():
@@ -47,7 +47,7 @@ def test_second_run_wrong_identifier():
             connector.run(state={"offset": 2, "last_id": 0}, from_identifier=0, limit=None)
         )
     assert len(mlmodels) == 1
-    assert {m.name for m in mlmodels} == {"openml.evaluation.RBFKernel"}
+    assert {m.resource.name for m in mlmodels} == {"openml.evaluation.RBFKernel"}
 
 
 def mock_list_data(mocked_requests, offset):

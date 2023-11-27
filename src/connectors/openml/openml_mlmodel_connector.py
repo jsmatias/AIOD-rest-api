@@ -15,12 +15,11 @@ from database.model.ai_resource.text import Text
 from database.model.concept.aiod_entry import AIoDEntryCreate
 from database.model.models_and_experiments.ml_model import MLModel
 
-# from database.model.ai_resource.resource import AbstractAIResource
-# from database.model.agent.agent import Agent
-# from database.model.agent.contact import Contact
+from database.model.agent.contact import Contact
 from database.model.models_and_experiments.runnable_distribution import RunnableDistribution
 from database.model.platform.platform_names import PlatformName
 from database.model.resource_read_and_create import resource_create
+from connectors.resource_with_relations import ResourceWithRelations
 
 
 class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
@@ -38,10 +37,10 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
     def platform_name(self) -> PlatformName:
         return PlatformName.openml
 
-    def retry(self, identifier: int) -> SQLModel | RecordError:
+    def retry(self, identifier: int) -> ResourceWithRelations[SQLModel] | RecordError:
         return self.fetch_record(identifier)
 
-    def fetch_record(self, identifier: int) -> SQLModel | RecordError:
+    def fetch_record(self, identifier: int) -> ResourceWithRelations[MLModel] | RecordError:
         url_mlmodel = f"https://www.openml.org/api/v1/json/flow/{identifier}"
         response = requests.get(url_mlmodel)
         if not response.ok:
@@ -88,19 +87,20 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
                 )
             ]
 
-        # creator_mlmodel = None
-        # if "creator" and "contributor" in mlmodel_json:
-        #     creator_names = (
-        #         [mlmodel_json["creator"]] + mlmodel_json["contributor"]
-        #         if "contributor" in mlmodel_json
-        #         else [mlmodel_json["creator"]]
-        #     )
-        #     creator_names_ = []
-        #     for c in creator_names:
-        #         creator_names_.append(Contact(name=c))
+        creator_names = []
+        if "creator" and "contributor" in mlmodel_json:
+            creators = (
+                [mlmodel_json["creator"]] + mlmodel_json["contributor"]
+                if "contributor" in mlmodel_json
+                else [mlmodel_json["creator"]]
+            )
+            for name in creators:
+                creator_names.append(Contact(name=name))
 
-        #     creator_mlmodel = [Agent(name="creators of the mlmodel", creator=creator_names_)]
-        return pydantic_class(
+            # creator_mlmodel =
+
+        pydantic_class = resource_create(MLModel)
+        mlmodel = pydantic_class(
             aiod_entry=AIoDEntryCreate(
                 status="published",
             ),
@@ -117,7 +117,13 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
             version=mlmodel_json["version"],
         )
 
-    def fetch(self, offset: int, from_identifier: int) -> Iterator[SQLModel | RecordError]:
+        return ResourceWithRelations[MLModel](
+            resource=mlmodel, related_resources={"creator": creator_names}
+        )
+
+    def fetch(
+        self, offset: int, from_identifier: int
+    ) -> Iterator[ResourceWithRelations[SQLModel] | RecordError]:
         url_mlmodel = (
             "https://www.openml.org/api/v1/json/flow/list/"
             f"limit/{self.limit_per_iteration}/offset/{offset}"
@@ -139,9 +145,9 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
 
         for summary in mlmodel_summaries:
             identifier = None
-            # ToDo: dicuss how to accomodate pipelines. Excluding pipelines for now.
+            # ToDo: dicuss how to accomodate pipelines. Excluding sklearn pipelines for now.
             # Note: weka doesn't have a standard method to define pipeline.
-            # There are no mlr pipeline in OpenML.
+            # There are no mlr pipelines in OpenML.
             if "sklearn.pipeline" not in summary["name"]:
                 try:
                     identifier = summary["id"]
