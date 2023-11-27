@@ -97,8 +97,6 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
             for name in creators:
                 creator_names.append(Contact(name=name))
 
-            # creator_mlmodel =
-
         pydantic_class = resource_create(MLModel)
         mlmodel = pydantic_class(
             aiod_entry=AIoDEntryCreate(
