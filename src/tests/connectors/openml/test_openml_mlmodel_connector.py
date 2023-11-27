@@ -1,5 +1,5 @@
 import json
-
+import datetime
 import responses
 
 from connectors.openml.openml_mlmodel_connector import OpenMlMLModelConnector
@@ -16,14 +16,13 @@ def test_first_run():
         for i in range(1, 4):
             mock_get_data(mocked_requests, str(i))
         mlmodels = list(connector.run(state={}, from_identifier=0, limit=None))
-
     assert {m.resource.name for m in mlmodels} == {
         "openml.evaluation.EuclideanDistance",
         "openml.evaluation.PolynomialKernel",
         "openml.evaluation.RBFKernel",
     }
     assert len(mlmodels) == 3
-    # add more assert statements
+    assert {len(m.related_resources["creator"]) for m in mlmodels} == {10, 10, 10}
 
 
 def test_second_run():
@@ -36,6 +35,15 @@ def test_second_run():
         )
     assert len(mlmodels) == 1
     assert {m.resource.name for m in mlmodels} == {"openml.evaluation.RBFKernel"}
+    mlmodel = mlmodels[0].resource
+    assert mlmodel.platform == "openml"
+    assert mlmodel.platform_resource_identifier == "3"
+    assert mlmodel.description.plain == ('An implementation of the evaluation measure "RBFKernel"')
+    assert mlmodel.distribution[0].installation == "Runs on OpenML servers"
+    assert mlmodel.date_published == datetime.datetime(2014, 1, 16, 14, 12, 56)
+    assert mlmodel.keyword == []
+    assert len(mlmodels[0].related_resources["creator"]) == 10
+    assert mlmodels[0].related_resources["creator"][0].name == "Jan N. van Rijn"
 
 
 def test_second_run_wrong_identifier():
