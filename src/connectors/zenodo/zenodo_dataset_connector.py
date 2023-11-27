@@ -67,8 +67,9 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             return RecordError(identifier=identifier, error=error_fmt("creator"))
 
         creators = []
+        pydantic_class_contact = resource_create(Contact)
         for name in creator_names:
-            creators.append(Contact(name=name))
+            creators.append(pydantic_class_contact(name=name))
 
         if isinstance(record["titles"]["title"], str):
             title = record["titles"]["title"]
@@ -167,8 +168,8 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             distribution=distributions,
         )
 
-        return ResourceWithRelations[Dataset](
-            resource=dataset, related_resources={"creator": creators}
+        return ResourceWithRelations[pydantic_class](  # type:ignore
+            resource=dataset, resource_ORM_class=Dataset, related_resources={"creator": creators}
         )
 
     @staticmethod

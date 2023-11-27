@@ -50,13 +50,23 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
     ) -> typing.Iterator[ResourceWithRelations[Dataset] | RecordError]:
         pydantic_class = resource_create(Dataset)
         pydantic_class_publication = resource_create(Publication)
+        pydantic_class_contact = resource_create(Contact)
+
         for dataset in list_datasets(full=True, limit=limit):
             try:
-                yield self.fetch_dataset(dataset, pydantic_class, pydantic_class_publication)
+                yield self.fetch_dataset(
+                    dataset, pydantic_class, pydantic_class_publication, pydantic_class_contact
+                )
             except Exception as e:
                 yield RecordError(identifier=dataset.id, error=e)
 
-    def fetch_dataset(self, dataset: DatasetInfo, pydantic_class, pydantic_class_publication):
+    def fetch_dataset(
+        self,
+        dataset: DatasetInfo,
+        pydantic_class,
+        pydantic_class_publication,
+        pydantic_class_contact,
+    ):
         citations = self._parse_citations(dataset, pydantic_class_publication)
 
         parquet_info = HuggingFaceDatasetConnector._get(
@@ -96,7 +106,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
             #     )
         related_resources = {"citation": citations}
         if dataset.author is not None:
-            related_resources["creator"] = [Contact(name=dataset.author)]
+            related_resources["creator"] = [pydantic_class_contact(name=dataset.author)]
 
         description = getattr(dataset, "description", None)
         if description and len(description) > field_length.LONG:
@@ -105,7 +115,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
         if description:
             description = Text(plain=description)
 
-        return ResourceWithRelations[Dataset](
+        return ResourceWithRelations[pydantic_class](  # type:ignore
             resource=pydantic_class(
                 aiod_entry=AIoDEntryCreate(status="published"),
                 platform_resource_identifier=dataset.id,
@@ -120,6 +130,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                 size=size,
                 keyword=dataset.tags,
             ),
+            resource_ORM_class=Dataset,
             related_resources=related_resources,
         )
 
