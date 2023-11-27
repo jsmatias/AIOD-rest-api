@@ -32,6 +32,7 @@ class ResourceConnectorById(ResourceConnector, Generic[RESOURCE]):
                 "Limiting the results! Please remove the limit command line argument "
                 "in production."
             )
+
         first_run = not state
         if first_run and from_identifier is None:
             raise ValueError("In the first run, the from-identifier needs to be set")
