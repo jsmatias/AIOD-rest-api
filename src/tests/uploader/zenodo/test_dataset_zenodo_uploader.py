@@ -1,7 +1,6 @@
 import copy
 import responses
 
-# from pytest import FixtureRequest
 from unittest.mock import Mock, patch
 
 
@@ -42,7 +41,7 @@ def distribution_from_metadata(filename: str) -> dict:
 
 
 def mock_response_generator(
-    mocked_requests: responses.RequestsMock, existing_files: list[str], new_file: str
+    mocked_requests: responses.RequestsMock, existing_files: list[str], new_file: list[str]
 ):
     """
     Generates mocked responses for zenodo with or without files already uploaded to the repo.
@@ -50,7 +49,7 @@ def mock_response_generator(
     mocked_requests.add(
         responses.GET,
         f"{ZENODO_BASE_URL}/{ZENODO_REPO_ID}",
-        json=mocked_zenodo_responses.get_metadata([new_file]),
+        json=mocked_zenodo_responses.get_metadata(new_file),
         status=200,
     )
     mocked_requests.add(
@@ -99,8 +98,8 @@ def test_happy_path_creating_repo(
     person: Person,
 ):
     """
-    platform = empty -> no platform conflict
-    platform_resource_identifier == None -> creates a new repo and upload a file
+    Test the successful path for creating a new repository on Zenodo before uploading a file.
+    The creating of a new repo is triggered when platform_resource_identifier is None.
     """
 
     body = copy.deepcopy(body_asset)
@@ -114,7 +113,7 @@ def test_happy_path_creating_repo(
     params = {"token": "fake-token"}
 
     with responses.RequestsMock() as mocked_requests:
-        mock_response_generator(mocked_requests, existing_files=[], new_file=FILE1)
+        mock_response_generator(mocked_requests, existing_files=[], new_file=[FILE1])
 
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
             test_file = {"file": f}
@@ -142,9 +141,9 @@ def test_happy_path_existing_repo(
     person: Person,
 ):
     """
-    platform = "zenodo" -> no platform conflict
-    platform_resource_identifier == an zenodo.org:int -> gets metadata and url of the existing
-    repo, then uploads a file.
+    Test the successful path for an existing repository on Zenodo.
+    When the platform_resource_identifier is not None (zenodo.org:int) the code should
+    get metadata and url of the existing repo, then upload a file.
     """
 
     body = copy.deepcopy(body_asset)
@@ -158,7 +157,7 @@ def test_happy_path_existing_repo(
     params = {"token": "fake-token"}
 
     with responses.RequestsMock(assert_all_requests_are_fired=False) as mocked_requests:
-        mock_response_generator(mocked_requests, existing_files=[], new_file=FILE1)
+        mock_response_generator(mocked_requests, existing_files=[], new_file=[FILE1])
 
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
             test_file = {"file": f}
@@ -184,3 +183,165 @@ def test_happy_path_existing_repo(
 
     assert len(response_json["distribution"]) == 1
     assert response_json["distribution"] == [distribution_from_metadata(FILE1)], response_json
+
+
+def test_happy_path_existing_file(
+    client: TestClient,
+    engine: Engine,
+    mocked_privileged_token: Mock,
+    body_asset: dict,
+    person: Person,
+):
+    """
+    Test uploading a second file to zenodo.
+    """
+
+    body = copy.deepcopy(body_asset)
+    body["platform"] = "zenodo"
+    body["platform_resource_identifier"] = f"zenodo.org:{ZENODO_REPO_ID}"
+    body["distribution"] = [distribution_from_metadata(FILE1)]
+
+    set_up(client, engine, mocked_privileged_token, body, person)
+
+    headers = {"Authorization": "Fake token"}
+    params = {"token": "fake-token"}
+
+    with responses.RequestsMock(assert_all_requests_are_fired=False) as mocked_requests:
+        mock_response_generator(mocked_requests, existing_files=[FILE1], new_file=[FILE2])
+
+        with open(path_test_resources() / "contents" / FILE1, "rb") as f:
+            test_file = {"file": f}
+            with patch.object(
+                ZenodoUploader,
+                "_get_metadata_from_zenodo",
+                side_effect=[
+                    mocked_zenodo_responses.get_metadata([FILE1]),
+                    mocked_zenodo_responses.get_metadata([FILE1, FILE2]),
+                ],
+            ):
+                response = client.post(ENDPOINT, params=params, headers=headers, files=test_file)
+
+        assert response.status_code == status.HTTP_200_OK, response.json()
+        assert response.json() == 1, response.json()
+
+    response_json = client.get("datasets/v1/1").json()
+
+    assert response_json["platform"] == "zenodo", response_json
+    assert (
+        response_json["platform_resource_identifier"] == f"zenodo.org:{ZENODO_REPO_ID}"
+    ), response_json
+
+    assert len(response_json["distribution"]) == 2
+    assert response_json["distribution"] == body["distribution"] + [
+        distribution_from_metadata(FILE2)
+    ], response_json
+
+
+def test_happy_path_updating_an_existing_file(
+    client: TestClient,
+    engine: Engine,
+    mocked_privileged_token: Mock,
+    body_asset: dict,
+    person: Person,
+):
+    """
+    Test uploading a second file to zenodo with the same name.
+    This must update the existing file.
+    """
+
+    body = copy.deepcopy(body_asset)
+    body["platform"] = "zenodo"
+    body["platform_resource_identifier"] = f"zenodo.org:{ZENODO_REPO_ID}"
+    body["distribution"] = [distribution_from_metadata(FILE1)]
+
+    set_up(client, engine, mocked_privileged_token, body, person)
+
+    headers = {"Authorization": "Fake token"}
+    params = {"token": "fake-token"}
+
+    get_res1 = mocked_zenodo_responses.get_metadata([FILE1])
+    get_res2 = copy.deepcopy(get_res1)
+    get_res2["files"][0]["id"] += "new"
+
+    with responses.RequestsMock(assert_all_requests_are_fired=False) as mocked_requests:
+        mock_response_generator(mocked_requests, existing_files=[FILE1], new_file=[FILE1])
+
+        with open(path_test_resources() / "contents" / FILE1, "rb") as f:
+            test_file = {"file": f}
+            with patch.object(
+                ZenodoUploader,
+                "_get_metadata_from_zenodo",
+                side_effect=[
+                    get_res1,
+                    get_res2,
+                ],
+            ):
+                response = client.post(ENDPOINT, params=params, headers=headers, files=test_file)
+
+        assert response.status_code == status.HTTP_200_OK, response.json()
+        assert response.json() == 1, response.json()
+
+    response_json = client.get("datasets/v1/1").json()
+
+    assert response_json["platform"] == "zenodo", response_json
+    assert (
+        response_json["platform_resource_identifier"] == f"zenodo.org:{ZENODO_REPO_ID}"
+    ), response_json
+
+    assert len(response_json["distribution"]) == 1
+    expected_updated_dist = distribution_from_metadata(FILE1)
+    expected_updated_dist["platform_resource_identifier"] = get_res2["files"][0]["id"]
+    assert response_json["distribution"] == [expected_updated_dist], response_json
+
+
+def test_platform_name_conflict(
+    client: TestClient,
+    engine: Engine,
+    mocked_privileged_token: Mock,
+    body_asset: dict,
+    person: Person,
+):
+    """
+    Test error handling on the attempt to upload a dataset with a platform name
+    different than zenodo.
+    """
+
+    body = copy.deepcopy(body_asset)
+    body["platform"] = "huggingface"
+    body["platform_resource_identifier"] = f"zenodo.org:{ZENODO_REPO_ID}"
+    body["distribution"] = []
+
+    set_up(client, engine, mocked_privileged_token, body, person)
+
+    headers = {"Authorization": "Fake token"}
+    params = {"token": "fake-token"}
+
+    with responses.RequestsMock(assert_all_requests_are_fired=False) as mocked_requests:
+        mock_response_generator(mocked_requests, existing_files=[], new_file=[FILE1])
+
+        with open(path_test_resources() / "contents" / FILE1, "rb") as f:
+            test_file = {"file": f}
+            with patch.object(
+                ZenodoUploader,
+                "_get_metadata_from_zenodo",
+                side_effect=[
+                    mocked_zenodo_responses.get_metadata(),
+                    mocked_zenodo_responses.get_metadata([FILE1]),
+                ],
+            ):
+                response = client.post(ENDPOINT, params=params, headers=headers, files=test_file)
+
+        assert response.status_code == status.HTTP_409_CONFLICT, response.json()
+        assert response.json()["detail"] == (
+            "Platform name huggingface conflict! "
+            "Verify that the platform name in the metadata is either 'zenodo' or empty"
+        ), response.json()
+
+    response_json = client.get("datasets/v1/1").json()
+
+    assert response_json["platform"] == "huggingface", response_json
+    assert (
+        response_json["platform_resource_identifier"] == f"zenodo.org:{ZENODO_REPO_ID}"
+    ), response_json
+
+    assert len(response_json["distribution"]) == 0
