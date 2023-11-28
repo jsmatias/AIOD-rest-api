@@ -54,7 +54,7 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
         pydantic_class = resource_create(MLModel)
         description = (
             mlmodel_json["full_description"]
-            if "full_description" in mlmodel_json
+            if mlmodel_json.get("full_description", None)
             else mlmodel_json["description"]
         )
         if isinstance(description, list) and len(description) == 0:
@@ -67,9 +67,9 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
         if description:
             description = Text(plain=description)
         if (
-            "dependencies" not in mlmodel_json
-            and "installation_notes" not in mlmodel_json
-            and "binary_url" not in mlmodel_json
+            mlmodel_json.get("dependencies", None)
+            and mlmodel_json.get("installation_notes", None)
+            and mlmodel_json.get("binary_url", None)
         ):
             distribution = []
         else:
