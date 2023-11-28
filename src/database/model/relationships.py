@@ -56,7 +56,7 @@ class _ResourceRelationship(abc.ABC, Representation):
     def field(self):
         return Field(
             description=self.description,
-            schema_extra={"example": self.example} if self.example is not None else None,
+            schema_extra={"example": self.example},
             default_factory=self.default_factory_pydantic,
         )
 
@@ -111,7 +111,12 @@ class _ResourceRelationshipList(_ResourceRelationship):
         example(Any): an example value to be shown in Swagger
     """
 
-    example: list[Any] | None = None
+    example: dataclasses.InitVar[list[Any] | None] = None
+
+    def __post_init__(self, example: list[Any] | None):
+        """Make sure the example is an empty list. If the example is None, Swagger will show it
+        as [0] for a list[int], and [""] for a list[str]."""
+        self.example = example if example is not None else []  # type: ignore
 
 
 @dataclasses.dataclass
