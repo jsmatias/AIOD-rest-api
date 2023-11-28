@@ -517,6 +517,7 @@ class ResourceRouter(abc.ABC):
             Literal[tuple(self._possible_schemas)],  # type: ignore
             Query(
                 description="Return the resource(s) in this schema.",
+                include_in_schema=len(self._possible_schemas) > 1,
             ),
         ]
 
