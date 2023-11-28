@@ -93,6 +93,7 @@ def create_app() -> FastAPI:
     """Create the FastAPI application, complete with routes."""
     setup_logger()
     args = _parse_args()
+    pyproject_toml = pkg_resources.get_distribution("aiod_metadata_catalogue")
     app = FastAPI(
         openapi_url=f"{args.url_prefix}/openapi.json",
         docs_url=f"{args.url_prefix}/docs",
@@ -104,8 +105,8 @@ def create_app() -> FastAPI:
             "usePkceWithAuthorizationCodeGrant": True,
             "scopes": KEYCLOAK_CONFIG.get("scopes"),
         },
-        title=pkg_resources.get_distribution("aiod_metadata_catalogue").project_name,
-        version=pkg_resources.get_distribution("aiod_metadata_catalogue").version,
+        title=pyproject_toml.project_name,
+        version=pyproject_toml.version,
     )
     drop_or_create_database(delete_first=args.rebuild_db == "always")
     AIoDConcept.metadata.create_all(EngineSingleton().engine, checkfirst=True)
