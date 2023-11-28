@@ -95,9 +95,10 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
         )
 
         creator_names = []
+        pydantic_class_contact = resource_create(Contact)
         if openml_creator or openml_contributor:
             for name in openml_creator + openml_contributor:
-                creator_names.append(Contact(name=name))
+                creator_names.append(pydantic_class_contact(name=name))
 
         tags = mlmodel_json.get("tag", None)
         tags = [tags] if isinstance(tags, str) and tags else tags
@@ -121,7 +122,9 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
         )
 
         return ResourceWithRelations[pydantic_class](  # type:ignore
-            resource=mlmodel, related_resources={"creator": creator_names}
+            resource=mlmodel,
+            resource_ORM_class=MLModel,
+            related_resources={"creator": creator_names},
         )
 
     def fetch(

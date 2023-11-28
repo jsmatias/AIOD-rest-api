@@ -22,7 +22,9 @@ def test_first_run():
         "openml.evaluation.RBFKernel",
     }
     assert len(mlmodels) == 3
-    assert {len(m.related_resources["creator"]) for m in mlmodels} == {10, 10, 10}
+    assert {len(m.related_resources["creator"]) for m in mlmodels} == {
+        10,
+    }
 
 
 def test_second_run():
