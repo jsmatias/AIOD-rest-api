@@ -6,6 +6,7 @@ Note: order matters for overloaded paths
 """
 import argparse
 
+import pkg_resources
 import uvicorn
 from fastapi import Depends, FastAPI
 from fastapi.responses import HTMLResponse
@@ -103,6 +104,8 @@ def create_app() -> FastAPI:
             "usePkceWithAuthorizationCodeGrant": True,
             "scopes": KEYCLOAK_CONFIG.get("scopes"),
         },
+        title=pkg_resources.get_distribution("aiod_metadata_catalogue").project_name,
+        version=pkg_resources.get_distribution("aiod_metadata_catalogue").version,
     )
     drop_or_create_database(delete_first=args.rebuild_db == "always")
     AIoDConcept.metadata.create_all(EngineSingleton().engine, checkfirst=True)
