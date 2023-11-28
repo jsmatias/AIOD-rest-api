@@ -97,6 +97,9 @@ def create_app() -> FastAPI:
     app = FastAPI(
         openapi_url=f"{args.url_prefix}/openapi.json",
         docs_url=f"{args.url_prefix}/docs",
+        title="AIoD Metadata Catalogue",
+        description="This is the Swagger documentation of the AIoD Metadata Catalogue.",
+        version=pyproject_toml.version,
         swagger_ui_oauth2_redirect_url=f"{args.url_prefix}/docs/oauth2-redirect",
         swagger_ui_init_oauth={
             "clientId": KEYCLOAK_CONFIG.get("client_id_swagger"),
@@ -105,8 +108,6 @@ def create_app() -> FastAPI:
             "usePkceWithAuthorizationCodeGrant": True,
             "scopes": KEYCLOAK_CONFIG.get("scopes"),
         },
-        title=pyproject_toml.project_name,
-        version=pyproject_toml.version,
     )
     drop_or_create_database(delete_first=args.rebuild_db == "always")
     AIoDConcept.metadata.create_all(EngineSingleton().engine, checkfirst=True)
