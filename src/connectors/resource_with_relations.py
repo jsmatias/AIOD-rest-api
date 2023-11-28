@@ -23,20 +23,33 @@ class ResourceWithRelations(Generic[RESOURCE]):
     # For each field name, another resource or a list of other resources
 
     def __post_init__(self):
-        for name, value in self.related_resources.items():
+        for name, resource_values in self.related_resources.items():
             """
             Field type check to avoid mismatch.
-            type(value[0]) returns class - <class 'pydantic.main.PublicationCreate'>,
-            however datatype_of_field returns str ex - 'Publication'
-
+            Raise an error if there is a mismatch between the datatype of a related resource,
+            and the datatype of the corresponding field.
+            For example, for Dataset.creator, the datatype is list[Contact] according to
+            the annotations. Therefore, related resources with the key "creator" should be of
+            datetype "ContactCreate".
             """
+            # ToDo:We could use from __future__ import annotations instead of using string-types.
+            # Refer:https://stackoverflow.com/questions/33837918/type-hints-solve-circular-dependency
             name_type = datatype_of_field(clazz=self.resource_ORM_class, field_name=name)
-            if type(name_type) is not str:
+            if not isinstance(
+                name_type, str
+            ):  # the datatype will be string, if the annotation List["Publication"]
                 name_type = name_type.__name__
 
-            for v in value:
-                if name_type + "Create" != type(v).__name__:
+            resource_values = (
+                resource_values if isinstance(resource_values, list) else [resource_values]
+            )
+
+            for resource_value in resource_values:
+                name_expected = f"{name_type}Create"
+                #  type(resource_value) returns class, ex: <class 'pydantic.main.PublicationCreate'>
+                name_actual = type(resource_value).__name__
+                if name_expected != name_actual:
                     raise ValueError(
-                        f"""Type mismatch for field '{name}'.
-                        Expected {name_type}, got {type(v).__name__}."""
+                        f"Type mismatch for field '{self.resource_ORM_class.__name__+'.'+name}'. \
+                            Expected {name_expected}, got {name_actual}."
                     )
