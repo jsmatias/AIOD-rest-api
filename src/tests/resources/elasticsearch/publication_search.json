@@ -1,0 +1,37 @@
+{
+  "took" : 1,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 1,
+      "relation" : "eq"
+    },
+    "max_score" : null,
+    "hits" : [
+      {
+        "_index" : "publication",
+        "_id" : "publication_1",
+        "_score" : null,
+        "_source" : {
+          "identifier" : 1,
+          "date_modified" : "2023-09-01T00:00:00.000Z",
+          "name" : "A name.",
+          "description_plain" : "A plain text description.",
+          "issn" : "20493630",
+          "type" : "publication",
+          "isbn" : "9783161484100",
+          "description_html" : "An html description."
+        },
+        "sort" : [
+          1
+        ]
+      }
+    ]
+  }
+}
