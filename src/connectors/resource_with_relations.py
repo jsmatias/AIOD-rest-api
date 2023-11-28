@@ -23,17 +23,17 @@ class ResourceWithRelations(Generic[RESOURCE]):
     # For each field name, another resource or a list of other resources
 
     def __post_init__(self):
+        """
+        Raise an error if there is a mismatch between the datatype of a related resource,
+        and the datatype of the corresponding field. For example, for Dataset.creator,
+        the datatype is list[Contact] according to the annotations. Therefore, related resources
+        with the key "creator" should be of datetype "ContactCreate".
+        """
         for name, resource_values in self.related_resources.items():
-            """
-            Field type check to avoid mismatch.
-            Raise an error if there is a mismatch between the datatype of a related resource,
-            and the datatype of the corresponding field.
-            For example, for Dataset.creator, the datatype is list[Contact] according to
-            the annotations. Therefore, related resources with the key "creator" should be of
-            datetype "ContactCreate".
-            """
+
             # ToDo:We could use from __future__ import annotations instead of using string-types.
             # Refer:https://stackoverflow.com/questions/33837918/type-hints-solve-circular-dependency
+
             name_type = datatype_of_field(clazz=self.resource_ORM_class, field_name=name)
             if not isinstance(
                 name_type, str
