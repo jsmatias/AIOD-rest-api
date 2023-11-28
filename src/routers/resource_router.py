@@ -2,16 +2,16 @@ import abc
 import datetime
 import traceback
 from functools import partial
-from typing import Literal, Union, Any
+from typing import Literal, Union, Any, Annotated
 from typing import TypeVar, Type
 from wsgiref.handlers import format_date_time
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy import and_, func
 from sqlalchemy.sql.operators import is_
-from sqlmodel import SQLModel, Session, select
+from sqlmodel import SQLModel, Session, select, Field
 from starlette.responses import JSONResponse
 
 from authentication import get_current_user
@@ -30,8 +30,22 @@ from database.session import DbSession
 
 
 class Pagination(BaseModel):
-    offset: int = 0
-    limit: int = 100
+    """Offset-based pagination."""
+
+    offset: int = Field(
+        Query(
+            description="Specifies the number of resources that should be skipped.", default=0, ge=0
+        )
+    )
+    # Query inside field to ensure description is shown in Swagger.
+    # Refer to https://github.com/tiangolo/fastapi/issues/4700
+    limit: int = Field(
+        Query(
+            description="Specified the maximum number of resources that should be " "returned.",
+            default=10,
+            le=1000,
+        )
+    )
 
 
 RESOURCE = TypeVar("RESOURCE", bound=AbstractAIResource)
@@ -131,6 +145,7 @@ class ResourceRouter(abc.ABC):
             endpoint=self.get_resource_count_func(),
             response_model=int | dict[str, int],
             name=f"Count of {self.resource_name_plural}",
+            description=f"Retrieve the number of {self.resource_name_plural}.",
             **default_kwargs,
         )
         router.add_api_route(
@@ -138,6 +153,7 @@ class ResourceRouter(abc.ABC):
             methods={"POST"},
             endpoint=self.register_resource_func(),
             name=self.resource_name,
+            description=f"Register a {self.resource_name} with AIoD.",
             **default_kwargs,
         )
         router.add_api_route(
@@ -145,6 +161,8 @@ class ResourceRouter(abc.ABC):
             endpoint=self.get_resource_func(),
             response_model=response_model,  # type: ignore
             name=self.resource_name,
+            description=f"Retrieve all meta-data for a {self.resource_name} identified by the AIoD "
+            "identifier.",
             **default_kwargs,
         )
         router.add_api_route(
@@ -152,6 +170,7 @@ class ResourceRouter(abc.ABC):
             methods={"PUT"},
             endpoint=self.put_resource_func(),
             name=self.resource_name,
+            description=f"Update an existing {self.resource_name}.",
             **default_kwargs,
         )
         router.add_api_route(
@@ -159,6 +178,7 @@ class ResourceRouter(abc.ABC):
             methods={"DELETE"},
             endpoint=self.delete_resource_func(),
             name=self.resource_name,
+            description=f"Delete a {self.resource_name}.",
             **default_kwargs,
         )
         if hasattr(self.resource_class, "platform"):
@@ -167,6 +187,8 @@ class ResourceRouter(abc.ABC):
                 endpoint=self.get_platform_resources_func(),
                 response_model=response_model_plural,  # type: ignore
                 name=f"List {self.resource_name_plural}",
+                description=f"Retrieve all meta-data of the {self.resource_name_plural} of given "
+                f"platform.",
                 **default_kwargs,
             )
             router.add_api_route(
@@ -175,6 +197,8 @@ class ResourceRouter(abc.ABC):
                 endpoint=self.get_platform_resource_func(),
                 response_model=response_model,  # type: ignore
                 name=self.resource_name,
+                description=f"Retrieve all meta-data for a {self.resource_name} identified by the "
+                "platform-specific-identifier.",
                 **default_kwargs,
             )
         return router
@@ -229,8 +253,8 @@ class ResourceRouter(abc.ABC):
         """
 
         def get_resources(
-            pagination: Pagination = Depends(Pagination),
-            schema: Literal[tuple(self._possible_schemas)] = "aiod",  # type:ignore
+            pagination: Pagination = Depends(),
+            schema: self._possible_schemas_type = "aiod",  # type:ignore
         ):
             resources = self.get_resources(pagination=pagination, schema=schema, platform=None)
             return resources
@@ -244,8 +268,11 @@ class ResourceRouter(abc.ABC):
         docstring and the variables are dynamic, and used in Swagger.
         """
 
-        def get_resource_count(detailed=False):
-            f"""Retrieve the number of {self.resource_name_plural}."""
+        def get_resource_count(
+            detailed: Annotated[
+                bool, Query(description="If true, a more detailed output is returned.")
+            ] = False
+        ):
             try:
                 with DbSession() as session:
                     if not detailed:
@@ -281,11 +308,16 @@ class ResourceRouter(abc.ABC):
         """
 
         def get_resources(
-            platform: str,
+            platform: Annotated[
+                str,
+                Path(
+                    description="Return resources of this platform",
+                    example="huggingface",
+                ),
+            ],
             pagination: Pagination = Depends(Pagination),
-            schema: Literal[tuple(self._possible_schemas)] = "aiod",  # type:ignore
+            schema: self._possible_schemas_type = "aiod",  # type:ignore
         ):
-            f"""Retrieve all meta-data of the {self.resource_name_plural} of given platform."""
             resources = self.get_resources(pagination=pagination, schema=schema, platform=platform)
             return resources
 
@@ -300,11 +332,8 @@ class ResourceRouter(abc.ABC):
 
         def get_resource(
             identifier: str,
-            schema: Literal[tuple(self._possible_schemas)] = "aiod",  # type:ignore
+            schema: self._possible_schemas_type = "aiod",  # type: ignore
         ):
-            f"""
-            Retrieve all meta-data for a {self.resource_name} identified by the AIoD identifier.
-            """
             resource = self.get_resource(identifier=identifier, schema=schema, platform=None)
             return self._wrap_with_headers(resource)
 
@@ -319,11 +348,15 @@ class ResourceRouter(abc.ABC):
 
         def get_resource(
             identifier: str,
-            platform: str,
-            schema: Literal[tuple(self._possible_schemas)] = "aiod",  # type:ignore
+            platform: Annotated[
+                str,
+                Path(
+                    description="Return resources of this platform",
+                    example="huggingface",
+                ),
+            ],
+            schema: self._possible_schemas_type = "aiod",  # type:ignore
         ):
-            f"""Retrieve all meta-data for a {self.resource_name} identified by the
-            platform-specific-identifier."""
             return self.get_resource(identifier=identifier, schema=schema, platform=platform)
 
         return get_resource
@@ -340,7 +373,6 @@ class ResourceRouter(abc.ABC):
             resource_create: clz_create,  # type: ignore
             user: dict = Depends(get_current_user),
         ):
-            f"""Register a {self.resource_name} with AIoD."""
             if "groups" in user and KEYCLOAK_CONFIG.get("role") not in user["groups"]:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
@@ -359,7 +391,7 @@ class ResourceRouter(abc.ABC):
         return register_resource
 
     def create_resource(self, session: Session, resource_create_instance: SQLModel):
-        # Store a resource in the database
+        """Store a resource in the database"""
         resource = self.resource_class.from_orm(resource_create_instance)
         deserialize_resource_relationships(
             session, self.resource_class, resource, resource_create_instance
@@ -381,7 +413,6 @@ class ResourceRouter(abc.ABC):
             resource_create_instance: clz_create,  # type: ignore
             user: dict = Depends(get_current_user),
         ):
-            f"""Update an existing {self.resource_name}."""
             if "groups" in user and KEYCLOAK_CONFIG.get("role") not in user["groups"]:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
@@ -479,6 +510,15 @@ class ResourceRouter(abc.ABC):
     @property
     def _possible_schemas(self) -> list[str]:
         return ["aiod"] + list(self.schema_converters.keys())
+
+    @property
+    def _possible_schemas_type(self):
+        return Annotated[
+            Literal[tuple(self._possible_schemas)],  # type: ignore
+            Query(
+                description="Return the resource(s) in this schema.",
+            ),
+        ]
 
     def _wrap_with_headers(self, resource):
         if self.deprecated_from is None:

@@ -1,5 +1,7 @@
+from typing import Annotated
+
 import requests
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Path
 from fastapi.responses import Response
 
 from database.model.ai_asset.ai_asset import AIAsset
@@ -21,6 +23,8 @@ class ResourceAIAssetRouter(ResourceRouter):
             path=f"{url_prefix}/{self.resource_name_plural}/{version}/{{identifier}}/content",
             endpoint=self.get_resource_content_func(default=True),
             name=self.resource_name,
+            description="Retrieve the actual content of the first distribution (index 0 as "
+            "default) for a {self.resource_name} identified by its identifier.",
             response_model=str,
             **default_kwargs,
         )
@@ -30,6 +34,8 @@ class ResourceAIAssetRouter(ResourceRouter):
             f"{{distribution_idx}}",
             endpoint=self.get_resource_content_func(default=False),
             name=self.resource_name,
+            description=f"Retrieve the actual content of a distribution for a {self.resource_name} "
+            "identified by its identifier.",
             response_model=str,
             **default_kwargs,
         )
@@ -44,13 +50,17 @@ class ResourceAIAssetRouter(ResourceRouter):
         """
 
         def get_resource_content(
-            identifier: str,
-            distribution_idx: int,
+            identifier: Annotated[
+                str, Path(description=f"The identifier of the {self.resource_name}")  # type: ignore
+            ],
+            distribution_idx: Annotated[
+                int,
+                Path(
+                    description=f"The index of the distribution within the " f"{self.resource_name}"
+                ),  # type: ignore
+            ],
             default: bool = False,
         ):
-            f"""Retrieve a distribution of the content for {self.resource_name}
-            identified by its identifier."""
-
             metadata: AIAsset = self.get_resource(
                 identifier=identifier, schema="aiod", platform=None
             )  # type: ignore
@@ -95,9 +105,11 @@ class ResourceAIAssetRouter(ResourceRouter):
             except Exception as exc:
                 raise _wrap_as_http_exception(exc)
 
-        def get_resource_content_default(identifier: str):
-            f"""Retrieve the first distribution (index 0 as default) of the content
-            for a {self.resource_name} identified by its identifier."""
+        def get_resource_content_default(
+            identifier: Annotated[
+                str, Path(description=f"The identifier of the {self.resource_name}")  # type: ignore
+            ]
+        ):
             return get_resource_content(identifier=identifier, distribution_idx=0, default=True)
 
         if default:
