@@ -39,6 +39,7 @@ def test_second_run():
     assert mlmodel.platform == "openml"
     assert mlmodel.platform_resource_identifier == "3"
     assert mlmodel.description.plain == ('An implementation of the evaluation measure "RBFKernel"')
+    assert len(mlmodel.distribution) == 1  # sanity check to confirm only 1 distribution is present.
     assert mlmodel.distribution[0].installation == "Runs on OpenML servers"
     assert mlmodel.date_published == datetime.datetime(2014, 1, 16, 14, 12, 56)
     assert mlmodel.keyword == []

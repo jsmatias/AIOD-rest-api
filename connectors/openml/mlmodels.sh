@@ -1,6 +1,6 @@
 #!/bin/bash
 
-WORK_DIR=/opt/connectors/mlmodels/openml/mlmodel
+WORK_DIR=/opt/connectors/data/openml/mlmodel
 CONNECTOR=connectors.openml.openml_mlmodel_connector.OpenMlMLModelConnector
 
 another_instance()

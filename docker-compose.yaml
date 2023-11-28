@@ -80,13 +80,13 @@ services:
       app:
         condition: service_healthy
 
-  openml-dataset-connector:
-    profiles: ["openml-datasets"]
+  openml-connector:
+    profiles: ["openml"]
     build:
       context: connectors/openml
       dockerfile: Dockerfile
     image: ai4eu_openml_connector
-    container_name: openml-dataset-connector
+    container_name: openml-connector
     env_file: .env
     environment:
       - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET

@@ -71,31 +71,36 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
             and "installation_notes" not in mlmodel_json
             and "binary_url" not in mlmodel_json
         ):
-            distribution = None
+            distribution = []
         else:
             distribution = [
                 RunnableDistribution(
-                    dependency=mlmodel_json["dependencies"]
-                    if "dependencies" in mlmodel_json
-                    else None,
-                    installation=mlmodel_json["installation_notes"]
-                    if "installation_notes" in mlmodel_json
-                    else None,
-                    content_url=mlmodel_json["binary_url"]
-                    if "binary_url" in mlmodel_json
-                    else None,
+                    dependency=mlmodel_json.get("dependencies", None),
+                    installation=mlmodel_json.get("installation_notes", None),
+                    content_url=mlmodel_json.get("binary_url", None),
                 )
             ]
 
+        openml_creator = mlmodel_json.get("creator", None)
+        openml_creator = (
+            [openml_creator]
+            if isinstance(openml_creator, str) and openml_creator
+            else openml_creator
+        )
+        openml_contributor = mlmodel_json.get("contributor", None)
+        openml_contributor = (
+            [openml_contributor]
+            if isinstance(openml_contributor, str) and openml_contributor
+            else openml_contributor
+        )
+
         creator_names = []
-        if "creator" and "contributor" in mlmodel_json:
-            creators = (
-                [mlmodel_json["creator"]] + mlmodel_json["contributor"]
-                if "contributor" in mlmodel_json
-                else [mlmodel_json["creator"]]
-            )
-            for name in creators:
+        if openml_creator or openml_contributor:
+            for name in openml_creator + openml_contributor:
                 creator_names.append(Contact(name=name))
+
+        tags = mlmodel_json.get("tag", None)
+        tags = [tags] if isinstance(tags, str) and tags else tags
 
         pydantic_class = resource_create(MLModel)
         mlmodel = pydantic_class(
@@ -108,10 +113,10 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
             same_as=url_mlmodel,
             description=description,
             date_published=dateutil.parser.parse(mlmodel_json["upload_date"]),
-            license=mlmodel_json["licence"] if "licence" in mlmodel_json else None,
+            license=mlmodel_json.get("licence", None),
             distribution=distribution,
             is_accessible_for_free=True,
-            keyword=[tag for tag in mlmodel_json["tag"]] if "tag" in mlmodel_json else [],
+            keyword=[tag for tag in tags] if tags else [],
             version=mlmodel_json["version"],
         )
 
@@ -156,10 +161,3 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
                         yield self.fetch_record(identifier)
                 except Exception as e:
                     yield RecordError(identifier=identifier, error=e)
-
-
-def _as_int(v: str) -> int:
-    as_float = float(v)
-    if not as_float.is_integer():
-        raise ValueError(f"The input should be an integer, but was a float: {v}")
-    return int(as_float)
