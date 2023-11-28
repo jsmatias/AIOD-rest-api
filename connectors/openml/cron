@@ -1,6 +1,2 @@
 25 * * * * bash /opt/connectors/script/datasets.sh >> /opt/connectors/data/openml/dataset/cron.log 2>&1
-<<<<<<< HEAD
 25 * * * * bash /opt/connectors/script/mlmodels.sh >> /opt/connectors/data/openml/mlmodel/cron.log 2>&1
-=======
-25 * * * * bash /opt/connectors/script/mlmodels.sh >> /opt/connectors/mlmodels/openml/mlmodel/cron.log 2>&1
->>>>>>> 1f554a43f3364cad4a5babb681552987571d15b6
