@@ -2,7 +2,7 @@
 This module knows how to load an OpenML object based on its AIoD implementation,
 and how to convert the OpenML response to some agreed AIoD format.
 """
-from typing import Iterator
+from typing import Iterator, Any
 
 import dateutil.parser
 import requests
@@ -51,57 +51,21 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
             )
         mlmodel_json = response.json()["flow"]
 
-        pydantic_class = resource_create(MLModel)
-        description = (
-            mlmodel_json["full_description"]
-            if mlmodel_json.get("full_description", None)
-            else mlmodel_json["description"]
-        )
-        if isinstance(description, list) and len(description) == 0:
-            description = ""
-        elif not isinstance(description, str):
-            return RecordError(identifier=str(identifier), error="Description of unknown format.")
-        if len(description) > field_length.LONG:
-            text_break = " [...]"
-            description = description[: field_length.LONG - len(text_break)] + text_break
-        if description:
-            description = Text(plain=description)
-        if (
-            mlmodel_json.get("dependencies", None)
-            and mlmodel_json.get("installation_notes", None)
-            and mlmodel_json.get("binary_url", None)
-        ):
-            distribution = []
-        else:
-            distribution = [
-                RunnableDistribution(
-                    dependency=mlmodel_json.get("dependencies", None),
-                    installation=mlmodel_json.get("installation_notes", None),
-                    content_url=mlmodel_json.get("binary_url", None),
-                )
-            ]
+        description_or_error = _description(mlmodel_json, identifier)
+        if isinstance(description_or_error, RecordError):
+            return description_or_error
+        description = description_or_error
 
-        openml_creator = mlmodel_json.get("creator", None)
-        openml_creator = (
-            [openml_creator]
-            if isinstance(openml_creator, str) and openml_creator
-            else openml_creator
-        )
-        openml_contributor = mlmodel_json.get("contributor", None)
-        openml_contributor = (
-            [openml_contributor]
-            if isinstance(openml_contributor, str) and openml_contributor
-            else openml_contributor
-        )
+        distribution = _distributions(mlmodel_json)
 
-        creator_names = []
+        openml_creator = _as_list(mlmodel_json.get("creator", None))
+        openml_contributor = _as_list(mlmodel_json.get("contributor", None))
         pydantic_class_contact = resource_create(Contact)
-        if openml_creator or openml_contributor:
-            for name in openml_creator + openml_contributor:
-                creator_names.append(pydantic_class_contact(name=name))
+        creator_names = [
+            pydantic_class_contact(name=name) for name in openml_creator + openml_contributor
+        ]
 
-        tags = mlmodel_json.get("tag", None)
-        tags = [tags] if isinstance(tags, str) and tags else tags
+        tags = _as_list(mlmodel_json.get("tag", None))
 
         pydantic_class = resource_create(MLModel)
         mlmodel = pydantic_class(
@@ -164,3 +128,46 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
                         yield self.fetch_record(identifier)
                 except Exception as e:
                     yield RecordError(identifier=identifier, error=e)
+
+
+def _description(mlmodel_json: dict[str, Any], identifier: int) -> Text | None | RecordError:
+    description = (
+        mlmodel_json["full_description"]
+        if mlmodel_json.get("full_description", None)
+        else mlmodel_json["description"]
+    )
+    if isinstance(description, list) and len(description) == 0:
+        return None
+    elif not isinstance(description, str):
+        return RecordError(identifier=str(identifier), error="Description of unknown format.")
+    if len(description) > field_length.LONG:
+        text_break = " [...]"
+        description = description[: field_length.LONG - len(text_break)] + text_break
+    if description:
+        return Text(plain=description)
+    return None
+
+
+def _distributions(mlmodel_json) -> list[RunnableDistribution]:
+    if (
+        mlmodel_json.get("dependencies", None)
+        and mlmodel_json.get("installation_notes", None)
+        and mlmodel_json.get("binary_url", None)
+    ):
+        return []
+    return [
+        RunnableDistribution(
+            dependency=mlmodel_json.get("dependencies", None),
+            installation=mlmodel_json.get("installation_notes", None),
+            content_url=mlmodel_json.get("binary_url", None),
+        )
+    ]
+
+
+def _as_list(value: Any | list[Any]) -> list[Any]:
+    """Wrap it with a list, if it is not a list"""
+    if not value:
+        return []
+    if not isinstance(value, list):
+        return [value]
+    return value
