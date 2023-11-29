@@ -95,8 +95,8 @@ class SearchRouter(Generic[RESOURCE], abc.ABC):
                 examples=["huggingface", "openml"],
                 default=None,
             ),
-            limit: int | None = Query(ge=1, le=LIMIT_MAX, default=10),
-            offset: int | None = Query(ge=0, default=0),
+            limit: int = Query(ge=1, le=LIMIT_MAX, default=10),
+            offset: int = Query(ge=0, default=0),
             get_all: bool = Query(
                 description="If true, a request to the database is made to retrieve all data. "
                 "If false, only the indexed information is returned.",
