@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Path
 from fastapi import File, Query, UploadFile
 
 from uploader.hugging_face_uploader import handle_upload
@@ -10,7 +10,9 @@ class UploadRouterHuggingface:
 
         @router.post(url_prefix + "/upload/datasets/{identifier}/huggingface", tags=["upload"])
         def huggingFaceUpload(
-            identifier: int,
+            identifier: int = Path(
+                description="The AIoD dataset identifier",
+            ),
             file: UploadFile = File(
                 ..., title="File", description="This file will be uploaded to HuggingFace"
             ),
