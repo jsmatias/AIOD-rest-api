@@ -1,5 +1,7 @@
+from typing import Annotated
+
 from fastapi import APIRouter
-from fastapi import File, Query, UploadFile
+from fastapi import File, Query, UploadFile, Path
 from sqlalchemy.engine import Engine
 
 from uploaders.zenodo_uploader import ZenodoUploader
@@ -14,12 +16,22 @@ class UploadRouterZenodo(UploaderRouter):
 
         @router.post(url_prefix + "/upload/datasets/{identifier}/zenodo", tags=["upload"])
         def zenodo_upload(
-            identifier: int,
-            file: UploadFile = File(
-                ..., title="File", description="This file will be uploaded to Zenodo"
+            identifier: int = Path(
+                description="The AIoD dataset identifier",
             ),
-            token: str = Query(..., title="Zenodo Token", description="The access token of Zenodo"),
+            file: UploadFile = File(
+                title="File", description="This file will be uploaded to Zenodo"
+            ),
+            publish: Annotated[
+                bool,
+                Query(
+                    title="Publish dataset",
+                    description="When published, the dataset and files will be publicaly ccessible "
+                    "and you will no longer be able to upload more files!",
+                ),
+            ] = False,
+            token: str = Query(title="Zenodo Token", description="The access token of Zenodo"),
         ) -> int:
-            return zenodo_uploader.handle_upload(engine, identifier, token, file)
+            return zenodo_uploader.handle_upload(engine, identifier, publish, token, file)
 
         return router

@@ -15,7 +15,9 @@ class ZenodoUploader:
     def base_url(self) -> str:
         return "https://zenodo.org/api/deposit/depositions"
 
-    def handle_upload(self, engine: Engine, identifier: int, token: str, file: UploadFile):
+    def handle_upload(
+        self, engine: Engine, identifier: int, publish: bool, token: str, file: UploadFile
+    ):
         """
         Method to upload content to the Zenodo platform.
         """
@@ -29,6 +31,17 @@ class ZenodoUploader:
                 if platform_name == "zenodo":
                     repo_id = platform_resource_id.split(":")[-1]
                     current_zenodo_metadata = self._get_metadata_from_zenodo(repo_id, token)
+                    if current_zenodo_metadata["state"] == "done":
+                        raise HTTPException(
+                            status_code=status.HTTP_423_LOCKED,
+                            detail=(
+                                "This resource is already public and "
+                                "can't be edited with this endpoint. "
+                                "You can access and modify it at "
+                                f"{current_zenodo_metadata['links']['record']}",
+                            ),
+                        )
+                    self._update_zenodo_metadata(repo_id, token, metadata)
                 else:
                     raise HTTPException(
                         status_code=status.HTTP_409_CONFLICT,
@@ -41,23 +54,15 @@ class ZenodoUploader:
                 dataset.platform = "zenodo"
                 dataset.platform_resource_identifier = f"zenodo.org:{repo_id}"
 
-            self._update_zenodo_metadata(repo_id, token, metadata)
-
             repo_url = current_zenodo_metadata["links"]["bucket"]
             self._upload_file(repo_url, token, file)
 
-            # TODO: Include an option (as a parameter) to publish the dataset on zenodo.
-            # This requires the field resource_type in the metadata.
-            # The string "dataset" isn't recognised as a valid resource_type
-            # URL to publish: f"{repo_url}/{repo_id}/actions/publish"
-
-            new_zenodo_metadata = self._get_metadata_from_zenodo(repo_id, token)
-            new_file_metadata = [
-                file
-                for file in new_zenodo_metadata["files"]
-                if file not in current_zenodo_metadata["files"]
-            ][0]
-            distribution = self._generate_distribution(new_file_metadata)
+            if publish:
+                new_zenodo_metadata = self._publish_resource(repo_id, token)
+                record_url = new_zenodo_metadata["links"]["record"]
+                distribution = self._get_distribution_from_published(record_url)
+            else:
+                distribution = self._get_distribution_from_draft(repo_id, token)
 
             self._store_resource_updated(session, dataset, distribution)
 
@@ -149,6 +154,82 @@ class ZenodoUploader:
             msg = "Error uploading a file to zenodo. Zenodo api returned a http error:"
             raise HTTPException(status_code=res.status_code, detail=f"{msg} {res.text}")
 
+    def _publish_resource(self, repo_id: str, token: str) -> dict:
+        """
+        Publishes the dataset with all content on Zenodo.
+        """
+        params = {"access_token": token}
+        try:
+            res = requests.post(f"{self.base_url}/{repo_id}/actions/publish", params=params)
+        except Exception as exc:
+            raise _wrap_exception_as_http_exception(exc)
+
+        if res.status_code != status.HTTP_202_ACCEPTED:
+            msg = "Error publishing the dataset on zenodo. Zenodo api returned a http error:"
+            raise HTTPException(status_code=res.status_code, detail=f"{msg} {res.text}")
+
+        return res.json()
+
+    def _get_distribution_from_published(self, record_url: str) -> list[dict]:
+        """
+        Gets metadata of the published files.
+        """
+        try:
+            res = requests.get(f"{record_url}/files")
+        except Exception as exc:
+            raise _wrap_exception_as_http_exception(exc)
+
+        if res.status_code != status.HTTP_200_OK:
+            msg = (
+                "Error retrieving the resource files from zenodo. Zenodo api returned a http error:"
+            )
+            raise HTTPException(status_code=res.status_code, detail=f"{msg} {res.text}")
+
+        files_metadata = res.json()["entries"]
+        distribution = [
+            {
+                "platform": "zenodo",
+                "platform_resource_identifier": file["file_id"],
+                "checksum": file["checksum"],
+                "content_url": file["links"]["content"],
+                "content_size_kb": file["size"],
+                "name": file["key"],
+            }
+            for file in files_metadata
+        ]
+
+        return distribution
+
+    def _get_distribution_from_draft(self, repo_id: str, token: str) -> list[dict]:
+        """
+        Generates a distribution list from metadata of the files in draft retrieved from zenodo.
+        """
+        params = {"access_token": token}
+        try:
+            res = requests.get(f"{self.base_url}/{repo_id}/files", params=params)
+        except Exception as exc:
+            raise _wrap_exception_as_http_exception(exc)
+
+        if res.status_code != status.HTTP_200_OK:
+            msg = "Error retrieving the resource files in draft from zenodo."
+            "Zenodo api returned a http error:"
+            raise HTTPException(status_code=res.status_code, detail=f"{msg} {res.text}")
+
+        files_metadata = res.json()
+        distribution = [
+            {
+                "platform": "zenodo",
+                "platform_resource_identifier": file["id"],
+                "checksum": file["checksum"],
+                "content_url": "",
+                "content_size_kb": file["filesize"],
+                "name": file["filename"],
+            }
+            for file in files_metadata
+        ]
+
+        return distribution
+
     def _generate_metadata_file(self, dataset: Dataset) -> dict:
         """
         Generates metadata as a dictionary based on the data from the dataset model.
@@ -157,6 +238,7 @@ class ZenodoUploader:
             "title": dataset.name,
             "description": f"{dataset.description.plain if dataset.description else ''}.\n"
             "Created from AIOD platform",
+            "upload_type": "dataset",
             "creators": [
                 {"name": f"{creator.name}", "affiliation": ""} for creator in dataset.creator
             ],
@@ -169,40 +251,18 @@ class ZenodoUploader:
 
         return metadata
 
-    def _generate_distribution(self, file_metadata: dict) -> dict:
-        """
-        Generated the a distribution dictionary from a dictonary response.
-        """
-        distribution = {
-            "platform": "zenodo",
-            "platform_resource_identifier": file_metadata["id"],
-            "checksum": file_metadata["checksum"],
-            "content_url": file_metadata["links"]["download"],
-            "content_size_kb": file_metadata["filesize"],
-            "name": file_metadata["filename"],
-        }
-
-        return distribution
-
-    def _store_resource_updated(self, session: Session, resource: Dataset, distribution_dict: dict):
+    def _store_resource_updated(
+        self, session: Session, resource: Dataset, distribution_list: list[dict]
+    ):
         """
         Updates the resource data appending the content information as a distribution.
         """
-
         try:
             # Hack to get the right DistributionORM class (for each class, such as Dataset
             # and Publication, there is a different DistributionORM table).
             dist = resource.RelationshipConfig.distribution.deserializer.clazz  # type: ignore
-            distribution = dist(dataset=resource, **distribution_dict)
-            aiod_dist_names = [dist.name for dist in resource.distribution]
-
-            # Using name instead of if as the URI for the file is based on the file's name.
-            if distribution.name in aiod_dist_names:
-                idx = aiod_dist_names.index(distribution.name)
-                resource.distribution[idx] = distribution
-            else:
-                resource.distribution.append(distribution)
-
+            distribution = [dist(dataset=resource, **dist_dict) for dist_dict in distribution_list]
+            resource.distribution = distribution
             session.merge(resource)
             session.commit()
         except Exception as exc:
