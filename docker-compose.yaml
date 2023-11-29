@@ -6,7 +6,7 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    image: ai4eu_server
+    image: aiod_metadata_catalogue
     container_name: apiserver
     env_file: .env
     environment:
@@ -32,7 +32,7 @@ services:
 
   fill-db-with-examples:
     profiles: ["examples"]
-    image: ai4eu_server
+    image: aiod_metadata_catalogue
     container_name: fill-db-with-examples
     env_file: .env
     environment:
@@ -51,7 +51,7 @@ services:
     build:
       context: deletion
       dockerfile: Dockerfile
-    image: ai4eu_deletion
+    image: aiod_deletion
     container_name: deletion
     env_file: .env
     volumes:
@@ -65,7 +65,7 @@ services:
 
   huggingface-dataset-connector:
     profiles: ["huggingface-datasets"]
-    image: ai4eu_server
+    image: aiod_metadata_catalogue
     container_name: huggingface-dataset-connector
     env_file: .env
     environment:
@@ -85,7 +85,7 @@ services:
     build:
       context: connectors/openml
       dockerfile: Dockerfile
-    image: ai4eu_openml_connector
+    image: aiod_openml_connector
     container_name: openml-dataset-connector
     env_file: .env
     environment:
@@ -105,7 +105,7 @@ services:
     build:
       context: connectors/zenodo
       dockerfile: Dockerfile
-    image: ai4eu_zenodo_connector
+    image: aiod_zenodo_connector
     container_name: zenodo-dataset-connector
     env_file: .env
     environment:
@@ -193,7 +193,7 @@ services:
       retries: 30
   
   es_logstash_setup:
-    image: ai4eu_server
+    image: aiod_metadata_catalogue
     container_name:  es_logstash_setup
     env_file: .env
     environment:
@@ -210,10 +210,12 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
+
   logstash:
     build:
       context: logstash/
       dockerfile: Dockerfile
+    image: aiod_logstash
     container_name: logstash
     env_file: .env
     environment:
