@@ -1,16 +1,17 @@
 [project]
-name = "ai4eu_server_demo"
-description = "A containerized demo application for AI on demand (previously AI4EU) "
+name = "aiod_metadata_catalogue"
+description = "A Metadata Catalogue for AI on Demand "
 version = "1.0.20230911"
 requires-python = ">=3.11"
 authors = [
-
-    { name = "Antonis Ganios"},
-    { name = "Íñigo Aréjula Aísa"},
-    { name = "Jos van der Velde", email = "j.d.v.d.velde@tue.nl"},
+    { name = "Adrián Alcolea" },
+    { name = "Antonis Ganios" },
+    { name = "Giannis Mouchakis" },
+    { name = "Íñigo Aréjula Aísa" },
+    { name = "Jean Matias" },
+    { name = "Jos van der Velde", email = "j.d.v.d.velde@tue.nl" },
     { name = "Pieter Gijsbers", email = "p.gijsbers@tue.nl"},
-    { name = "Giannis Mouchakis"},
-    {name = "Taniya Das", email = "t.das@tue.nl"}
+    { name = "Taniya Das", email = "t.das@tue.nl" }
 ]
 dependencies = [
     "urllib3== 2.1.0",

@@ -6,6 +6,7 @@ Note: order matters for overloaded paths
 """
 import argparse
 
+import pkg_resources
 import uvicorn
 from fastapi import Depends, FastAPI
 from fastapi.responses import HTMLResponse
@@ -92,9 +93,13 @@ def create_app() -> FastAPI:
     """Create the FastAPI application, complete with routes."""
     setup_logger()
     args = _parse_args()
+    pyproject_toml = pkg_resources.get_distribution("aiod_metadata_catalogue")
     app = FastAPI(
         openapi_url=f"{args.url_prefix}/openapi.json",
         docs_url=f"{args.url_prefix}/docs",
+        title="AIoD Metadata Catalogue",
+        description="This is the Swagger documentation of the AIoD Metadata Catalogue.",
+        version=pyproject_toml.version,
         swagger_ui_oauth2_redirect_url=f"{args.url_prefix}/docs/oauth2-redirect",
         swagger_ui_init_oauth={
             "clientId": KEYCLOAK_CONFIG.get("client_id_swagger"),
