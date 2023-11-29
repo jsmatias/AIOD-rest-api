@@ -11,7 +11,6 @@ class UploadRouterHuggingface:
         @router.post(url_prefix + "/upload/datasets/{identifier}/huggingface", tags=["upload"])
         def huggingFaceUpload(
             identifier: int = Path(
-                ...,
                 description="The AIoD dataset identifier",
             ),
             file: UploadFile = File(

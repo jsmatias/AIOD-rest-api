@@ -1,5 +1,5 @@
 import abc
-from typing import TypeVar, Generic, Any, Type, Annotated, Literal
+from typing import TypeVar, Generic, Any, Type, Literal
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -76,39 +76,32 @@ class SearchRouter(Generic[RESOURCE], abc.ABC):
             # response_model=SearchResult[read_class],  # This gives errors, so not used.
         )
         def search(
-            search_query: Annotated[
-                str,
-                Query(
-                    description="Text you wish to find. It is used in an ElasticSearch match "
-                    "query.",
-                    examples=["Name of the resource"],
-                ),
-            ],
-            search_fields: Annotated[  # type: ignore
-                list[indexed_fields] | None,
-                Query(
-                    description="Search in these fields. If empty, the query will be matched "
-                    "against all fields. Do not use the '--' option in Swagger, it is a Swagger "
-                    "artifact.",
-                ),
-            ] = None,
-            platforms: Annotated[
-                list[str] | None,
-                Query(
-                    description="Search for resources of these platforms. If empty, results from "
-                    "all platforms will be returned.",
-                    examples=["huggingface", "openml"],
-                ),
-            ] = None,
-            limit: Annotated[int | None, Query(ge=1, le=LIMIT_MAX)] = 10,
-            offset: Annotated[int | None, Query(ge=0)] = 0,
-            get_all: Annotated[
-                bool,
-                Query(
-                    description="If true, a request to the database is made to retrieve all data. "
-                    "If false, only the indexed information is returned."
-                ),
-            ] = False,
+            search_query: str = Query(
+                ...,
+                description="Text you wish to find. It is used in an ElasticSearch match " "query.",
+                examples=["Name of the resource"],
+            ),
+            search_fields: list[indexed_fields]  # type: ignore
+            | None = Query(
+                description="Search in these fields. If empty, the query will be matched "
+                "against all fields. Do not use the '--' option in Swagger, it is a Swagger "
+                "artifact.",
+                default=None,
+            ),
+            platforms: list[str]
+            | None = Query(
+                description="Search for resources of these platforms. If empty, results from "
+                "all platforms will be returned.",
+                examples=["huggingface", "openml"],
+                default=None,
+            ),
+            limit: int | None = Query(ge=1, le=LIMIT_MAX, default=10),
+            offset: int | None = Query(ge=0, default=0),
+            get_all: bool = Query(
+                description="If true, a request to the database is made to retrieve all data. "
+                "If false, only the indexed information is returned.",
+                default=False,
+            ),
         ):
             try:
                 with DbSession() as session:

@@ -269,9 +269,9 @@ class ResourceRouter(abc.ABC):
         """
 
         def get_resource_count(
-            detailed: Annotated[
-                bool, Query(description="If true, a more detailed output is returned.")
-            ] = False
+            detailed: bool = Query(
+                description="If true, a more detailed output is returned.", default=False
+            )
         ):
             try:
                 with DbSession() as session:
@@ -308,13 +308,10 @@ class ResourceRouter(abc.ABC):
         """
 
         def get_resources(
-            platform: Annotated[
-                str,
-                Path(
-                    description="Return resources of this platform",
-                    example="huggingface",
-                ),
-            ],
+            platform: str = Path(
+                description="Return resources of this platform",
+                example="huggingface",
+            ),
             pagination: Pagination = Depends(Pagination),
             schema: self._possible_schemas_type = "aiod",  # type:ignore
         ):
@@ -348,13 +345,10 @@ class ResourceRouter(abc.ABC):
 
         def get_resource(
             identifier: str,
-            platform: Annotated[
-                str,
-                Path(
-                    description="Return resources of this platform",
-                    example="huggingface",
-                ),
-            ],
+            platform: str = Path(
+                description="Return resources of this platform",
+                example="huggingface",
+            ),
             schema: self._possible_schemas_type = "aiod",  # type:ignore
         ):
             return self.get_resource(identifier=identifier, schema=schema, platform=platform)

@@ -1,5 +1,3 @@
-from typing import Annotated
-
 import requests
 from fastapi import APIRouter, HTTPException, status, Path
 from fastapi.responses import Response
@@ -50,16 +48,10 @@ class ResourceAIAssetRouter(ResourceRouter):
         """
 
         def get_resource_content(
-            identifier: Annotated[
-                str, Path(description=f"The identifier of the {self.resource_name}")  # type: ignore
-            ],
-            distribution_idx: Annotated[
-                int,
-                Path(
-                    description=f"The index of the distribution within the " f"{self.resource_name}"
-                ),  # type: ignore
-            ],
-            default: bool = False,
+            identifier: str = Path(description=f"The identifier of the {self.resource_name}"),
+            distribution_idx: int = Path(
+                description=f"The index of the distribution within the {self.resource_name}"
+            ),
         ):
             metadata: AIAsset = self.get_resource(
                 identifier=identifier, schema="aiod", platform=None
@@ -106,11 +98,9 @@ class ResourceAIAssetRouter(ResourceRouter):
                 raise _wrap_as_http_exception(exc)
 
         def get_resource_content_default(
-            identifier: Annotated[
-                str, Path(description=f"The identifier of the {self.resource_name}")  # type: ignore
-            ]
+            identifier: str = Path(description=f"The identifier of the {self.resource_name}"),
         ):
-            return get_resource_content(identifier=identifier, distribution_idx=0, default=True)
+            return get_resource_content(identifier=identifier, distribution_idx=0)
 
         if default:
             return get_resource_content_default
