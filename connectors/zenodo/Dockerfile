@@ -1,4 +1,4 @@
-FROM ai4eu_server
+FROM aiod_metadata_catalogue
 
 COPY cron /etc/cron.d/aiod
 COPY datasets.sh /opt/connectors/script/datasets.sh
