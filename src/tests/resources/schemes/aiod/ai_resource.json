@@ -1,9 +1,13 @@
 {
     "name": "The name",
-    "description": "A description.",
+    "description": {
+        "plain": "A description.",
+        "html": "<p>A <strong>html formatted</strong> description.</p>"
+    },
     "same_as": "https://www.example.com/resource",
     "alternate_name": ["alias1", "alias2"],
     "keyword": ["tag1", "tag2"],
+    "relevant_link": ["https://www.example.com/a_relevant_link", "https://www.example.com/another_relevant_link"],
 
     "application_area": ["Voice Assistance"],
     "industrial_sector": ["eCommerce"],
@@ -19,7 +23,11 @@
         }
     ],
     "note": [
-        "A note",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        {
+            "value": "A note"
+        },
+        {
+            "value": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        }
     ]
 }

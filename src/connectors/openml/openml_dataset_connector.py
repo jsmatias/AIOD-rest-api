@@ -12,9 +12,10 @@ from connectors.abstract.resource_connector_by_id import ResourceConnectorById
 from connectors.record_error import RecordError
 from database.model import field_length
 from database.model.ai_asset.distribution import Distribution
+from database.model.ai_resource.text import Text
 from database.model.concept.aiod_entry import AIoDEntryCreate
 from database.model.dataset.dataset import Dataset
-from database.model.dataset.size import Size
+from database.model.dataset.size import DatasetSize
 from database.model.platform.platform_names import PlatformName
 from database.model.resource_read_and_create import resource_create
 
@@ -66,30 +67,33 @@ class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
             description = ""
         elif not isinstance(description, str):
             return RecordError(identifier=str(identifier), error="Description of unknown format.")
-        if len(description) > field_length.DESCRIPTION:
+        if len(description) > field_length.LONG:
             text_break = " [...]"
-            description = description[: field_length.DESCRIPTION - len(text_break)] + text_break
+            description = description[: field_length.LONG - len(text_break)] + text_break
+        if description:
+            description = Text(plain=description)
         size = None
         if "NumberOfInstances" in qualities_json:
-            size = Size(value=_as_int(qualities_json["NumberOfInstances"]), unit="instances")
+            size = DatasetSize(value=_as_int(qualities_json["NumberOfInstances"]), unit="instances")
         return pydantic_class(
             aiod_entry=AIoDEntryCreate(
-                platform=self.platform_name,
-                platform_identifier=identifier,
+                status="published",
             ),
+            platform_resource_identifier=identifier,
+            platform=self.platform_name,
             name=dataset_json["name"],
             same_as=url_data,
             description=description,
             date_published=dateutil.parser.parse(dataset_json["upload_date"]),
+            license=dataset_json["licence"] if "licence" in dataset_json else None,
             distribution=[
                 Distribution(
                     content_url=dataset_json["url"], encoding_format=dataset_json["format"]
                 )
             ],
-            size=size,
             is_accessible_for_free=True,
+            size=size,
             keyword=[tag for tag in dataset_json["tag"]] if "tag" in dataset_json else [],
-            license=dataset_json["licence"] if "licence" in dataset_json else None,
             version=dataset_json["version"],
         )
 

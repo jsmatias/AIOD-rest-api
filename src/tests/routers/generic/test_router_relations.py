@@ -3,14 +3,23 @@ from unittest.mock import Mock
 
 import pytest
 from fastapi import FastAPI
-from sqlmodel import Session, Field, Relationship, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
+from database.model.concept.aiod_entry import AIoDEntryORM
+from database.model.concept.concept import AIoDConceptBase, AIoDConcept
+from database.model.concept.status import Status
 from database.model.named_relation import NamedRelation
-from database.model.relationships import ResourceRelationshipSingle, ResourceRelationshipList
+from database.model.relationships import ManyToOne, ManyToMany
+from database.model.serializers import (
+    AttributeSerializer,
+    FindByNameDeserializer,
+    CastDeserializerList,
+    FindByNameDeserializerList,
+)
+from database.session import DbSession
 from routers import ResourceRouter
-from database.model.serializers import AttributeSerializer, FindByNameDeserializer, CastDeserializer
 
 
 class TestEnum(NamedRelation, table=True):  # type: ignore [call-arg]
@@ -67,11 +76,11 @@ class TestRelatedObjectOrm(TestRelatedObject, table=True):  # type: ignore [call
     )
 
 
-class TestObjectBase(SQLModel):
+class TestObjectBase(AIoDConceptBase):
     title: str = Field(max_length=100, description="title description")
 
 
-class TestObject(TestObjectBase, table=True):  # type: ignore [call-arg]
+class TestObject(TestObjectBase, AIoDConcept, table=True):  # type: ignore [call-arg]
     __tablename__ = "test_object"
 
     identifier: int = Field(default=None, primary_key=True)
@@ -84,23 +93,23 @@ class TestObject(TestObjectBase, table=True):  # type: ignore [call-arg]
         back_populates="test_objects", link_model=TestObjectRelatedObjectLink
     )
 
-    class RelationshipConfig:
-        named_string: Optional[str] = ResourceRelationshipSingle(
+    class RelationshipConfig(AIoDConcept.RelationshipConfig):
+        named_string: Optional[str] = ManyToOne(
             description="this is a test for a string stored in a separate table",
             identifier_name="named_string_identifier",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(TestEnum),
             example="test",
         )
-        named_string_list: List[str] = ResourceRelationshipList(
+        named_string_list: List[str] = ManyToMany(
             description="this is a test for a list of strings",
-            serializer=AttributeSerializer("name"),
-            deserializer=FindByNameDeserializer(TestEnum2),
+            _serializer=AttributeSerializer("name"),
+            deserializer=FindByNameDeserializerList(TestEnum2),
             example=["test1", "test2"],
         )
-        related_objects: List[TestRelatedObject] = ResourceRelationshipList(
+        related_objects: List[TestRelatedObject] = ManyToMany(
             description="this is a test for a list of objects",
-            deserializer=CastDeserializer(TestRelatedObjectOrm),
+            deserializer=CastDeserializerList(TestRelatedObjectOrm),
         )
 
 
@@ -123,31 +132,39 @@ class RouterTestObject(ResourceRouter):
 
 
 @pytest.fixture
-def client_with_testobject(engine_test_resource) -> TestClient:
-    with Session(engine_test_resource) as session:
+def client_with_testobject() -> TestClient:
+    with DbSession() as session:
         named1, named2 = TestEnum(name="named_string1"), TestEnum(name="named_string2")
         enum1, enum2, enum3 = TestEnum2(name="1"), TestEnum2(name="2"), TestEnum2(name="3")
+        draft = Status(name="draft")
         session.add_all(
             [
                 TestObject(
+                    aiod_entry=AIoDEntryORM(status=draft),
                     identifier=1,
                     title="object 1",
                     named_string=named1,
                     named_string_list=[enum1, enum2],
                 ),
-                TestObject(identifier=2, title="object 2", named_string=named1),
                 TestObject(
+                    aiod_entry=AIoDEntryORM(status=draft),
+                    identifier=2,
+                    title="object 2",
+                    named_string=named1,
+                ),
+                TestObject(
+                    aiod_entry=AIoDEntryORM(status=draft),
                     identifier=3,
                     title="object 3",
                     named_string=named2,
                     named_string_list=[enum2, enum3],
                 ),
-                TestObject(identifier=4, title="object 4"),
+                TestObject(aiod_entry=AIoDEntryORM(status=draft), identifier=4, title="object 4"),
             ]
         )
         session.commit()
     app = FastAPI()
-    app.include_router(RouterTestObject().create(engine_test_resource, ""))
+    app.include_router(RouterTestObject().create(""))
     return TestClient(app)
 
 

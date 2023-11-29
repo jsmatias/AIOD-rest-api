@@ -1,24 +1,22 @@
 import copy
 from unittest.mock import Mock
 
-from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
 from database.model.models_and_experiments.experiment import Experiment
+from database.session import DbSession
 
 
 def test_happy_path(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     experiment: Experiment,
     body_asset: dict,
 ):
     keycloak_openid.userinfo = mocked_privileged_token
 
-    with Session(engine) as session:
+    with DbSession() as session:
         session.add(experiment)
         session.commit()
 
@@ -57,6 +55,6 @@ def test_happy_path(
 
     response_json = response.json()
     assert response_json["pid"] == "https://doi.org/10.1000/182"
-    assert response_json["type"] == "Large Language Model"
+    assert response_json["type"] == "large language model"
     assert response_json["related_experiment"] == [1]
     assert response_json["distribution"] == [distribution]

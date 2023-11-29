@@ -5,14 +5,16 @@ from sqlmodel import Field, Relationship
 
 from database.model.agent.agent import AgentBase, Agent
 from database.model.agent.agent_table import AgentTable
+from database.model.agent.contact import Contact
 from database.model.agent.organisation_type import OrganisationType
-from database.model.field_length import NORMAL, DESCRIPTION
-from database.model.helper_functions import link_factory
-from database.model.relationships import ResourceRelationshipSingle, ResourceRelationshipList
+from database.model.field_length import NORMAL, LONG
+from database.model.helper_functions import many_to_many_link_factory
+from database.model.relationships import ManyToOne, ManyToMany, OneToOne
 from database.model.serializers import (
     AttributeSerializer,
     FindByNameDeserializer,
     FindByIdentifierDeserializer,
+    FindByIdentifierDeserializerList,
 )
 
 
@@ -30,33 +32,39 @@ class OrganisationBase(AgentBase):
         description="A description of positioning of the organisation within "
         "the broader European AI ecosystem.",
         schema_extra={"example": "Part of CLAIRE, focussing on explainable AI."},
-        max_length=DESCRIPTION,
+        max_length=LONG,
     )
 
 
 class Organisation(OrganisationBase, Agent, table=True):  # type: ignore [call-arg]
     __tablename__ = "organisation"
 
+    contact_details: Optional[Contact] = Relationship(sa_relationship_kwargs={"uselist": False})
+
     type_identifier: int | None = Field(foreign_key=OrganisationType.__tablename__ + ".identifier")
     type: Optional[OrganisationType] = Relationship()
 
     member: list[AgentTable] = Relationship(
-        sa_relationship_kwargs={"cascade": "all, delete"},
-        link_model=link_factory("organisation", AgentTable.__tablename__),
+        link_model=many_to_many_link_factory("organisation", AgentTable.__tablename__),
     )
 
     class RelationshipConfig(Agent.RelationshipConfig):
-        type: Optional[str] = ResourceRelationshipSingle(
+        contact_details: int | None = OneToOne(
+            description="The contact details by which this organisation can be reached",
+            deserializer=FindByIdentifierDeserializer(Contact),
+            _serializer=AttributeSerializer("identifier"),
+        )
+        type: Optional[str] = ManyToOne(
             description="The type of organisation.",
             identifier_name="type_identifier",
-            serializer=AttributeSerializer("name"),
+            _serializer=AttributeSerializer("name"),
             deserializer=FindByNameDeserializer(OrganisationType),
             example="Research Institution",
         )
-        member: list[int] = ResourceRelationshipList(
+        member: list[int] = ManyToMany(
             description="The identifier of an agent (e.g. organisation or person) that is a "
             "member of this organisation.",
-            serializer=AttributeSerializer("identifier"),
-            deserializer=FindByIdentifierDeserializer(AgentTable),
+            _serializer=AttributeSerializer("identifier"),
+            deserializer=FindByIdentifierDeserializerList(AgentTable),
             default_factory_pydantic=list,
         )

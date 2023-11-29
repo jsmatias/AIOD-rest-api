@@ -1,17 +1,18 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Path
 from fastapi import File, Query, UploadFile
-from sqlalchemy.engine import Engine
 
 from uploader.hugging_face_uploader import handle_upload
 
 
 class UploadRouterHuggingface:
-    def create(self, engine: Engine, url_prefix: str) -> APIRouter:
+    def create(self, url_prefix: str) -> APIRouter:
         router = APIRouter()
 
         @router.post(url_prefix + "/upload/datasets/{identifier}/huggingface", tags=["upload"])
         def huggingFaceUpload(
-            identifier: int,
+            identifier: int = Path(
+                description="The AIoD dataset identifier",
+            ),
             file: UploadFile = File(
                 ..., title="File", description="This file will be uploaded to HuggingFace"
             ),
@@ -22,6 +23,6 @@ class UploadRouterHuggingface:
                 ..., title="Huggingface username", description="The username of HuggingFace"
             ),
         ) -> int:
-            return handle_upload(engine, identifier, file, token, username)
+            return handle_upload(identifier, file, token, username)
 
         return router

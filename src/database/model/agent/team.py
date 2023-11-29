@@ -5,10 +5,11 @@ from sqlmodel import Field, Relationship
 
 from database.model.agent.organisation import Organisation
 from database.model.agent.person import Person
-from database.model.ai_resource.resource import AIResourceBase, AIResource
-from database.model.helper_functions import link_factory
-from database.model.relationships import ResourceRelationshipSingle, ResourceRelationshipList
-from database.model.serializers import AttributeSerializer, FindByIdentifierDeserializer
+from database.model.ai_resource.resource import AIResourceBase
+from database.model.ai_resource.resource import AbstractAIResource
+from database.model.helper_functions import many_to_many_link_factory
+from database.model.relationships import ManyToOne, ManyToMany
+from database.model.serializers import AttributeSerializer, FindByIdentifierDeserializerList
 
 
 class TeamBase(AIResourceBase):
@@ -24,7 +25,7 @@ class TeamBase(AIResourceBase):
     )
 
 
-class Team(TeamBase, AIResource, table=True):  # type: ignore [call-arg]
+class Team(TeamBase, AbstractAIResource, table=True):  # type: ignore [call-arg]
     __tablename__ = "team"
 
     organisation_identifier: int | None = Field(
@@ -32,20 +33,20 @@ class Team(TeamBase, AIResource, table=True):  # type: ignore [call-arg]
     )
     organisation: Optional[Organisation] = Relationship()
     member: list[Person] = Relationship(
-        link_model=link_factory("team", Person.__tablename__, "member"),
+        link_model=many_to_many_link_factory("team", Person.__tablename__, "member"),
     )
 
-    class RelationshipConfig(AIResource.RelationshipConfig):
-        organisation: int | None = ResourceRelationshipSingle(
+    class RelationshipConfig(AbstractAIResource.RelationshipConfig):
+        organisation: int | None = ManyToOne(
             description="The organisation of which this team is a part.",
             identifier_name="organisation_identifier",
-            serializer=AttributeSerializer("identifier"),
+            _serializer=AttributeSerializer("identifier"),
         )
-        member: list[int] = ResourceRelationshipList(
+        member: list[int] = ManyToMany(
             description="The persons that are a member of this team. The leader should "
             "also be added as contact.",
-            serializer=AttributeSerializer("identifier"),
-            deserializer=FindByIdentifierDeserializer(Person),
+            _serializer=AttributeSerializer("identifier"),
+            deserializer=FindByIdentifierDeserializerList(Person),
             example=[],
             default_factory_pydantic=list,
         )

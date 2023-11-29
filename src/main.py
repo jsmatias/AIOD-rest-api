@@ -6,20 +6,25 @@ Note: order matters for overloaded paths
 """
 import argparse
 
+import pkg_resources
 import uvicorn
 from fastapi import Depends, FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import Json
-from sqlalchemy.engine import Engine
-from sqlmodel import Session, select
+from sqlmodel import select
 
 import routers
 from authentication import get_current_user
 from config import KEYCLOAK_CONFIG
+from database.deletion.triggers import add_delete_triggers
+from database.model.concept.concept import AIoDConcept
 from database.model.platform.platform import Platform
 from database.model.platform.platform_names import PlatformName
-from database.setup import sqlmodel_engine
+from database.session import EngineSingleton, DbSession
+from database.setup import drop_or_create_database
 from routers import resource_routers, parent_routers, enum_routers
+from routers import search_routers
+from setup_logger import setup_logger
 
 
 def _parse_args() -> argparse.Namespace:
@@ -40,7 +45,7 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def add_routes(app: FastAPI, engine: Engine, url_prefix=""):
+def add_routes(app: FastAPI, url_prefix=""):
     """Add routes to the FastAPI application"""
 
     @app.get(url_prefix + "/", response_class=HTMLResponse)
@@ -65,21 +70,36 @@ def add_routes(app: FastAPI, engine: Engine, url_prefix=""):
         """
         return {"msg": "success", "user": user}
 
+    @app.get(url_prefix + "/counts/v1")
+    def counts() -> dict:
+        return {
+            router.resource_name_plural: count
+            for router in resource_routers.router_list
+            if issubclass(router.resource_class, AIoDConcept)
+            and (count := router.get_resource_count_func()(detailed=True))
+        }
+
     for router in (
         resource_routers.router_list
         + routers.other_routers
         + parent_routers.router_list
         + enum_routers.router_list
+        + search_routers.router_list
     ):
-        app.include_router(router.create(engine, url_prefix))
+        app.include_router(router.create(url_prefix))
 
 
 def create_app() -> FastAPI:
     """Create the FastAPI application, complete with routes."""
+    setup_logger()
     args = _parse_args()
+    pyproject_toml = pkg_resources.get_distribution("aiod_metadata_catalogue")
     app = FastAPI(
         openapi_url=f"{args.url_prefix}/openapi.json",
         docs_url=f"{args.url_prefix}/docs",
+        title="AIoD Metadata Catalogue",
+        description="This is the Swagger documentation of the AIoD Metadata Catalogue.",
+        version=pyproject_toml.version,
         swagger_ui_oauth2_redirect_url=f"{args.url_prefix}/docs/oauth2-redirect",
         swagger_ui_init_oauth={
             "clientId": KEYCLOAK_CONFIG.get("client_id_swagger"),
@@ -89,14 +109,20 @@ def create_app() -> FastAPI:
             "scopes": KEYCLOAK_CONFIG.get("scopes"),
         },
     )
-    engine = sqlmodel_engine(args.rebuild_db)
-    with Session(engine) as session:
+    drop_or_create_database(delete_first=args.rebuild_db == "always")
+    AIoDConcept.metadata.create_all(EngineSingleton().engine, checkfirst=True)
+    with DbSession() as session:
         existing_platforms = session.scalars(select(Platform)).all()
         if not any(existing_platforms):
             session.add_all([Platform(name=name) for name in PlatformName])
             session.commit()
 
-    add_routes(app, engine, url_prefix=args.url_prefix)
+            # this is a bit of a hack: instead of checking whether the triggers exist, we check
+            # whether platforms are already present. If platforms were not present, the db is
+            # empty, and so the triggers should still be added.
+            add_delete_triggers(AIoDConcept)
+
+    add_routes(app, url_prefix=args.url_prefix)
     return app
 
 
