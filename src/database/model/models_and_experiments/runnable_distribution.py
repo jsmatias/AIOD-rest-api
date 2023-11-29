@@ -66,6 +66,12 @@ class RunnableDistributionBase(DistributionBase):
         default=None,
         schema_extra={"example": "4GB RAM; 100MB storage; 1GHz processor with 8 cores."},
     )
+    # Made content_url optional for ML Models because it could just be a script,
+    # not necessary to have a url.
+    content_url: str | None = Field(
+        max_length=NORMAL,
+        schema_extra={"example": "https://www.example.com/mlmodel/file.csv"},
+    )  # type: ignore
 
 
 def runnable_distribution_factory(table_from: str, distribution_name="distribution") -> Type:
