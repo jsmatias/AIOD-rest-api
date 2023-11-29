@@ -23,11 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build the docker image
-        run: docker build --tag ai4eu_server_demo:latest -f Dockerfile .
+        run: docker build --tag aiod_metadata_catalogue:latest -f Dockerfile .
       
       - name: Run docker container and pytest tests
         run: |
-          docker run -e KEYCLOAK_CLIENT_SECRET="mocked_secret" --entrypoint "" ai4eu_server_demo sh -c "pip install \".[dev]\" && pytest tests -s"
+          docker run -e KEYCLOAK_CLIENT_SECRET="mocked_secret" --entrypoint "" aiod_metadata_catalogue sh -c "pip install \".[dev]\" && pytest tests -s"
   
   
           
