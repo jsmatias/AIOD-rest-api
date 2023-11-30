@@ -1,3 +1,5 @@
+"""Mocking the Keycloak instance."""
+
 import enum
 import json
 from contextlib import contextmanager
@@ -17,10 +19,7 @@ class TestUserType(enum.Enum):
 @contextmanager
 def MockedKeycloak(type_: TestUserType = TestUserType.user) -> responses.RequestsMock:
     """
-    Returning a SQLModel session bound to the (configured) database engine.
-
-    Alternatively, we could have used FastAPI Depends, but that only works for FastAPI - while
-    the synchronization, for instance, also needs a Session, but doesn't use FastAPI.
+    Mock the keycloak instance.
     """
     path_user = path_test_resources() / "authentication" / type_.value
     return _mocked_user(path_user)

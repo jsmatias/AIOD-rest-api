@@ -1,23 +1,16 @@
-from contextlib import contextmanager
+"""Unittests for the behaviour of get_current_user()."""
+
+
 from unittest.mock import Mock
 
 import pytest
-import responses
 from fastapi import HTTPException
 from keycloak import KeycloakError
 from starlette import status
 
+
 from authentication import get_current_user, keycloak_openid
-from tests.testutils.authentication import MockedKeycloak, TestUserType
-
-
-@contextmanager
-def Jos() -> responses.RequestsMock:
-    request_mock = responses.RequestsMock()
-    try:
-        yield request_mock
-    finally:
-        request_mock.__exit__(None, None, None)
+from tests.testutils.mock_keycloak import MockedKeycloak, TestUserType
 
 
 @pytest.mark.asyncio
@@ -26,6 +19,19 @@ async def test_happy_path():
         user = await get_current_user(token="Bearer mocked")
     assert user.name == "user"
     assert set(user.roles) == {"offline_access", "uma_authorization", "default-roles-aiod"}
+
+
+@pytest.mark.asyncio
+async def test_happy_path_privileged():
+    with MockedKeycloak(type_=TestUserType.privileged) as _:
+        user = await get_current_user(token="Bearer mocked")
+    assert user.name == "user"
+    assert set(user.roles) == {
+        "offline_access",
+        "uma_authorization",
+        "default-roles-aiod",
+        "edit_aiod_resources",
+    }
 
 
 @pytest.mark.asyncio
