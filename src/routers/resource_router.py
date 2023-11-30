@@ -367,7 +367,7 @@ class ResourceRouter(abc.ABC):
             resource_create: clz_create,  # type: ignore
             user: User = Depends(get_current_user),
         ):
-            if KEYCLOAK_CONFIG.get("role") not in user.roles:
+            if not user.has_role(KEYCLOAK_CONFIG.get("role")):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="You do not have permission to edit Aiod resources.",
@@ -407,7 +407,7 @@ class ResourceRouter(abc.ABC):
             resource_create_instance: clz_create,  # type: ignore
             user: User = Depends(get_current_user),
         ):
-            if KEYCLOAK_CONFIG.get("role") not in user.roles:
+            if not user.has_role(KEYCLOAK_CONFIG.get("role")):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="You do not have permission to edit Aiod resources.",
@@ -448,7 +448,7 @@ class ResourceRouter(abc.ABC):
             user: User = Depends(get_current_user),
         ):
             with DbSession() as session:
-                if KEYCLOAK_CONFIG.get("role") not in user.roles:
+                if not user.has_role(KEYCLOAK_CONFIG.get("role")):
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
                         detail="You do not have permission to delete Aiod resources.",

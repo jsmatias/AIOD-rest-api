@@ -17,16 +17,14 @@ should therefor request a new token every X minutes. This is not needed when the
 performs a separate authorization request. The only downside is the overhead of the additional
 keycloak requests - if that becomes prohibitive in the future, we should reevaluate this design.
 """
-
-
 import logging
 import os
 
 from dotenv import load_dotenv
 from fastapi import HTTPException, Security, status
 from fastapi.security import OpenIdConnect
-from keycloak import KeycloakOpenID, KeycloakError
-from pydantic import BaseModel
+from keycloak import KeycloakOpenID
+from pydantic import BaseModel, Field
 
 from config import KEYCLOAK_CONFIG
 
@@ -47,11 +45,23 @@ keycloak_openid = KeycloakOpenID(
 
 
 class User(BaseModel):
-    name: str
-    roles: list[str]
+    name: str = Field(description="The username.")
+    roles: set[str] = Field(description="The roles.")
+
+    def has_role(self, role: str) -> bool:
+        return role in self.roles
 
 
 async def get_current_user(token=Security(oidc)) -> User:
+    """
+    Use this function in Depends() to force authentication. Check the roles of the user for
+    authorization.
+
+    Raises:
+        HTTPException with status 401 on missing token (unauthorized message), also status 401 on
+            any problem with the token (we don't want to leak information), status 500 on any
+            request if Keycloak is configured incorrectly.
+    """
     if not client_secret:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -70,25 +80,17 @@ async def get_current_user(token=Security(oidc)) -> User:
         # query the authorization server to determine the active state of this token and to
         # determine meta-information.
         userinfo = keycloak_openid.introspect(token)
-        if not userinfo.get("user", {}).get("active", False):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User is not active",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+
+        if not userinfo.get("active", False):
+            logging.error("Invalid userinfo or inactive user.")
+            raise RuntimeError("Invalid userinfo or inactive user.")  # caught below
         return User(
-            name=userinfo["user"]["username"], roles=userinfo["user"]["realm_access"]["roles"]
+            name=userinfo["username"], roles=set(userinfo.get("realm_access", {}).get("roles", []))
         )
-    except KeycloakError as e:
+    except Exception as e:
         logging.error(f"Error while checking the access token: '{e}'")
-        error_msg = e.error_message
-        if isinstance(error_msg, bytes):
-            error_msg = error_msg.decode("utf-8")
-        detail = "Invalid authentication token"
-        if error_msg != "":
-            detail += f": '{error_msg}'"
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=detail,
+            detail="Invalid authentication token",
             headers={"WWW-Authenticate": "Bearer"},
         )

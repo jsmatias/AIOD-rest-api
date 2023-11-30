@@ -110,19 +110,14 @@ def client_test_resource(engine: Engine) -> TestClient:
 @pytest.fixture()
 def mocked_token() -> Mock:
     default_user = {
-        "msg": "success",
-        "user": {
-            "realm_access": {
-                "roles": ["offline_access", "uma_authorization", "default-roles-aiod"]
-            },
-            "resource_access": {
-                "account": {"roles": ["manage-account", "manage-account-links", "view-profile"]}
-            },
-            "scope": "openid profile email",
-            "username": "user",
-            "token_type": "Bearer",
-            "active": True,
+        "realm_access": {"roles": ["offline_access", "uma_authorization", "default-roles-aiod"]},
+        "resource_access": {
+            "account": {"roles": ["manage-account", "manage-account-links", "view-profile"]}
         },
+        "scope": "openid profile email",
+        "username": "user",
+        "token_type": "Bearer",
+        "active": True,
     }
     return Mock(return_value=default_user)
 
@@ -130,23 +125,20 @@ def mocked_token() -> Mock:
 @pytest.fixture()
 def mocked_privileged_token() -> Mock:
     default_user = {
-        "msg": "success",
-        "user": {
-            "realm_access": {
-                "roles": [
-                    "offline_access",
-                    "uma_authorization",
-                    "default-roles-aiod",
-                    "edit_aiod_resources",
-                ]
-            },
-            "resource_access": {
-                "account": {"roles": ["manage-account", "manage-account-links", "view-profile"]}
-            },
-            "scope": "openid profile email",
-            "username": "user",
-            "token_type": "Bearer",
-            "active": True,
+        "realm_access": {
+            "roles": [
+                "offline_access",
+                "uma_authorization",
+                "default-roles-aiod",
+                "edit_aiod_resources",
+            ]
         },
+        "resource_access": {
+            "account": {"roles": ["manage-account", "manage-account-links", "view-profile"]}
+        },
+        "scope": "openid profile email",
+        "username": "user",
+        "token_type": "Bearer",
+        "active": True,
     }
     return Mock(return_value=default_user)

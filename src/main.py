@@ -63,11 +63,11 @@ def add_routes(app: FastAPI, url_prefix=""):
         """
 
     @app.get(url_prefix + "/authorization_test")
-    def test_authorization(user: User = Depends(get_current_user)) -> dict:
+    def test_authorization(user: User = Depends(get_current_user)) -> User:
         """
         Returns the user, if authenticated correctly.
         """
-        return {"msg": "success", "user": user}
+        return user
 
     @app.get(url_prefix + "/counts/v1")
     def counts() -> dict:
