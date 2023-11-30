@@ -11,7 +11,7 @@ def test_happy_path(
     mocked_privileged_token: Mock,
     body_resource: dict,
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     body = copy.deepcopy(body_resource)
     body["headline"] = "A headline to show on top of the page."
     body["alternative_headline"] = "An alternative headline."

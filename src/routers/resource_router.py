@@ -14,7 +14,7 @@ from sqlalchemy.sql.operators import is_
 from sqlmodel import SQLModel, Session, select, Field
 from starlette.responses import JSONResponse
 
-from authentication import get_current_user
+from authentication import get_current_user, User
 from config import KEYCLOAK_CONFIG
 from converters.schema_converters.schema_converter import SchemaConverter
 from database.model.ai_resource.resource import AbstractAIResource
@@ -365,9 +365,9 @@ class ResourceRouter(abc.ABC):
 
         def register_resource(
             resource_create: clz_create,  # type: ignore
-            user: dict = Depends(get_current_user),
+            user: User = Depends(get_current_user),
         ):
-            if "groups" in user and KEYCLOAK_CONFIG.get("role") not in user["groups"]:
+            if KEYCLOAK_CONFIG.get("role") not in user.roles:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="You do not have permission to edit Aiod resources.",
@@ -405,9 +405,9 @@ class ResourceRouter(abc.ABC):
         def put_resource(
             identifier: int,
             resource_create_instance: clz_create,  # type: ignore
-            user: dict = Depends(get_current_user),
+            user: User = Depends(get_current_user),
         ):
-            if "groups" in user and KEYCLOAK_CONFIG.get("role") not in user["groups"]:
+            if KEYCLOAK_CONFIG.get("role") not in user.roles:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="You do not have permission to edit Aiod resources.",
@@ -445,10 +445,10 @@ class ResourceRouter(abc.ABC):
 
         def delete_resource(
             identifier: str,
-            user: dict = Depends(get_current_user),
+            user: User = Depends(get_current_user),
         ):
             with DbSession() as session:
-                if "groups" in user and KEYCLOAK_CONFIG.get("role") not in user["groups"]:
+                if KEYCLOAK_CONFIG.get("role") not in user.roles:
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
                         detail="You do not have permission to delete Aiod resources.",

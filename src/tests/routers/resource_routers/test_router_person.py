@@ -16,7 +16,7 @@ def test_happy_path(
     person: Person,
     contact: Contact,
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
 
     with DbSession() as session:
         person.platform_resource_identifier = "2"

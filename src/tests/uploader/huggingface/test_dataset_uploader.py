@@ -14,7 +14,7 @@ from tests.testutils.paths import path_test_resources
 def test_happy_path_new_repository(
     client: TestClient, mocked_privileged_token: Mock, dataset: Dataset
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     with DbSession() as session:
         session.add(dataset)
         session.commit()
@@ -48,7 +48,7 @@ def test_happy_path_new_repository(
 
 
 def test_repo_already_exists(client: TestClient, mocked_privileged_token: Mock):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     dataset_id = 1
     with DbSession() as session:
         session.add_all(

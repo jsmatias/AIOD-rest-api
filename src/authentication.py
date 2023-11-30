@@ -26,6 +26,7 @@ from dotenv import load_dotenv
 from fastapi import HTTPException, Security, status
 from fastapi.security import OpenIdConnect
 from keycloak import KeycloakOpenID, KeycloakError
+from pydantic import BaseModel
 
 from config import KEYCLOAK_CONFIG
 
@@ -45,7 +46,12 @@ keycloak_openid = KeycloakOpenID(
 )
 
 
-async def get_current_user(token=Security(oidc)) -> dict:
+class User(BaseModel):
+    name: str
+    roles: list[str]
+
+
+async def get_current_user(token=Security(oidc)) -> User:
     if not client_secret:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -61,7 +67,18 @@ async def get_current_user(token=Security(oidc)) -> dict:
         )
     try:
         token = token.replace("Bearer ", "")
-        return keycloak_openid.userinfo(token)  # perform a request to keycloak
+        # query the authorization server to determine the active state of this token and to
+        # determine meta-information.
+        userinfo = keycloak_openid.introspect(token)
+        if not userinfo.get("user", {}).get("active", False):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User is not active",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return User(
+            name=userinfo["user"]["username"], roles=userinfo["user"]["realm_access"]["roles"]
+        )
     except KeycloakError as e:
         logging.error(f"Error while checking the access token: '{e}'")
         error_msg = e.error_message

@@ -16,7 +16,7 @@ def test_happy_path(
     contact: Contact,
     body_agent: dict,
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
 
     with DbSession() as session:
         session.add(organisation)  # The new organisation will be a member of this organisation

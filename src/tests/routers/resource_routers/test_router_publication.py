@@ -13,7 +13,7 @@ def test_happy_path(
     body_asset: dict,
     dataset: Dataset,
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
 
     body = copy.copy(body_asset)
     body["permanent_identifier"] = "http://dx.doi.org/10.1093/ajae/aaq063"

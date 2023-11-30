@@ -11,7 +11,7 @@ from authentication import keycloak_openid
     ["\"'é:?", "!@#$%^&*()`~", "Ω≈ç√∫˜µ≤≥÷", "田中さんにあげて下さい", " أي بعد, ", "𝑻𝒉𝒆 𝐪𝐮𝐢𝐜𝐤", "گچپژ"],
 )
 def test_unicode(client_test_resource: TestClient, title: str, mocked_privileged_token: Mock):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     response = client_test_resource.post(
         "/test_resources/v0",
         json={"title": title, "platform": "example", "platform_resource_identifier": "1"},
@@ -26,7 +26,7 @@ def test_unicode(client_test_resource: TestClient, title: str, mocked_privileged
 
 
 def test_missing_value(client_test_resource: TestClient, mocked_privileged_token: Mock):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     body = {"platform": "example", "platform_resource_identifier": "1"}
     response = client_test_resource.post(
         "/test_resources/v0", json=body, headers={"Authorization": "Fake token"}
@@ -38,7 +38,7 @@ def test_missing_value(client_test_resource: TestClient, mocked_privileged_token
 
 
 def test_null_value(client_test_resource: TestClient, mocked_privileged_token: Mock):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     body = {"title": None, "platform": "example", "platform_resource_identifier": "1"}
     response = client_test_resource.post(
         "/test_resources/v0", json=body, headers={"Authorization": "Fake token"}
@@ -54,7 +54,7 @@ def test_null_value(client_test_resource: TestClient, mocked_privileged_token: M
 
 
 def test_posting_same_item_twice(client_test_resource: TestClient, mocked_privileged_token: Mock):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     headers = {"Authorization": "Fake token"}
     body = {"title": "title1", "platform": "example", "platform_resource_identifier": "1"}
     response = client_test_resource.post("/test_resources/v0", json=body, headers=headers)
@@ -71,7 +71,7 @@ def test_posting_same_item_twice(client_test_resource: TestClient, mocked_privil
 def test_posting_same_item_twice_but_deleted(
     client_test_resource: TestClient, mocked_privileged_token: Mock
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     headers = {"Authorization": "Fake token"}
     body = {"title": "title1", "platform": "example", "platform_resource_identifier": "1"}
     response = client_test_resource.post("/test_resources/v0", json=body, headers=headers)
@@ -88,7 +88,7 @@ def test_posting_same_item_twice_but_deleted(
 def test_no_platform_no_platform_resource_identifier(
     client_test_resource: TestClient, mocked_privileged_token: Mock
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     headers = {"Authorization": "Fake token"}
     body = {"title": "title1", "platform": None, "platform_resource_identifier": None}
     response = client_test_resource.post("/test_resources/v0", json=body, headers=headers)
@@ -101,7 +101,7 @@ def test_no_platform_no_platform_resource_identifier(
 def test_no_platform_with_platform_resource_identifier(
     client_test_resource: TestClient, mocked_privileged_token: Mock
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     headers = {"Authorization": "Fake token"}
     body = {"title": "title1", "platform": None, "platform_resource_identifier": "1"}
     response = client_test_resource.post("/test_resources/v0", json=body, headers=headers)
@@ -116,7 +116,7 @@ def test_no_platform_with_platform_resource_identifier(
 def test_platform_with_no_platform_resource_identifier(
     client_test_resource: TestClient, mocked_privileged_token: Mock
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     headers = {"Authorization": "Fake token"}
     body = {"title": "title1", "platform": "example", "platform_resource_identifier": None}
     response = client_test_resource.post("/test_resources/v0", json=body, headers=headers)
@@ -129,7 +129,7 @@ def test_platform_with_no_platform_resource_identifier(
 
 
 def test_non_existent_platform(client_test_resource: TestClient, mocked_privileged_token: Mock):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     keycloak_openid.public_key = Mock(return_value="")
     headers = {"Authorization": "Fake token"}
     body = {"title": "title1", "platform": "this_does_not_exist", "platform_resource_identifier": 1}

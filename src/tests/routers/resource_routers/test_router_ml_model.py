@@ -14,7 +14,7 @@ def test_happy_path(
     experiment: Experiment,
     body_asset: dict,
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
 
     with DbSession() as session:
         session.add(experiment)

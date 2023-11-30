@@ -30,7 +30,7 @@ def test_happy_path(
     publication: Publication,
     contact: Contact,
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     with DbSession() as session:
         session.add(person)
         session.merge(publication)
@@ -156,7 +156,7 @@ def test_post_duplicate_named_relations(
     """
     Unittest mirroring situation reported during the data migration of AI4EU news.
     """
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
 
     def create_body(i: int, *keywords):
         return {"name": f"dataset{i}", "keyword": keywords}
@@ -222,7 +222,7 @@ def test_post_duplicate_named_relations_with_different_capitals(
     client: TestClient,
     mocked_privileged_token: Mock,
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
 
     def create_body(i: int, *keywords):
         return {"name": f"dataset{i}", "keyword": keywords}
@@ -241,7 +241,7 @@ def test_post_editors(
     """
     Unittest mirroring situation reported during the data migration of AI4EU events.
     """
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     headers = {"Authorization": "Fake token"}
     client.post("/persons/v1", json={"name": "1"}, headers=headers)
     client.post("/persons/v1", json={"name": "2"}, headers=headers)
@@ -267,7 +267,7 @@ def test_post_editors(
 
 
 def test_create_aiod_entry(client: TestClient, mocked_privileged_token: Mock):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     body = {"name": "news"}
     start = datetime.now(pytz.utc)
     response = client.post("/news/v1", json=body, headers={"Authorization": "Fake token"})
@@ -286,7 +286,7 @@ def test_create_aiod_entry(client: TestClient, mocked_privileged_token: Mock):
 
 
 def test_update_aiod_entry(client: TestClient, mocked_privileged_token: Mock):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     body = {"name": "news"}
     start = datetime.now(pytz.utc)
     response = client.post("/news/v1", json=body, headers={"Authorization": "Fake token"})
@@ -324,7 +324,7 @@ def assert_distributions(client: TestClient, *content_urls: str):
 
 
 def test_update_distribution(client: TestClient, mocked_privileged_token: Mock):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     body = {"name": "dataset", "distribution": [{"content_url": "url"}]}
     response = client.post("/datasets/v1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
@@ -366,7 +366,7 @@ def test_relations_between_resources(
     publication: Publication,
     organisation: Organisation,
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
 
     with DbSession() as session:
         session.add(dataset)

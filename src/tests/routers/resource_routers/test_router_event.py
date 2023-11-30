@@ -19,7 +19,7 @@ def test_happy_path(
         session.add(person)
         session.commit()
 
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     body = copy.copy(body_resource)
     body["start_date"] = "2021-02-03T15:15:00"
     body["end_date"] = "2022-02-03T15:15:00"
