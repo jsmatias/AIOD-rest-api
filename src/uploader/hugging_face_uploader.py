@@ -16,13 +16,17 @@ def handle_upload(identifier: int, file: UploadFile, token: str, username: str):
     with DbSession() as session:
         dataset: Dataset = _get_resource(session=session, identifier=identifier)
         repo_id = dataset.platform_resource_identifier
-        if dataset.platform != PlatformName.huggingface or not repo_id:
+        if dataset.platform != PlatformName.huggingface:
             msg = (
                 f"The dataset with identifier {dataset.identifier} should have platform="
                 f"{PlatformName.huggingface}."
             )
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
-
+        if not repo_id:
+            # this if-statement is purely to make MyPy understand that the repo_id cannot be None.
+            # This is enforced by a CheckConstraint in the db, so this error will never be thrown.
+            msg = "Every dataset with a platform should also have a platform_resource_identifier"
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=msg)
         try:
             _throw_error_on_invalid_repo_id(username, repo_id)
         except ValueError as e:
