@@ -3,6 +3,7 @@ import datetime
 import os
 from typing import Optional, Tuple
 
+from pydantic import validator
 from sqlalchemy import CheckConstraint, Index
 from sqlalchemy.orm import declared_attr
 from sqlalchemy.sql.functions import coalesce
@@ -13,6 +14,7 @@ from database.model.field_length import SHORT, NORMAL
 from database.model.platform.platform_names import PlatformName
 from database.model.relationships import OneToOne
 from database.model.serializers import CastDeserializer
+from database.validators import huggingface_validators, openml_validators
 
 IS_SQLITE = os.getenv("DB") == "SQLite"
 CONSTRAINT_LOWERCASE = f"{'platform' if IS_SQLITE else 'BINARY(platform)'} = LOWER(platform)"
@@ -32,10 +34,26 @@ class AIoDConceptBase(SQLModel):
     platform_resource_identifier: str | None = Field(
         max_length=NORMAL,
         description="A unique identifier issued by the external platform that's specified in "
-        "'platform'. Leave empty if this item is not part of an external platform.",
+        "'platform'. Leave empty if this item is not part of an external platform. For example, "
+        "for HuggingFace, this should be the <namespace>/<dataset_name>, and for Openml, the "
+        "OpenML identifier.",
         default=None,
         schema_extra={"example": "1"},
     )
+
+    @validator("platform_resource_identifier")
+    def platform_resource_identifier_valid(cls, platform_resource_identifier: str, values) -> str:
+        if platform := values.get("platform", None):
+            match platform:
+                case PlatformName.huggingface:
+                    huggingface_validators.throw_error_on_invalid_identifier(
+                        platform_resource_identifier
+                    )
+                case PlatformName.openml:
+                    openml_validators.throw_error_on_invalid_identifier(
+                        platform_resource_identifier
+                    )
+        return platform_resource_identifier
 
 
 class AIoDConcept(AIoDConceptBase):
