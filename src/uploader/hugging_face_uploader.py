@@ -164,5 +164,8 @@ def _throw_error_on_invalid_repo_id(username: str, platform_resource_identifier:
 
     namespace = platform_resource_identifier.split("/")[0]
     if username != namespace:
-        msg = f"The namespace should be equal to the username, but {namespace} != {username}."
+        msg = (
+            f"The namespace (the first part of the platform_resource_identifier) should be "
+            f"equal to the username, but {namespace} != {username}."
+        )
         raise ValueError(msg)

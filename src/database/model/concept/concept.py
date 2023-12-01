@@ -43,6 +43,13 @@ class AIoDConceptBase(SQLModel):
 
     @validator("platform_resource_identifier")
     def platform_resource_identifier_valid(cls, platform_resource_identifier: str, values) -> str:
+        """
+        Throw a ValueError if the platform_resource_identifier is invalid for this platform.
+
+        Note that field order matters: platform is defined before platform_resource_identifier,
+        so that this validator can use the value of the platform. Refer to
+        https://docs.pydantic.dev/1.10/usage/models/#field-ordering
+        """
         if platform := values.get("platform", None):
             match platform:
                 case PlatformName.huggingface:

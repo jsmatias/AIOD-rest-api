@@ -148,7 +148,8 @@ def test_wrong_platform(client: TestClient, mocked_privileged_token: Mock, datas
             "user",
             "wrong-namespace/name",
             ValueError(
-                "The namespace should be equal to the username, but wrong-namespace != user."
+                "The namespace (the first part of the platform_resource_identifier) should be "
+                "equal to the username, but wrong-namespace != user."
             ),
         ),
         (
