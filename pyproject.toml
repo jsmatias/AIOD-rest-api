@@ -1,7 +1,7 @@
 [project]
 name = "aiod_metadata_catalogue"
 description = "A Metadata Catalogue for AI on Demand "
-version = "1.1.20231129"
+version = "1.1.20231205"
 requires-python = ">=3.11"
 authors = [
     { name = "Adrián Alcolea" },
@@ -43,11 +43,11 @@ readme = "README.md"
 dev = [
     "types-python-dateutil==2.8.19.14",
     "pytest==7.4.3",
+    "pytest-asyncio==0.23.0b0",
     "pytest-dotenv==0.5.2",
     "pytest-xdist==3.5.0",
     "pre-commit==3.5.0",
     "responses==0.24.1",
-    "starlette==0.27.0"
 ]
 
 [tool.setuptools]

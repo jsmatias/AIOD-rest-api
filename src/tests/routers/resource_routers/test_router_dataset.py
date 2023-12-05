@@ -1,6 +1,7 @@
 import copy
 from unittest.mock import Mock
 
+from starlette import status
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
@@ -14,7 +15,7 @@ def test_happy_path(
     body_asset: dict,
     person: Person,
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
 
     with DbSession() as session:
         session.add(person)
@@ -50,3 +51,36 @@ def test_happy_path(
         "geo": {"latitude": 37.42242, "longitude": -122.08585, "elevation_millimeters": 2000},
     }
     # TODO: test delete
+
+
+def test_post_invalid_huggingface_identifier(
+    client: TestClient,
+    mocked_privileged_token: Mock,
+):
+    keycloak_openid.userinfo = mocked_privileged_token
+
+    body = {"name": "name", "platform": "huggingface", "platform_resource_identifier": "a"}
+
+    response = client.post("/datasets/v1", json=body, headers={"Authorization": "Fake token"})
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY, response.json()
+    assert (
+        response.json()["detail"][0]["msg"]
+        == "The platform_resource_identifier for HuggingFace should be a valid repo_id. A repo_id "
+        "should be between 1 and 96 characters."
+    )
+
+
+def test_post_invalid_openml_identifier(
+    client: TestClient,
+    mocked_privileged_token: Mock,
+):
+    keycloak_openid.userinfo = mocked_privileged_token
+
+    body = {"name": "name", "platform": "openml", "platform_resource_identifier": "a"}
+
+    response = client.post("/datasets/v1", json=body, headers={"Authorization": "Fake token"})
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY, response.json()
+    assert (
+        response.json()["detail"][0]["msg"]
+        == "An OpenML platform_resource_identifier should be a positive integer."
+    )

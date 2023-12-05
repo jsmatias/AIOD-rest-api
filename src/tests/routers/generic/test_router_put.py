@@ -17,7 +17,7 @@ def test_unicode(
     title: str,
     mocked_privileged_token: Mock,
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     response = client_test_resource.put(
         "/test_resources/v0/1",
         json={"title": title, "platform": "openml", "platform_resource_identifier": "2"},
@@ -37,7 +37,7 @@ def test_non_existent(
     engine_test_resource_filled: Engine,
     mocked_privileged_token: Mock,
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     response = client_test_resource.put(
         "/test_resources/v0/2",
         json={"title": "new_title", "platform": "other", "platform_resource_identifier": "2"},
@@ -53,7 +53,7 @@ def test_too_long_name(
     engine_test_resource_filled: Engine,
     mocked_privileged_token: Mock,
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     name = "a" * 251
     response = client_test_resource.put(
         "/test_resources/v0/1", json={"title": name}, headers={"Authorization": "Fake token"}
@@ -79,7 +79,7 @@ def test_no_platform_with_platform_resource_identifier(
     The error handling should be the same as with the POST endpoints, so we're not testing all
     the possible UNIQUE / CHECK constraints here, just this one.
     """
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     response = client_test_resource.put(
         "/test_resources/v0/1",
         json={"title": "title", "platform": "other", "platform_resource_identifier": None},

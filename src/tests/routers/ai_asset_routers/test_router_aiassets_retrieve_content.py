@@ -61,7 +61,7 @@ def set_up(
     adding a person to the database, and sending a POST request to the
     specified endpoint for the given resource.
     """
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     with DbSession() as session:
         session.add(person)
         session.commit()

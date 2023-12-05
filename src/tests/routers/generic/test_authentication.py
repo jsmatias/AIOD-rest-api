@@ -47,7 +47,7 @@ def test_delete_unauthenticated(
 
 
 def test_delete_unauthorized(client_test_resource: TestClient, mocked_token: Mock):
-    keycloak_openid.userinfo = mocked_token
+    keycloak_openid.introspect = mocked_token
     response = client_test_resource.delete(
         "/test_resources/v0/1",
         headers={"Authorization": "fake-token"},
@@ -58,7 +58,7 @@ def test_delete_unauthorized(client_test_resource: TestClient, mocked_token: Moc
 
 
 def test_post_unauthorized(client_test_resource: TestClient, mocked_token: Mock):
-    keycloak_openid.userinfo = mocked_token
+    keycloak_openid.introspect = mocked_token
     response = client_test_resource.post(
         "/test_resources/v0",
         json={"title": "example"},
@@ -79,7 +79,7 @@ def test_post_unauthenticated(client_test_resource: TestClient):
 
 
 def test_put_unauthorized(client_test_resource: TestClient, mocked_token: Mock):
-    keycloak_openid.userinfo = mocked_token
+    keycloak_openid.introspect = mocked_token
     response = client_test_resource.put(
         "/test_resources/v0/1",
         json={"title": "example"},
