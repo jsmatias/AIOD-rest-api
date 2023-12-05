@@ -1,5 +1,6 @@
 import logging
 import typing
+
 import bibtexparser
 import requests
 from huggingface_hub import list_datasets
@@ -154,8 +155,9 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                 ]
             return [
                 pydantic_class_publication(
-                    platform=self.platform_name,
-                    platform_resource_identifier=citation["ID"],
+                    # The platform and platform_resource_identifier should be None: this publication
+                    # is not stored on HuggingFace (and not identifiable within HF using,
+                    # for instance, citation["ID"])
                     name=citation["title"],
                     same_as=citation["link"] if "link" in citation else None,
                     type=citation["ENTRYTYPE"],

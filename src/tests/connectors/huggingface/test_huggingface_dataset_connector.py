@@ -124,7 +124,7 @@ def test_incorrect_citation():
         citation.name == "ArCOV-19: The First Arabic COVID-19 Twitter Dataset with Propagation "
         "Networks"
     )
-    assert citation.platform_resource_identifier == "haouari2020arcov19"
+    assert citation.platform_resource_identifier is None
     assert citation.type == "article"
     assert (
         citation.description.plain == "By Fatima Haouari and Maram Hasanain and Reem Suwaileh "
