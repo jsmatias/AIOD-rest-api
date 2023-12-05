@@ -1,0 +1,43 @@
+{
+    "exp": 1701350361,
+    "iat": 1701350061,
+    "auth_time": 1701349686,
+    "jti": "0bce0fb9-3580-4a20-a0cb-5b9bffe60aa6",
+    "iss": "http://localhost/aiod-auth/realms/aiod",
+    "aud": "account",
+    "sub": "4a80f256-3928-4cfa-ba66-5e22bb36fc01",
+    "typ": "Bearer",
+    "azp": "aiod-api-swagger",
+    "session_state": "f64e4c2f-de29-4f8e-8812-e27e9932d837",
+    "acr": "0",
+    "allowed-origins": [
+      "http://localhost:8000"
+    ],
+    "realm_access": {
+      "roles": [
+        "offline_access",
+        "uma_authorization",
+        "default-roles-aiod",
+        "edit_aiod_resources"
+      ]
+    },
+    "resource_access": {
+      "account": {
+        "roles": [
+          "manage-account",
+          "manage-account-links",
+          "view-profile"
+        ]
+      }
+    },
+    "scope": "openid profile email",
+    "sid": "f64e4c2f-de29-4f8e-8812-e27e9932d837",
+    "email_verified": false,
+    "preferred_username": "user",
+    "given_name": "",
+    "family_name": "",
+    "client_id": "aiod-api-swagger",
+    "username": "user",
+    "token_type": "Bearer",
+    "active": false
+}

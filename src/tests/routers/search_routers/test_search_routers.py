@@ -36,7 +36,7 @@ def test_search_happy_path(client: TestClient, search_router):
 
 
 def test_search_happy_path_get_all(client: TestClient, mocked_privileged_token: Mock):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     mock_elasticsearch(filename_mock="event_search.json")
 
     body = {"name": "A name.", "keyword": ["keyword1", "keyword2"]}  # keywords not indexed by ES

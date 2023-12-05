@@ -15,7 +15,7 @@ def test_hard_delete(
     mocked_privileged_token: Mock,
     draft: Status,
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
 
     now = datetime.datetime.now()
     deletion_time = now - datetime.timedelta(seconds=10)

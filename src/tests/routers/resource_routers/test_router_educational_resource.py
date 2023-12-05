@@ -11,7 +11,7 @@ def test_happy_path(
     mocked_privileged_token: Mock,
     body_asset: dict,
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
 
     body = copy.deepcopy(body_asset)
     body["time_required"] = "3 weeks"

@@ -21,7 +21,7 @@ def test_happy_path_new_repository(
     dataset.platform = "huggingface"
     dataset.platform_resource_identifier = "Fake-username/test"
 
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     with DbSession() as session:
         session.add(dataset)
         session.commit()
