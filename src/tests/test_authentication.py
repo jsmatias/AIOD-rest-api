@@ -1,6 +1,5 @@
 """Unittests for the behaviour of get_current_user()."""
-
-
+import inspect
 from unittest.mock import Mock
 
 import pytest
@@ -9,7 +8,7 @@ from keycloak import KeycloakError
 from starlette import status
 
 
-from authentication import get_current_user, keycloak_openid
+from authentication import get_current_user, keycloak_openid, User
 from tests.testutils.mock_keycloak import MockedKeycloak, TestUserType
 
 
@@ -32,6 +31,17 @@ async def test_happy_path_privileged():
         "default-roles-aiod",
         "edit_aiod_resources",
     }
+
+
+def test_get_current_user_leaks_no_information():
+    """
+    Make sure an error is thrown if you change the fields on User. There may be good reasons to
+    make a change, but please be very careful: we don't want to expose sensitive information to
+    our application if it is not necessary. Moreover, the User class is returned by the
+    authorization_test endpoint.
+    """
+    assert inspect.signature(get_current_user).return_annotation == User
+    assert set(inspect.get_annotations(User)) == {"name", "roles"}
 
 
 @pytest.mark.asyncio
