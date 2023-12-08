@@ -25,12 +25,19 @@ class UploadRouterZenodo(UploaderRouter):
                 bool,
                 Query(
                     title="Publish dataset",
-                    description="When published, the dataset and files will be publicaly ccessible "
+                    description="Publish the dataset to Zenodo. When published, "
+                    "the dataset and files will be publicly accessible "
                     "and you will no longer be able to upload more files!",
                 ),
             ] = False,
             token: str = Query(title="Zenodo Token", description="The access token of Zenodo"),
         ) -> int:
+            """
+            Uploads a dataset to Zenodo using the AIoD metadata identifier.
+            If the metadata does not exist on Zenodo
+            (i.e., the platform_resource_identifier is None),
+            a new repository will be created on Zenodo.
+            """
             return zenodo_uploader.handle_upload(identifier, publish, token, file)
 
         return router
