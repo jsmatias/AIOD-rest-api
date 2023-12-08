@@ -3,6 +3,7 @@ import datetime
 import os
 from typing import Optional, Tuple
 
+from pydantic import validator
 from sqlalchemy import CheckConstraint, Index
 from sqlalchemy.orm import declared_attr
 from sqlalchemy.sql.functions import coalesce
@@ -13,13 +14,13 @@ from database.model.field_length import SHORT, NORMAL
 from database.model.platform.platform_names import PlatformName
 from database.model.relationships import OneToOne
 from database.model.serializers import CastDeserializer
+from database.validators import huggingface_validators, openml_validators
 
 IS_SQLITE = os.getenv("DB") == "SQLite"
 CONSTRAINT_LOWERCASE = f"{'platform' if IS_SQLITE else 'BINARY(platform)'} = LOWER(platform)"
 
 
 class AIoDConceptBase(SQLModel):
-    """The AIoDConcept is the top-level (abstract) class in AIoD."""
 
     platform: str | None = Field(
         max_length=SHORT,
@@ -33,10 +34,33 @@ class AIoDConceptBase(SQLModel):
     platform_resource_identifier: str | None = Field(
         max_length=NORMAL,
         description="A unique identifier issued by the external platform that's specified in "
-        "'platform'. Leave empty if this item is not part of an external platform.",
+        "'platform'. Leave empty if this item is not part of an external platform. For example, "
+        "for HuggingFace, this should be the <namespace>/<dataset_name>, and for Openml, the "
+        "OpenML identifier.",
         default=None,
         schema_extra={"example": "1"},
     )
+
+    @validator("platform_resource_identifier")
+    def platform_resource_identifier_valid(cls, platform_resource_identifier: str, values) -> str:
+        """
+        Throw a ValueError if the platform_resource_identifier is invalid for this platform.
+
+        Note that field order matters: platform is defined before platform_resource_identifier,
+        so that this validator can use the value of the platform. Refer to
+        https://docs.pydantic.dev/1.10/usage/models/#field-ordering
+        """
+        if platform := values.get("platform", None):
+            match platform:
+                case PlatformName.huggingface:
+                    huggingface_validators.throw_error_on_invalid_identifier(
+                        platform_resource_identifier
+                    )
+                case PlatformName.openml:
+                    openml_validators.throw_error_on_invalid_identifier(
+                        platform_resource_identifier
+                    )
+        return platform_resource_identifier
 
 
 class AIoDConcept(AIoDConceptBase):
@@ -47,9 +71,6 @@ class AIoDConcept(AIoDConceptBase):
         unique=True,
     )
     aiod_entry: AIoDEntryORM = Relationship()
-
-    # body_identifier: int | None = Field(foreign_key=Body.__tablename__ + ".identifier")
-    # body: Body | None = Relationship()
 
     def __init_subclass__(cls):
         """Fixing problems with the inheritance of relationships."""
@@ -65,9 +86,6 @@ class AIoDConcept(AIoDConceptBase):
             class_create=Optional[AIoDEntryCreate],
             on_delete_trigger_deletion_by="aiod_entry_identifier",
         )
-        # body: Optional[Body] = ResourceRelationshipSingle(
-        #     deserializer=CastDeserializer(Body),
-        # )
 
     @declared_attr
     def __table_args__(cls) -> Tuple:

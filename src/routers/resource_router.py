@@ -2,20 +2,19 @@ import abc
 import datetime
 import traceback
 from functools import partial
-from typing import Literal, Union, Any
+from typing import Literal, Union, Any, Annotated
 from typing import TypeVar, Type
 from wsgiref.handlers import format_date_time
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy import and_, func
-from sqlalchemy.engine import Engine
 from sqlalchemy.sql.operators import is_
-from sqlmodel import SQLModel, Session, select
+from sqlmodel import SQLModel, Session, select, Field
 from starlette.responses import JSONResponse
 
-from authentication import get_current_user
+from authentication import get_current_user, User
 from config import KEYCLOAK_CONFIG
 from converters.schema_converters.schema_converter import SchemaConverter
 from database.model.ai_resource.resource import AbstractAIResource
@@ -27,11 +26,26 @@ from database.model.resource_read_and_create import (
     resource_read,
 )
 from database.model.serializers import deserialize_resource_relationships
+from database.session import DbSession
 
 
 class Pagination(BaseModel):
-    offset: int = 0
-    limit: int = 100
+    """Offset-based pagination."""
+
+    offset: int = Field(
+        Query(
+            description="Specifies the number of resources that should be skipped.", default=0, ge=0
+        )
+    )
+    # Query inside field to ensure description is shown in Swagger.
+    # Refer to https://github.com/tiangolo/fastapi/issues/4700
+    limit: int = Field(
+        Query(
+            description="Specified the maximum number of resources that should be " "returned.",
+            default=10,
+            le=1000,
+        )
+    )
 
 
 RESOURCE = TypeVar("RESOURCE", bound=AbstractAIResource)
@@ -104,7 +118,7 @@ class ResourceRouter(abc.ABC):
         """
         return {}
 
-    def create(self, engine: Engine, url_prefix: str) -> APIRouter:
+    def create(self, url_prefix: str) -> APIRouter:
         router = APIRouter()
         version = f"v{self.version}"
         default_kwargs = {
@@ -120,71 +134,80 @@ class ResourceRouter(abc.ABC):
 
         router.add_api_route(
             path=f"{url_prefix}/{self.resource_name_plural}/{version}",
-            endpoint=self.get_resources_func(engine),
+            endpoint=self.get_resources_func(),
             response_model=response_model_plural,  # type: ignore
             name=f"List {self.resource_name_plural}",
+            description=f"Retrieve all meta-data of the {self.resource_name_plural}.",
             **default_kwargs,
         )
         router.add_api_route(
             path=f"{url_prefix}/counts/{self.resource_name_plural}/v1",
-            endpoint=self.get_resource_count_func(engine),
+            endpoint=self.get_resource_count_func(),
             response_model=int | dict[str, int],
             name=f"Count of {self.resource_name_plural}",
+            description=f"Retrieve the number of {self.resource_name_plural}.",
             **default_kwargs,
         )
         router.add_api_route(
             path=f"{url_prefix}/{self.resource_name_plural}/{version}",
             methods={"POST"},
-            endpoint=self.register_resource_func(engine),
+            endpoint=self.register_resource_func(),
             name=self.resource_name,
+            description=f"Register a {self.resource_name} with AIoD.",
             **default_kwargs,
         )
         router.add_api_route(
             path=url_prefix + f"/{self.resource_name_plural}/{version}/{{identifier}}",
-            endpoint=self.get_resource_func(engine),
+            endpoint=self.get_resource_func(),
             response_model=response_model,  # type: ignore
             name=self.resource_name,
+            description=f"Retrieve all meta-data for a {self.resource_name} identified by the AIoD "
+            "identifier.",
             **default_kwargs,
         )
         router.add_api_route(
             path=f"{url_prefix}/{self.resource_name_plural}/{version}/{{identifier}}",
             methods={"PUT"},
-            endpoint=self.put_resource_func(engine),
+            endpoint=self.put_resource_func(),
             name=self.resource_name,
+            description=f"Update an existing {self.resource_name}.",
             **default_kwargs,
         )
         router.add_api_route(
             path=f"{url_prefix}/{self.resource_name_plural}/{version}/{{identifier}}",
             methods={"DELETE"},
-            endpoint=self.delete_resource_func(engine),
+            endpoint=self.delete_resource_func(),
             name=self.resource_name,
+            description=f"Delete a {self.resource_name}.",
             **default_kwargs,
         )
         if hasattr(self.resource_class, "platform"):
             router.add_api_route(
                 path=f"{url_prefix}/platforms/{{platform}}/{self.resource_name_plural}/{version}",
-                endpoint=self.get_platform_resources_func(engine),
+                endpoint=self.get_platform_resources_func(),
                 response_model=response_model_plural,  # type: ignore
                 name=f"List {self.resource_name_plural}",
+                description=f"Retrieve all meta-data of the {self.resource_name_plural} of given "
+                f"platform.",
                 **default_kwargs,
             )
             router.add_api_route(
                 path=f"{url_prefix}/platforms/{{platform}}/{self.resource_name_plural}/{version}"
                 f"/{{identifier}}",
-                endpoint=self.get_platform_resource_func(engine),
+                endpoint=self.get_platform_resource_func(),
                 response_model=response_model,  # type: ignore
                 name=self.resource_name,
+                description=f"Retrieve all meta-data for a {self.resource_name} identified by the "
+                "platform-specific-identifier.",
                 **default_kwargs,
             )
         return router
 
-    def get_resources(
-        self, engine: Engine, schema: str, pagination: Pagination, platform: str | None = None
-    ):
+    def get_resources(self, schema: str, pagination: Pagination, platform: str | None = None):
         """Fetch all resources of this platform in given schema, using pagination"""
         _raise_error_on_invalid_schema(self._possible_schemas, schema)
-        try:
-            with Session(engine) as session:
+        with DbSession() as session:
+            try:
                 convert_schema = (
                     partial(self.schema_converters[schema].convert, session)
                     if schema != "aiod"
@@ -204,19 +227,17 @@ class ResourceRouter(abc.ABC):
                 return self._wrap_with_headers(
                     [convert_schema(resource) for resource in session.scalars(query).all()]
                 )
-        except Exception as e:
-            raise _wrap_as_http_exception(e)
+            except Exception as e:
+                raise _wrap_as_http_exception(e)
 
-    def get_resource(
-        self, engine: Engine, identifier: str, schema: str, platform: str | None = None
-    ):
+    def get_resource(self, identifier: str, schema: str, platform: str | None = None):
         """
         Get the resource identified by AIoD identifier (if platform is None) or by platform AND
         platform-identifier (if platform is not None), return in given schema.
         """
         _raise_error_on_invalid_schema(self._possible_schemas, schema)
         try:
-            with Session(engine) as session:
+            with DbSession() as session:
                 resource = self._retrieve_resource(session, identifier, platform=platform)
                 if schema != "aiod":
                     return self.schema_converters[schema].convert(session, resource)
@@ -224,7 +245,7 @@ class ResourceRouter(abc.ABC):
         except Exception as e:
             raise _wrap_as_http_exception(e)
 
-    def get_resources_func(self, engine: Engine):
+    def get_resources_func(self):
         """
         Return a function that can be used to retrieve a list of resources.
         This function returns a function (instead of being that function directly) because the
@@ -232,28 +253,28 @@ class ResourceRouter(abc.ABC):
         """
 
         def get_resources(
-            pagination: Pagination = Depends(Pagination),
-            schema: Literal[tuple(self._possible_schemas)] = "aiod",  # type:ignore
+            pagination: Pagination = Depends(),
+            schema: self._possible_schemas_type = "aiod",  # type:ignore
         ):
-            f"""Retrieve all meta-data of the {self.resource_name_plural}."""
-            resources = self.get_resources(
-                engine=engine, pagination=pagination, schema=schema, platform=None
-            )
+            resources = self.get_resources(pagination=pagination, schema=schema, platform=None)
             return resources
 
         return get_resources
 
-    def get_resource_count_func(self, engine: Engine):
+    def get_resource_count_func(self):
         """
         Gets the total number of resources from the database.
         This function returns a function (instead of being that function directly) because the
         docstring and the variables are dynamic, and used in Swagger.
         """
 
-        def get_resource_count(detailed=False):
-            f"""Retrieve the number of {self.resource_name_plural}."""
+        def get_resource_count(
+            detailed: bool = Query(
+                description="If true, a more detailed output is returned.", default=False
+            )
+        ):
             try:
-                with Session(engine) as session:
+                with DbSession() as session:
                     if not detailed:
                         return (
                             session.query(self.resource_class)
@@ -279,7 +300,7 @@ class ResourceRouter(abc.ABC):
 
         return get_resource_count
 
-    def get_platform_resources_func(self, engine: Engine):
+    def get_platform_resources_func(self):
         """
         Return a function that can be used to retrieve a list of resources for a platform.
         This function returns a function (instead of being that function directly) because the
@@ -287,19 +308,19 @@ class ResourceRouter(abc.ABC):
         """
 
         def get_resources(
-            platform: str,
+            platform: str = Path(
+                description="Return resources of this platform",
+                example="huggingface",
+            ),
             pagination: Pagination = Depends(Pagination),
-            schema: Literal[tuple(self._possible_schemas)] = "aiod",  # type:ignore
+            schema: self._possible_schemas_type = "aiod",  # type:ignore
         ):
-            f"""Retrieve all meta-data of the {self.resource_name_plural} of given platform."""
-            resources = self.get_resources(
-                engine=engine, pagination=pagination, schema=schema, platform=platform
-            )
+            resources = self.get_resources(pagination=pagination, schema=schema, platform=platform)
             return resources
 
         return get_resources
 
-    def get_resource_func(self, engine: Engine):
+    def get_resource_func(self):
         """
         Return a function that can be used to retrieve a single resource.
         This function returns a function (instead of being that function directly) because the
@@ -307,19 +328,15 @@ class ResourceRouter(abc.ABC):
         """
 
         def get_resource(
-            identifier: str, schema: Literal[tuple(self._possible_schemas)] = "aiod"  # type:ignore
+            identifier: str,
+            schema: self._possible_schemas_type = "aiod",  # type: ignore
         ):
-            f"""
-            Retrieve all meta-data for a {self.resource_name} identified by the AIoD identifier.
-            """
-            resource = self.get_resource(
-                engine=engine, identifier=identifier, schema=schema, platform=None
-            )
+            resource = self.get_resource(identifier=identifier, schema=schema, platform=None)
             return self._wrap_with_headers(resource)
 
         return get_resource
 
-    def get_platform_resource_func(self, engine: Engine):
+    def get_platform_resource_func(self):
         """
         Return a function that can be used to retrieve a single resource of a platform.
         This function returns a function (instead of being that function directly) because the
@@ -328,18 +345,17 @@ class ResourceRouter(abc.ABC):
 
         def get_resource(
             identifier: str,
-            platform: str,
-            schema: Literal[tuple(self._possible_schemas)] = "aiod",  # type:ignore
+            platform: str = Path(
+                description="Return resources of this platform",
+                example="huggingface",
+            ),
+            schema: self._possible_schemas_type = "aiod",  # type:ignore
         ):
-            f"""Retrieve all meta-data for a {self.resource_name} identified by the
-            platform-specific-identifier."""
-            return self.get_resource(
-                engine=engine, identifier=identifier, schema=schema, platform=platform
-            )
+            return self.get_resource(identifier=identifier, schema=schema, platform=platform)
 
         return get_resource
 
-    def register_resource_func(self, engine: Engine):
+    def register_resource_func(self):
         """
         Return a function that can be used to register a resource.
         This function returns a function (instead of being that function directly) because the
@@ -349,16 +365,15 @@ class ResourceRouter(abc.ABC):
 
         def register_resource(
             resource_create: clz_create,  # type: ignore
-            user: dict = Depends(get_current_user),
+            user: User = Depends(get_current_user),
         ):
-            f"""Register a {self.resource_name} with AIoD."""
-            if "groups" in user and KEYCLOAK_CONFIG.get("role") not in user["groups"]:
+            if not user.has_role(KEYCLOAK_CONFIG.get("role")):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="You do not have permission to edit Aiod resources.",
                 )
             try:
-                with Session(engine) as session:
+                with DbSession() as session:
                     try:
                         resource = self.create_resource(session, resource_create)
                         return self._wrap_with_headers({"identifier": resource.identifier})
@@ -370,7 +385,7 @@ class ResourceRouter(abc.ABC):
         return register_resource
 
     def create_resource(self, session: Session, resource_create_instance: SQLModel):
-        # Store a resource in the database
+        """Store a resource in the database"""
         resource = self.resource_class.from_orm(resource_create_instance)
         deserialize_resource_relationships(
             session, self.resource_class, resource, resource_create_instance
@@ -379,7 +394,7 @@ class ResourceRouter(abc.ABC):
         session.commit()
         return resource
 
-    def put_resource_func(self, engine: Engine):
+    def put_resource_func(self):
         """
         Return a function that can be used to update a resource.
         This function returns a function (instead of being that function directly) because the
@@ -390,17 +405,16 @@ class ResourceRouter(abc.ABC):
         def put_resource(
             identifier: int,
             resource_create_instance: clz_create,  # type: ignore
-            user: dict = Depends(get_current_user),
+            user: User = Depends(get_current_user),
         ):
-            f"""Update an existing {self.resource_name}."""
-            if "groups" in user and KEYCLOAK_CONFIG.get("role") not in user["groups"]:
+            if not user.has_role(KEYCLOAK_CONFIG.get("role")):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="You do not have permission to edit Aiod resources.",
                 )
 
-            try:
-                with Session(engine) as session:
+            with DbSession() as session:
+                try:
                     resource = self._retrieve_resource(session, identifier)
                     for attribute_name in resource.schema()["properties"]:
                         if hasattr(resource_create_instance, attribute_name):
@@ -416,27 +430,30 @@ class ResourceRouter(abc.ABC):
                         session.commit()
                     except Exception as e:
                         self._raise_clean_http_exception(e, session, resource_create_instance)
-                return self._wrap_with_headers(None)
-            except Exception as e:
-                raise self._raise_clean_http_exception(e, session, resource_create_instance)
+                    return self._wrap_with_headers(None)
+                except Exception as e:
+                    raise self._raise_clean_http_exception(e, session, resource_create_instance)
 
         return put_resource
 
-    def delete_resource_func(self, engine: Engine):
+    def delete_resource_func(self):
         """
         Return a function that can be used to delete a resource.
         This function returns a function (instead of being that function directly) because the
         docstring is dynamic and used in Swagger.
         """
 
-        def delete_resource(identifier: str, user: dict = Depends(get_current_user)):
-            if "groups" in user and KEYCLOAK_CONFIG.get("role") not in user["groups"]:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You do not have permission to delete Aiod resources.",
-                )
-            try:
-                with Session(engine) as session:
+        def delete_resource(
+            identifier: str,
+            user: User = Depends(get_current_user),
+        ):
+            with DbSession() as session:
+                if not user.has_role(KEYCLOAK_CONFIG.get("role")):
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="You do not have permission to delete Aiod resources.",
+                    )
+                try:
                     # Raise error if it does not exist
                     resource = self._retrieve_resource(session, identifier)
                     if (
@@ -448,9 +465,9 @@ class ResourceRouter(abc.ABC):
                         resource.date_deleted = datetime.datetime.utcnow()
                         session.add(resource)
                     session.commit()
-                return self._wrap_with_headers(None)
-            except Exception as e:
-                raise _wrap_as_http_exception(e)
+                    return self._wrap_with_headers(None)
+                except Exception as e:
+                    raise _wrap_as_http_exception(e)
 
         return delete_resource
 
@@ -487,6 +504,16 @@ class ResourceRouter(abc.ABC):
     @property
     def _possible_schemas(self) -> list[str]:
         return ["aiod"] + list(self.schema_converters.keys())
+
+    @property
+    def _possible_schemas_type(self):
+        return Annotated[
+            Literal[tuple(self._possible_schemas)],  # type: ignore
+            Query(
+                description="Return the resource(s) in this schema.",
+                include_in_schema=len(self._possible_schemas) > 1,
+            ),
+        ]
 
     def _wrap_with_headers(self, resource):
         if self.deprecated_from is None:

@@ -1,3 +1,4 @@
+  
 version: '3.9'
 
 services:
@@ -5,7 +6,7 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    image: ai4eu_server
+    image: aiod_metadata_catalogue
     container_name: apiserver
     env_file: .env
     environment:
@@ -31,7 +32,7 @@ services:
 
   fill-db-with-examples:
     profiles: ["examples"]
-    image: ai4eu_server
+    image: aiod_metadata_catalogue
     container_name: fill-db-with-examples
     env_file: .env
     environment:
@@ -45,13 +46,12 @@ services:
     depends_on:
       app:
         condition: service_healthy
-
-
+  
   deletion:
     build:
       context: deletion
       dockerfile: Dockerfile
-    image: ai4eu_deletion
+    image: aiod_deletion
     container_name: deletion
     env_file: .env
     volumes:
@@ -65,7 +65,7 @@ services:
 
   huggingface-dataset-connector:
     profiles: ["huggingface-datasets"]
-    image: ai4eu_server
+    image: aiod_metadata_catalogue
     container_name: huggingface-dataset-connector
     env_file: .env
     environment:
@@ -85,7 +85,7 @@ services:
     build:
       context: connectors/openml
       dockerfile: Dockerfile
-    image: ai4eu_openml_connector
+    image: aiod_openml_connector
     container_name: openml-dataset-connector
     env_file: .env
     environment:
@@ -105,7 +105,7 @@ services:
     build:
       context: connectors/zenodo
       dockerfile: Dockerfile
-    image: ai4eu_zenodo_connector
+    image: aiod_zenodo_connector
     container_name: zenodo-dataset-connector
     env_file: .env
     environment:
@@ -167,3 +167,68 @@ services:
     depends_on:
       app:
         condition: service_healthy
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.2
+    container_name: elasticsearch
+    env_file: .env
+    environment:
+      - ES_JAVA_OPTS=$ES_JAVA_OPTS
+      - ELASTIC_USER=$ES_USER
+      - ELASTIC_PASSWORD=$ES_PASSWORD
+      - discovery.type=$ES_DISCOVERY_TYPE
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - type: bind
+        source: ./es/elasticsearch.yml
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+        read_only: true
+      - ./data/elasticsearch:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -u $ES_USER:$ES_PASSWORD --silent --fail localhost:9200/_cluster/health || exit 1"]
+      interval: 5s
+      timeout: 30s
+      retries: 30
+  
+  es_logstash_setup:
+    image: aiod_metadata_catalogue
+    container_name:  es_logstash_setup
+    env_file: .env
+    environment:
+      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+      - ES_USER=$ES_USER
+      - ES_PASSWORD=$ES_PASSWORD
+    volumes:
+      - ./src:/app
+      - ./logstash:/logstash
+    command: >
+      /bin/bash -c "python setup/logstash_setup/generate_logstash_config_files.py &&
+      python setup/es_setup/generate_elasticsearch_indices.py"
+    restart: "no"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  logstash:
+    build:
+      context: logstash/
+      dockerfile: Dockerfile
+    image: aiod_logstash
+    container_name: logstash
+    env_file: .env
+    environment:
+      - LS_JAVA_OPTS=$LS_JAVA_OPTS
+    ports:
+      - 5044:5044
+      - 5000:5000/tcp
+      - 5000:5000/udp
+      - 9600:9600
+    volumes:
+      - ./logstash/config/config:/usr/share/logstash/config:ro
+      - ./logstash/config/pipeline:/usr/share/logstash/pipeline:ro
+      - ./logstash/config/sql:/usr/share/logstash/sql:ro
+    depends_on:
+      es_logstash_setup:
+        condition: service_completed_successfully

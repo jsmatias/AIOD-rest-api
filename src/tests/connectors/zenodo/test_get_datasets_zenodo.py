@@ -4,7 +4,7 @@ import responses
 
 from connectors.record_error import RecordError
 from connectors.zenodo.zenodo_dataset_connector import ZenodoDatasetConnector
-from database.model.agent.person import Person
+from database.model.agent.contact import Contact
 from tests.testutils.paths import path_test_resources
 
 
@@ -36,7 +36,7 @@ def test_fetch_happy_path():
     assert dataset.platform_resource_identifier == "zenodo.org:7947283"
     assert set(dataset.keyword) == set()
 
-    creators: list[Person] = datasets[0].related_resources["creator"]
+    creators: list[Contact] = datasets[0].related_resources["creator"]
     assert len(creators) == 1
     assert creators[0].name == "Nobuyasu Koga"
 

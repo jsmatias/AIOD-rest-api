@@ -1,27 +1,25 @@
 import copy
 from unittest.mock import Mock
 
-from sqlalchemy.engine import Engine
-from sqlmodel import Session
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
 from database.model.agent.person import Person
+from database.session import DbSession
 
 
 def test_happy_path(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     body_resource: dict,
     person: Person,
 ):
 
-    with Session(engine) as session:
+    with DbSession() as session:
         session.add(person)
         session.commit()
 
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     body = copy.copy(body_resource)
     body["start_date"] = "2021-02-03T15:15:00"
     body["end_date"] = "2022-02-03T15:15:00"
@@ -59,3 +57,9 @@ def test_happy_path(
     assert response_json["mode"] == "offline"
     assert response_json["location"] == locations
     assert response_json["content"] == {"plain": "plain content"}
+
+    # Cleanup, so that all resources can be deleted in the teardown
+    body["performer"] = []
+    body["organiser"] = None
+    response = client.put("/events/v1/1", json=body, headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()

@@ -364,7 +364,7 @@ def test_platform_name_conflict(
 
     body = copy.deepcopy(body_asset)
     body["platform"] = "huggingface"
-    body["platform_resource_identifier"] = f"zenodo.org:{zenodo.RESOURCE_ID}"
+    body["platform_resource_identifier"] = "fake-id"
     body["distribution"] = []
 
     set_up(client, engine, mocked_privileged_token, body, person)
@@ -386,8 +386,6 @@ def test_platform_name_conflict(
     response_json = client.get("datasets/v1/1").json()
 
     assert response_json["platform"] == "huggingface", response_json
-    assert (
-        response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
-    ), response_json
+    assert response_json["platform_resource_identifier"] == "fake-id", response_json
 
     assert response_json["distribution"] == []

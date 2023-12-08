@@ -58,6 +58,11 @@ For development:
 - Additional 'mysqlclient' dependencies. Please have a look at [their installation instructions]
   (https://github.com/PyMySQL/mysqlclient#install).
 
+## Production environment
+
+For production environments elasticsearch recommends -Xss4G and -Xmx8G for the JVM settings.\
+This parameters can be defined in the .env file.
+See the [elasticsearch guide](https://www.elastic.co/guide/en/logstash/current/jvm-settings.html).
 
 ## Installation
 
@@ -263,3 +268,17 @@ guiding principles as described in https://keepachangelog.com/.
 - Show a specific tag: https://github.com/aiondemand/AIOD-rest-api/releases/tag/0.3.20220501
 
 This information can also be extracted using the Github REST API.
+
+
+### Create a release
+To create a new release, 
+1. Make sure all requested functionality is merged with the `develop` branch.
+2. From develop: `git checkout -b release/[VERSION]`. Example of version: `1.1.20231129`
+3. Update the version in `pyproject.toml`.
+4. Test all (most of) the functionality. Checkout the project in a new directory and remove all 
+   your local images, and make sure it works out-of-the box.
+5. Go to https://github.com/aiondemand/AIOD-rest-api/releases and draft a new release from the 
+   release branch. Look at all closed PRs and create a changelog
+6. Create a PR from release branch to master
+7. After that's merged, create a PR from master to develop
+8. Notice everyone (e.g., in the API channel in Slack) and update the code on the server(s). 

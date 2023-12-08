@@ -1,5 +1,6 @@
 import logging
 import typing
+
 import bibtexparser
 import requests
 from huggingface_hub import list_datasets
@@ -9,7 +10,7 @@ from connectors.abstract.resource_connector_on_start_up import ResourceConnector
 from connectors.record_error import RecordError
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model import field_length
-from database.model.agent.person import Person
+from database.model.agent.contact import Contact
 from database.model.ai_asset.distribution import Distribution
 from database.model.ai_resource.text import Text
 from database.model.concept.aiod_entry import AIoDEntryCreate
@@ -50,13 +51,23 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
     ) -> typing.Iterator[ResourceWithRelations[Dataset] | RecordError]:
         pydantic_class = resource_create(Dataset)
         pydantic_class_publication = resource_create(Publication)
+        pydantic_class_contact = resource_create(Contact)
+
         for dataset in list_datasets(full=True, limit=limit):
             try:
-                yield self.fetch_dataset(dataset, pydantic_class, pydantic_class_publication)
+                yield self.fetch_dataset(
+                    dataset, pydantic_class, pydantic_class_publication, pydantic_class_contact
+                )
             except Exception as e:
                 yield RecordError(identifier=dataset.id, error=e)
 
-    def fetch_dataset(self, dataset: DatasetInfo, pydantic_class, pydantic_class_publication):
+    def fetch_dataset(
+        self,
+        dataset: DatasetInfo,
+        pydantic_class,
+        pydantic_class_publication,
+        pydantic_class_contact,
+    ):
         citations = self._parse_citations(dataset, pydantic_class_publication)
 
         parquet_info = HuggingFaceDatasetConnector._get(
@@ -96,7 +107,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
             #     )
         related_resources = {"citation": citations}
         if dataset.author is not None:
-            related_resources["creator"] = [Person(name=dataset.author)]
+            related_resources["creator"] = [pydantic_class_contact(name=dataset.author)]
 
         description = getattr(dataset, "description", None)
         if description and len(description) > field_length.LONG:
@@ -105,7 +116,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
         if description:
             description = Text(plain=description)
 
-        return ResourceWithRelations[Dataset](
+        return ResourceWithRelations[pydantic_class](  # type:ignore
             resource=pydantic_class(
                 aiod_entry=AIoDEntryCreate(status="published"),
                 platform_resource_identifier=dataset.id,
@@ -120,6 +131,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                 size=size,
                 keyword=dataset.tags,
             ),
+            resource_ORM_class=Dataset,
             related_resources=related_resources,
         )
 
@@ -143,8 +155,9 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                 ]
             return [
                 pydantic_class_publication(
-                    platform=self.platform_name,
-                    platform_resource_identifier=citation["ID"],
+                    # The platform and platform_resource_identifier should be None: this publication
+                    # is not stored on HuggingFace (and not identifiable within HF using,
+                    # for instance, citation["ID"])
                     name=citation["title"],
                     same_as=citation["link"] if "link" in citation else None,
                     type=citation["ENTRYTYPE"],

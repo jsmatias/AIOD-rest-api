@@ -2,15 +2,14 @@ from typing import Annotated
 
 from fastapi import APIRouter
 from fastapi import File, Query, UploadFile, Path
-from sqlalchemy.engine import Engine
 
 from uploaders.zenodo_uploader import ZenodoUploader
 from routers.uploader_router import UploaderRouter
 
 
 class UploadRouterZenodo(UploaderRouter):
-    def create(self, engine: Engine, url_prefix: str) -> APIRouter:
-        router = super().create(engine, url_prefix)
+    def create(self, url_prefix: str) -> APIRouter:
+        router = super().create(url_prefix)
 
         zenodo_uploader = ZenodoUploader()
 
@@ -32,6 +31,6 @@ class UploadRouterZenodo(UploaderRouter):
             ] = False,
             token: str = Query(title="Zenodo Token", description="The access token of Zenodo"),
         ) -> int:
-            return zenodo_uploader.handle_upload(engine, identifier, publish, token, file)
+            return zenodo_uploader.handle_upload(identifier, publish, token, file)
 
         return router

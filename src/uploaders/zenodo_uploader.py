@@ -4,10 +4,10 @@ import requests
 
 from fastapi import UploadFile, HTTPException, status
 
-from sqlalchemy.engine import Engine
 from sqlmodel import Session, select
 
 from database.model.dataset.dataset import Dataset
+from database.session import DbSession
 
 
 class ZenodoUploader:
@@ -15,13 +15,11 @@ class ZenodoUploader:
     def base_url(self) -> str:
         return "https://zenodo.org/api/deposit/depositions"
 
-    def handle_upload(
-        self, engine: Engine, identifier: int, publish: bool, token: str, file: UploadFile
-    ):
+    def handle_upload(self, identifier: int, publish: bool, token: str, file: UploadFile):
         """
         Method to upload content to the Zenodo platform.
         """
-        with Session(engine) as session:
+        with DbSession() as session:
             dataset = self._get_resource(session, identifier)
             platform_resource_id = dataset.platform_resource_identifier
             platform_name = dataset.platform

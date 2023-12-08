@@ -12,13 +12,14 @@ from connectors.abstract.resource_connector_by_date import ResourceConnectorByDa
 from connectors.record_error import RecordError
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model import field_length
-from database.model.agent.person import Person
+from database.model.agent.contact import Contact
 from database.model.ai_asset.distribution import Distribution
 from database.model.ai_resource.text import Text
 from database.model.concept.aiod_entry import AIoDEntryCreate
 from database.model.dataset.dataset import Dataset
 from database.model.platform.platform_names import PlatformName
 from database.model.resource_read_and_create import resource_create
+
 
 DATE_FORMAT = "%Y-%m-%d"
 
@@ -66,12 +67,9 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             return RecordError(identifier=identifier, error=error_fmt("creator"))
 
         creators = []
+        pydantic_class_contact = resource_create(Contact)
         for name in creator_names:
-            name_splits = name.split(", ")
-            if len(name_splits) == 2:
-                creators.append(Person(given_name=name_splits[1], surname=name_splits[0]))
-            else:
-                creators.append(Person(name=name))
+            creators.append(pydantic_class_contact(name=name))
 
         if isinstance(record["titles"]["title"], str):
             title = record["titles"]["title"]
@@ -170,8 +168,8 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             distribution=distributions,
         )
 
-        return ResourceWithRelations[Dataset](
-            resource=dataset, related_resources={"creator": creators}
+        return ResourceWithRelations[pydantic_class](  # type:ignore
+            resource=dataset, resource_ORM_class=Dataset, related_resources={"creator": creators}
         )
 
     @staticmethod
