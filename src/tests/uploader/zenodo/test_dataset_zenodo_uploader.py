@@ -4,12 +4,12 @@ import responses
 from unittest.mock import Mock
 
 from fastapi import status
-from sqlalchemy.engine import Engine
-from sqlmodel import Session
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
 from database.model.agent.person import Person
+from database.session import DbSession
+
 from tests.testutils.paths import path_test_resources
 
 import tests.uploader.zenodo.mock_zenodo as zenodo
@@ -51,9 +51,7 @@ def distribution_from_published(filenames: list[str]) -> list[dict]:
     return dist
 
 
-def set_up(
-    client: TestClient, engine: Engine, mocked_privileged_token: Mock, body: dict, person: Person
-):
+def set_up(client: TestClient, mocked_privileged_token: Mock, body: dict, person: Person):
     """
     Set up the test environment for API endpoint testing.
     This function prepares the test environment by mocking user info,
@@ -61,7 +59,7 @@ def set_up(
     specified endpoint for the given resource.
     """
     keycloak_openid.userinfo = mocked_privileged_token
-    with Session(engine) as session:
+    with DbSession() as session:
         session.add(person)
         session.commit()
 
@@ -71,7 +69,6 @@ def set_up(
 
 def test_happy_path_creating_repo(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     body_asset: dict,
     person: Person,
@@ -86,7 +83,7 @@ def test_happy_path_creating_repo(
     body["platform_resource_identifier"] = None
     body["distribution"] = []
 
-    set_up(client, engine, mocked_privileged_token, body, person)
+    set_up(client, mocked_privileged_token, body, person)
 
     headers = {"Authorization": "Fake token"}
     params = {"token": "fake-token", "publish": False}
@@ -115,7 +112,6 @@ def test_happy_path_creating_repo(
 
 def test_happy_path_existing_repo(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     body_asset: dict,
     person: Person,
@@ -131,7 +127,7 @@ def test_happy_path_existing_repo(
     body["platform_resource_identifier"] = f"zenodo.org:{zenodo.RESOURCE_ID}"
     body["distribution"] = []
 
-    set_up(client, engine, mocked_privileged_token, body, person)
+    set_up(client, mocked_privileged_token, body, person)
 
     headers = {"Authorization": "Fake token"}
     params = {"token": "fake-token"}
@@ -161,7 +157,6 @@ def test_happy_path_existing_repo(
 
 def test_happy_path_existing_file(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     body_asset: dict,
     person: Person,
@@ -175,7 +170,7 @@ def test_happy_path_existing_file(
     body["platform_resource_identifier"] = f"zenodo.org:{zenodo.RESOURCE_ID}"
     body["distribution"] = distribution_from_draft([FILE1])
 
-    set_up(client, engine, mocked_privileged_token, body, person)
+    set_up(client, mocked_privileged_token, body, person)
 
     headers = {"Authorization": "Fake token"}
     params = {"token": "fake-token"}
@@ -207,7 +202,6 @@ def test_happy_path_existing_file(
 
 def test_happy_path_updating_an_existing_file(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     body_asset: dict,
     person: Person,
@@ -222,7 +216,7 @@ def test_happy_path_updating_an_existing_file(
     body["platform_resource_identifier"] = f"zenodo.org:{zenodo.RESOURCE_ID}"
     body["distribution"] = distribution_from_draft([FILE1])
 
-    set_up(client, engine, mocked_privileged_token, body, person)
+    set_up(client, mocked_privileged_token, body, person)
 
     headers = {"Authorization": "Fake token"}
     params = {"token": "fake-token"}
@@ -264,7 +258,6 @@ def test_happy_path_updating_an_existing_file(
 
 def test_happy_path_publishing(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     body_asset: dict,
     person: Person,
@@ -279,7 +272,7 @@ def test_happy_path_publishing(
     body["platform_resource_identifier"] = None
     body["distribution"] = []
 
-    set_up(client, engine, mocked_privileged_token, body, person)
+    set_up(client, mocked_privileged_token, body, person)
 
     headers = {"Authorization": "Fake token"}
     params = {"token": "fake-token", "publish": True}
@@ -309,7 +302,6 @@ def test_happy_path_publishing(
 
 def test_attempt_to_upload_published_resource(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     body_asset: dict,
     person: Person,
@@ -325,7 +317,7 @@ def test_attempt_to_upload_published_resource(
     body["platform_resource_identifier"] = zenodo.RESOURCE_ID
     body["distribution"] = distribution_from_published([FILE1])
 
-    set_up(client, engine, mocked_privileged_token, body, person)
+    set_up(client, mocked_privileged_token, body, person)
 
     headers = {"Authorization": "Fake token"}
     params = {"token": "fake-token", "publish": True}
@@ -352,7 +344,6 @@ def test_attempt_to_upload_published_resource(
 
 def test_platform_name_conflict(
     client: TestClient,
-    engine: Engine,
     mocked_privileged_token: Mock,
     body_asset: dict,
     person: Person,
@@ -367,7 +358,7 @@ def test_platform_name_conflict(
     body["platform_resource_identifier"] = "fake-id"
     body["distribution"] = []
 
-    set_up(client, engine, mocked_privileged_token, body, person)
+    set_up(client, mocked_privileged_token, body, person)
 
     headers = {"Authorization": "Fake token"}
     params = {"token": "fake-token"}
