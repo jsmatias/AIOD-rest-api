@@ -314,7 +314,7 @@ def test_attempt_to_upload_published_resource(
 
     body = copy.deepcopy(body_asset)
     body["platform"] = "zenodo"
-    body["platform_resource_identifier"] = zenodo.RESOURCE_ID
+    body["platform_resource_identifier"] = f"zenodo.org:{zenodo.RESOURCE_ID}"
     body["distribution"] = distribution_from_published([FILE1])
 
     set_up(client, mocked_privileged_token, body, person)

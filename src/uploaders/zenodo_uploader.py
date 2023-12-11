@@ -7,7 +7,9 @@ from fastapi import UploadFile, HTTPException, status
 from sqlmodel import Session, select
 
 from database.model.dataset.dataset import Dataset
+from database.model.platform.platform_names import PlatformName
 from database.session import DbSession
+from database.validators import zenodo_validators
 
 
 class ZenodoUploader:
@@ -23,34 +25,42 @@ class ZenodoUploader:
             dataset = self._get_resource(session, identifier)
             platform_resource_id = dataset.platform_resource_identifier
             platform_name = dataset.platform
-            metadata = self._generate_metadata_file(dataset)
+
+            if (platform_name is not None) and (platform_name != PlatformName.zenodo):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Platform name {platform_name} conflict! "
+                    "Verify that the platform name in the metadata "
+                    "is either 'zenodo' or empty",
+                )
 
             if platform_resource_id is not None:
-                if platform_name == "zenodo":
-                    repo_id = platform_resource_id.split(":")[-1]
-                    current_zenodo_metadata = self._get_metadata_from_zenodo(repo_id, token)
-                    if current_zenodo_metadata["state"] == "done":
-                        raise HTTPException(
-                            status_code=status.HTTP_423_LOCKED,
-                            detail=(
-                                "This resource is already public and "
-                                "can't be edited with this endpoint. "
-                                "You can access and modify it at "
-                                f"{current_zenodo_metadata['links']['record']}",
-                            ),
-                        )
-                    self._update_zenodo_metadata(repo_id, token, metadata)
-                else:
-                    raise HTTPException(
-                        status_code=status.HTTP_409_CONFLICT,
-                        detail=f"Platform name {platform_name} conflict! "
-                        "Verify that the platform name in the metadata is either 'zenodo' or empty",
-                    )
-            else:
+                try:
+                    zenodo_validators.throw_error_on_invalid_identifier(platform_resource_id)
+                except ValueError as e:
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.args[0])
+
+            metadata = self._generate_metadata_file(dataset)
+            if platform_resource_id is None:
                 current_zenodo_metadata = self._create_repo(token, metadata)
                 repo_id = current_zenodo_metadata["id"]
                 dataset.platform = "zenodo"
                 dataset.platform_resource_identifier = f"zenodo.org:{repo_id}"
+            else:
+                repo_id = platform_resource_id.split(":")[-1]
+                current_zenodo_metadata = self._get_metadata_from_zenodo(repo_id, token)
+
+                if current_zenodo_metadata["state"] == "done":
+                    raise HTTPException(
+                        status_code=status.HTTP_423_LOCKED,
+                        detail=(
+                            "This resource is already public and "
+                            "can't be edited with this endpoint. "
+                            "You can access and modify it at "
+                            f"{current_zenodo_metadata['links']['record']}",
+                        ),
+                    )
+                self._update_zenodo_metadata(repo_id, token, metadata)
 
             repo_url = current_zenodo_metadata["links"]["bucket"]
             self._upload_file(repo_url, token, file)
