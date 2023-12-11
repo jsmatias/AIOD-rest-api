@@ -52,7 +52,7 @@ class ZenodoUploader:
 
                 if current_zenodo_metadata["state"] == "done":
                     raise HTTPException(
-                        status_code=status.HTTP_423_LOCKED,
+                        status_code=status.HTTP_409_CONFLICT,
                         detail=(
                             "This resource is already public and "
                             "can't be edited with this endpoint. "

@@ -329,7 +329,7 @@ def test_attempt_to_upload_published_resource(
             test_file = {"file": f}
             response = client.post(ENDPOINT, params=params, headers=headers, files=test_file)
 
-        assert response.status_code == status.HTTP_423_LOCKED, response.json()
+        assert response.status_code == status.HTTP_409_CONFLICT, response.json()
         assert response.json()["detail"] == [
             "This resource is already public and "
             "can't be edited with this endpoint. "
