@@ -20,32 +20,21 @@ FILE1 = "example1.csv"
 FILE2 = "example2.tsv"
 
 
-def distribution_from_draft(filenames: list[str]) -> list[dict]:
-    files_metadata = zenodo.draft_files_response(filenames)
+def distribution_from_zenodo(*filenames: str, is_published: bool = False) -> list[dict]:
+    files_metadata = (
+        zenodo.files_response_from_published(*filenames)["entries"]
+        if is_published
+        else zenodo.files_response_from_draft(*filenames)
+    )
     dist = [
         {
             "platform": "zenodo",
-            "platform_resource_identifier": file["id"],
-            "checksum": file["checksum"],
-            "content_url": "",
-            "content_size_kb": file["filesize"],
-            "name": file["filename"],
-        }
-        for file in files_metadata
-    ]
-    return dist
-
-
-def distribution_from_published(filenames: list[str]) -> list[dict]:
-    files_metadata = zenodo.published_files_reponse(filenames)["entries"]
-    dist = [
-        {
-            "platform": "zenodo",
-            "platform_resource_identifier": file["file_id"],
-            "checksum": file["checksum"],
-            "content_url": file["links"]["content"],
-            "content_size_kb": file["size"],
-            "name": file["key"],
+            "platform_resource_identifier": file["file_id" if is_published else "id"],
+            "checksum": file["checksum"].split(":")[-1] if is_published else file["checksum"],
+            "checksum_algorithm": file["checksum"].split(":")[0] if is_published else "md5",
+            "content_url": file["links"]["content" if is_published else "download"],
+            "content_size_kb": round(file["size" if is_published else "filesize"] / 1000),
+            "name": file["key" if is_published else "filename"],
         }
         for file in files_metadata
     ]
@@ -59,7 +48,8 @@ def set_up(client: TestClient, mocked_privileged_token: Mock, body: dict, person
     adding a person to the database, and sending a POST request to the
     specified endpoint for the given resource.
     """
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
+
     with DbSession() as session:
         session.add(person)
         session.commit()
@@ -108,7 +98,7 @@ def test_happy_path_creating_repo(
         response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
     ), response_json
 
-    assert response_json["distribution"] == distribution_from_draft([FILE1]), response_json
+    assert response_json["distribution"] == distribution_from_zenodo(FILE1), response_json
 
 
 def test_happy_path_existing_repo(
@@ -153,7 +143,7 @@ def test_happy_path_existing_repo(
         response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
     ), response_json
 
-    assert response_json["distribution"] == distribution_from_draft([FILE1]), response_json
+    assert response_json["distribution"] == distribution_from_zenodo(FILE1), response_json
 
 
 def test_happy_path_existing_file(
@@ -169,7 +159,7 @@ def test_happy_path_existing_file(
     body = copy.deepcopy(body_asset)
     body["platform"] = "zenodo"
     body["platform_resource_identifier"] = f"zenodo.org:{zenodo.RESOURCE_ID}"
-    body["distribution"] = distribution_from_draft([FILE1])
+    body["distribution"] = distribution_from_zenodo(FILE1)
 
     set_up(client, mocked_privileged_token, body, person)
 
@@ -196,8 +186,8 @@ def test_happy_path_existing_file(
         response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
     ), response_json
 
-    assert response_json["distribution"] == body["distribution"] + distribution_from_draft(
-        [FILE2]
+    assert response_json["distribution"] == body["distribution"] + distribution_from_zenodo(
+        FILE2
     ), response_json
 
 
@@ -215,7 +205,7 @@ def test_happy_path_updating_an_existing_file(
     body = copy.deepcopy(body_asset)
     body["platform"] = "zenodo"
     body["platform_resource_identifier"] = f"zenodo.org:{zenodo.RESOURCE_ID}"
-    body["distribution"] = distribution_from_draft([FILE1])
+    body["distribution"] = distribution_from_zenodo(FILE1)
 
     set_up(client, mocked_privileged_token, body, person)
 
@@ -229,7 +219,7 @@ def test_happy_path_updating_an_existing_file(
         mocked_requests = zenodo.mock_update_metadata(mocked_requests)
         mocked_requests = zenodo.mock_upload_file(mocked_requests, FILE1)
 
-        draft_response = zenodo.draft_files_response([FILE1])
+        draft_response = zenodo.files_response_from_draft(FILE1)
         draft_response[0]["id"] = updated_file_new_id
         mocked_requests.add(
             responses.GET,
@@ -252,7 +242,7 @@ def test_happy_path_updating_an_existing_file(
         response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
     ), response_json
 
-    expected_updated_dist = distribution_from_draft([FILE1])
+    expected_updated_dist = distribution_from_zenodo(FILE1)
     expected_updated_dist[0]["platform_resource_identifier"] = updated_file_new_id
     assert response_json["distribution"] == expected_updated_dist, response_json
 
@@ -298,7 +288,9 @@ def test_happy_path_publishing(
         response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
     ), response_json
 
-    assert response_json["distribution"] == distribution_from_published([FILE1]), response_json
+    assert response_json["distribution"] == distribution_from_zenodo(
+        FILE1, is_published=True
+    ), response_json
 
 
 def test_attempt_to_upload_published_resource(
@@ -316,7 +308,7 @@ def test_attempt_to_upload_published_resource(
     body = copy.deepcopy(body_asset)
     body["platform"] = "zenodo"
     body["platform_resource_identifier"] = f"zenodo.org:{zenodo.RESOURCE_ID}"
-    body["distribution"] = distribution_from_published([FILE1])
+    body["distribution"] = distribution_from_zenodo(FILE1, is_published=True)
 
     set_up(client, mocked_privileged_token, body, person)
 

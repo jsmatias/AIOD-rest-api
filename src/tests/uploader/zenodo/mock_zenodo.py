@@ -79,7 +79,7 @@ def mock_get_draft_files(
     mocked_requests.add(
         responses.GET,
         f"{BASE_URL}/{RESOURCE_ID}/files",
-        json=draft_files_response(files),
+        json=files_response_from_draft(*files),
         status=200,
     )
     return mocked_requests
@@ -91,7 +91,7 @@ def mock_get_published_files(
     mocked_requests.add(
         responses.GET,
         f"{RECORDS_URL}/{RESOURCE_ID}/files",
-        json=published_files_reponse(files),
+        json=files_response_from_published(*files),
         status=200,
     )
     return mocked_requests
@@ -112,28 +112,32 @@ def publish_response() -> dict:
     return response
 
 
-def draft_files_response(filenames: list[str]) -> list[dict]:
-    """Truncated reponse from zenodo when a request is made to the draft repo url."""
-    response = [
-        {"id": f"123-{name}", "filename": name, "filesize": 20, "checksum": "12345abcd"}
+def files_response(*filenames: str, is_published: bool = False) -> list[dict]:
+    f"""
+    Truncated reponse from zenodo when a request is made to the
+    {'published' if is_published else 'draft'} repo url.
+    """
+    metadata: list[dict] = [
+        {
+            "key" if is_published else "filename": name,
+            "file_id" if is_published else "id": f"123-{name}",
+            "checksum": f"{'md5:' if is_published else ''}12345abcd",
+            "size" if is_published else "filesize": 20,
+            "links": {"content": f"{RECORDS_URL}/{RESOURCE_ID}/files/{name}/content"}
+            if is_published
+            else {"download": f"{RECORDS_URL}/{RESOURCE_ID}/draft/files/{name}/content"},
+        }
         for name in filenames
     ]
+    return metadata
+
+
+def files_response_from_draft(*filenames) -> list[dict]:
+    response = files_response(*filenames)
     return response
 
 
-def published_files_reponse(filenames: list[str]) -> dict[str, list[dict]]:
-    """Truncated reponse from zenodo when a request is made to the public repo url."""
-    response = {
-        "entries": [
-            {
-                "key": name,
-                "file_id": f"123-{name}",
-                "checksum": "12345abcd",
-                "size": 20,
-                "links": {"content": f"{RECORDS_URL}/{RESOURCE_ID}/files/{name}/content"},
-            }
-            for name in filenames
-        ]
-    }
-
+def files_response_from_published(*filenames: str) -> dict:
+    response = {}
+    response["entries"] = files_response(*filenames, is_published=True)
     return response
