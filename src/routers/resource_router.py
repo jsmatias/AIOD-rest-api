@@ -308,11 +308,14 @@ class ResourceRouter(abc.ABC):
         """
 
         def get_resources(
-            platform: str = Path(
-                description="Return resources of this platform",
-                example="huggingface",
-            ),
-            pagination: Pagination = Depends(Pagination),
+            platform: Annotated[
+                str,
+                Path(
+                    description="Return resources of this platform",
+                    example="huggingface",
+                ),
+            ],
+            pagination: Annotated[Pagination, Depends(Pagination)],
             schema: self._possible_schemas_type = "aiod",  # type:ignore
         ):
             resources = self.get_resources(pagination=pagination, schema=schema, platform=platform)
@@ -344,11 +347,19 @@ class ResourceRouter(abc.ABC):
         """
 
         def get_resource(
-            identifier: str,
-            platform: str = Path(
-                description="Return resources of this platform",
-                example="huggingface",
-            ),
+            identifier: Annotated[
+                str,
+                Path(
+                    description="The identifier under which the resource is known by the platform.",
+                ),
+            ],
+            platform: Annotated[
+                str,
+                Path(
+                    description="Return resources of this platform",
+                    example="huggingface",
+                ),
+            ],
             schema: self._possible_schemas_type = "aiod",  # type:ignore
         ):
             return self.get_resource(identifier=identifier, schema=schema, platform=platform)
