@@ -1,13 +1,15 @@
 from fastapi import APIRouter
 from fastapi import File, Query, UploadFile
 
-from uploaders.hugging_face_uploader import handle_upload
 from routers.uploader_router import UploaderRouter
+from uploaders.hugging_face_uploader import HuggingfaceUploader
 
 
 class UploadRouterHuggingface(UploaderRouter):
     def create(self, url_prefix: str) -> APIRouter:
         router = super().create(url_prefix)
+
+        hugging_face_uploader = HuggingfaceUploader()
 
         @router.post(url_prefix + "/upload/datasets/{identifier}/huggingface", tags=["upload"])
         def huggingFaceUpload(
@@ -22,6 +24,6 @@ class UploadRouterHuggingface(UploaderRouter):
                 ..., title="Huggingface username", description="The username of HuggingFace"
             ),
         ) -> int:
-            return handle_upload(identifier, file, token, username)
+            return hugging_face_uploader.handle_upload(identifier, file, token, username)
 
         return router

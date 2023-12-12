@@ -4,18 +4,20 @@ import requests
 
 from fastapi import UploadFile, HTTPException, status
 
-from sqlmodel import Session, select
-
 from database.model.dataset.dataset import Dataset
 from database.model.platform.platform_names import PlatformName
 from database.session import DbSession
 from database.validators import zenodo_validators
+from uploaders.uploader import Uploader
 
 
-class ZenodoUploader:
+class ZenodoUploader(Uploader):
     @property
     def base_url(self) -> str:
         return "https://zenodo.org/api/deposit/depositions"
+
+    def __init__(self) -> None:
+        super().__init__(PlatformName.zenodo, zenodo_validators.throw_error_on_invalid_identifier)
 
     def handle_upload(self, identifier: int, publish: bool, token: str, file: UploadFile):
         """
@@ -26,21 +28,10 @@ class ZenodoUploader:
             platform_resource_id = dataset.platform_resource_identifier
             platform_name = dataset.platform
 
-            if (platform_name is not None) and (platform_name != PlatformName.zenodo):
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail=f"Platform name {platform_name} conflict! "
-                    "Verify that the platform name in the metadata "
-                    "is either 'zenodo' or empty",
-                )
+            self._validate_patform_name(platform_name, identifier)
+            self._validate_repo_id(platform_resource_id)
 
-            if platform_resource_id is not None:
-                try:
-                    zenodo_validators.throw_error_on_invalid_identifier(platform_resource_id)
-                except ValueError as e:
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.args[0])
-
-            metadata = self._generate_metadata_file(dataset)
+            metadata = self._generate_metadata(dataset)
             if platform_resource_id is None:
                 current_zenodo_metadata = self._create_repo(token, metadata)
                 repo_id = current_zenodo_metadata["id"]
@@ -72,24 +63,9 @@ class ZenodoUploader:
             else:
                 distribution = self._get_distribution_from_draft(repo_id, token)
 
-            self._store_resource_updated(session, dataset, distribution)
+            self._store_resource_updated(session, dataset, *distribution, update_all=True)
 
             return dataset.identifier
-
-    def _get_resource(self, session: Session, identifier: int) -> Dataset:
-        """
-        Returns a dataset identified by its AIoD identifier.
-        """
-        query = select(Dataset).where(Dataset.identifier == identifier)
-
-        dataset = session.scalars(query).first()
-        if not dataset or dataset.date_deleted is not None:
-            name = f"Dataset '{identifier}'"
-            msg = "not found in the database"
-            msg += "." if not dataset else ", because it was deleted."
-
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{name} {msg}")
-        return dataset
 
     def _create_repo(self, token: str, metadata: dict) -> dict:
         """
@@ -238,7 +214,7 @@ class ZenodoUploader:
 
         return distribution
 
-    def _generate_metadata_file(self, dataset: Dataset) -> dict:
+    def _generate_metadata(self, dataset: Dataset) -> dict:
         """
         Generates metadata as a dictionary based on the data from the dataset model.
         """
@@ -258,26 +234,6 @@ class ZenodoUploader:
         }
 
         return metadata
-
-    def _store_resource_updated(
-        self, session: Session, resource: Dataset, distribution_list: list[dict]
-    ):
-        """
-        Updates the resource data appending the content information as a distribution.
-        """
-        try:
-            # Hack to get the right DistributionORM class (for each class, such as Dataset
-            # and Publication, there is a different DistributionORM table).
-            dist = resource.RelationshipConfig.distribution.deserializer.clazz  # type: ignore
-            distribution = [dist(dataset=resource, **dist_dict) for dist_dict in distribution_list]
-            resource.distribution = distribution
-            session.merge(resource)
-            session.commit()
-        except Exception as exc:
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail="Dataset metadata could not be updated with distribution on AIoD database.",
-            ) from exc
 
 
 def _wrap_exception_as_http_exception(exc: Exception):

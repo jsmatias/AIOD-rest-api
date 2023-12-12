@@ -8,6 +8,7 @@ from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
 from database.model.agent.person import Person
+from database.model.platform.platform_names import PlatformName
 from database.session import DbSession
 
 from tests.testutils.paths import path_test_resources
@@ -368,10 +369,9 @@ def test_platform_name_conflict(
             test_file = {"file": f}
             response = client.post(ENDPOINT, params=params, headers=headers, files=test_file)
 
-        assert response.status_code == status.HTTP_409_CONFLICT, response.json()
+        assert response.status_code == status.HTTP_400_BAD_REQUEST, response.json()
         assert response.json()["detail"] == (
-            "Platform name huggingface conflict! "
-            "Verify that the platform name in the metadata is either 'zenodo' or empty"
+            "The dataset with identifier 1 should have platform=" f"{PlatformName.zenodo}."
         ), response.json()
 
     response_json = client.get("datasets/v1/1").json()
