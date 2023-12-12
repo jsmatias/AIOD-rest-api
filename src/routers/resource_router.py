@@ -269,9 +269,9 @@ class ResourceRouter(abc.ABC):
         """
 
         def get_resource_count(
-            detailed: bool = Query(
-                description="If true, a more detailed output is returned.", default=False
-            )
+            detailed: Annotated[
+                bool, Query(description="If true, a more detailed output is returned.")
+            ] = False,
         ):
             try:
                 with DbSession() as session:
