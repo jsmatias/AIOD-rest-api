@@ -19,6 +19,10 @@ ENDPOINT = "/upload/datasets/1/zenodo"
 FILE1 = "example1.csv"
 FILE2 = "example2.tsv"
 
+HEADERS = {"Authorization": "Fake token"}
+PARAMS_DRAFT = {"token": "fake-token", "publish": False}
+PARAMS_PUBLISH = {"token": "fake-token", "publish": True}
+
 
 def distribution_from_zenodo(*filenames: str, is_published: bool = False) -> list[dict]:
     files_metadata = (
@@ -76,17 +80,14 @@ def test_happy_path_creating_repo(
 
     set_up(client, mocked_privileged_token, body, person)
 
-    headers = {"Authorization": "Fake token"}
-    params = {"token": "fake-token", "publish": False}
-
     with responses.RequestsMock() as mocked_requests:
-        mocked_requests = zenodo.mock_create_repo(mocked_requests)
-        mocked_requests = zenodo.mock_upload_file(mocked_requests, FILE1)
+        zenodo.mock_create_repo(mocked_requests)
+        zenodo.mock_upload_file(mocked_requests, FILE1)
         zenodo.mock_get_draft_files(mocked_requests, [FILE1])
 
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
             test_file = {"file": f}
-            response = client.post(ENDPOINT, params=params, headers=headers, files=test_file)
+            response = client.post(ENDPOINT, params=PARAMS_DRAFT, headers=HEADERS, files=test_file)
 
         assert response.status_code == status.HTTP_200_OK, response.json()
         assert response.json() == 1, response.json()
@@ -120,18 +121,15 @@ def test_happy_path_existing_repo(
 
     set_up(client, mocked_privileged_token, body, person)
 
-    headers = {"Authorization": "Fake token"}
-    params = {"token": "fake-token"}
-
     with responses.RequestsMock() as mocked_requests:
-        mocked_requests = zenodo.mock_get_repo_metadata(mocked_requests)
-        mocked_requests = zenodo.mock_update_metadata(mocked_requests)
-        mocked_requests = zenodo.mock_upload_file(mocked_requests, FILE1)
+        zenodo.mock_get_repo_metadata(mocked_requests)
+        zenodo.mock_update_metadata(mocked_requests)
+        zenodo.mock_upload_file(mocked_requests, FILE1)
         zenodo.mock_get_draft_files(mocked_requests, [FILE1])
 
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
             test_file = {"file": f}
-            response = client.post(ENDPOINT, params=params, headers=headers, files=test_file)
+            response = client.post(ENDPOINT, params=PARAMS_DRAFT, headers=HEADERS, files=test_file)
 
         assert response.status_code == status.HTTP_200_OK, response.json()
         assert response.json() == 1, response.json()
@@ -163,18 +161,15 @@ def test_happy_path_existing_file(
 
     set_up(client, mocked_privileged_token, body, person)
 
-    headers = {"Authorization": "Fake token"}
-    params = {"token": "fake-token"}
-
-    with responses.RequestsMock(assert_all_requests_are_fired=False) as mocked_requests:
-        mocked_requests = zenodo.mock_get_repo_metadata(mocked_requests)
-        mocked_requests = zenodo.mock_update_metadata(mocked_requests)
-        mocked_requests = zenodo.mock_upload_file(mocked_requests, FILE2)
+    with responses.RequestsMock() as mocked_requests:
+        zenodo.mock_get_repo_metadata(mocked_requests)
+        zenodo.mock_update_metadata(mocked_requests)
+        zenodo.mock_upload_file(mocked_requests, FILE2)
         zenodo.mock_get_draft_files(mocked_requests, [FILE1, FILE2])
 
         with open(path_test_resources() / "contents" / FILE2, "rb") as f:
             test_file = {"file": f}
-            response = client.post(ENDPOINT, params=params, headers=headers, files=test_file)
+            response = client.post(ENDPOINT, params=PARAMS_DRAFT, headers=HEADERS, files=test_file)
 
         assert response.status_code == status.HTTP_200_OK, response.json()
         assert response.json() == 1, response.json()
@@ -209,15 +204,12 @@ def test_happy_path_updating_an_existing_file(
 
     set_up(client, mocked_privileged_token, body, person)
 
-    headers = {"Authorization": "Fake token"}
-    params = {"token": "fake-token"}
-
     updated_file_new_id = "new-fake-id"
 
     with responses.RequestsMock() as mocked_requests:
-        mocked_requests = zenodo.mock_get_repo_metadata(mocked_requests)
-        mocked_requests = zenodo.mock_update_metadata(mocked_requests)
-        mocked_requests = zenodo.mock_upload_file(mocked_requests, FILE1)
+        zenodo.mock_get_repo_metadata(mocked_requests)
+        zenodo.mock_update_metadata(mocked_requests)
+        zenodo.mock_upload_file(mocked_requests, FILE1)
 
         draft_response = zenodo.files_response_from_draft(FILE1)
         draft_response[0]["id"] = updated_file_new_id
@@ -230,7 +222,7 @@ def test_happy_path_updating_an_existing_file(
 
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
             test_file = {"file": f}
-            response = client.post(ENDPOINT, params=params, headers=headers, files=test_file)
+            response = client.post(ENDPOINT, params=PARAMS_DRAFT, headers=HEADERS, files=test_file)
 
         assert response.status_code == status.HTTP_200_OK, response.json()
         assert response.json() == 1, response.json()
@@ -265,18 +257,17 @@ def test_happy_path_publishing(
 
     set_up(client, mocked_privileged_token, body, person)
 
-    headers = {"Authorization": "Fake token"}
-    params = {"token": "fake-token", "publish": True}
-
     with responses.RequestsMock() as mocked_requests:
-        mocked_requests = zenodo.mock_create_repo(mocked_requests)
-        mocked_requests = zenodo.mock_upload_file(mocked_requests, FILE1)
-        mocked_requests = zenodo.mock_publish_resource(mocked_requests)
+        zenodo.mock_create_repo(mocked_requests)
+        zenodo.mock_upload_file(mocked_requests, FILE1)
+        zenodo.mock_publish_resource(mocked_requests)
         zenodo.mock_get_published_files(mocked_requests, [FILE1])
 
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
             test_file = {"file": f}
-            response = client.post(ENDPOINT, params=params, headers=headers, files=test_file)
+            response = client.post(
+                ENDPOINT, params=PARAMS_PUBLISH, headers=HEADERS, files=test_file
+            )
 
         assert response.status_code == status.HTTP_200_OK, response.json()
         assert response.json() == 1, response.json()
@@ -312,15 +303,14 @@ def test_attempt_to_upload_published_resource(
 
     set_up(client, mocked_privileged_token, body, person)
 
-    headers = {"Authorization": "Fake token"}
-    params = {"token": "fake-token", "publish": True}
-
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_get_repo_metadata(mocked_requests, is_published=True)
 
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
             test_file = {"file": f}
-            response = client.post(ENDPOINT, params=params, headers=headers, files=test_file)
+            response = client.post(
+                ENDPOINT, params=PARAMS_PUBLISH, headers=HEADERS, files=test_file
+            )
 
         assert response.status_code == status.HTTP_409_CONFLICT, response.json()
         assert response.json()["detail"] == [
@@ -353,13 +343,10 @@ def test_platform_name_conflict(
 
     set_up(client, mocked_privileged_token, body, person)
 
-    headers = {"Authorization": "Fake token"}
-    params = {"token": "fake-token"}
-
     with responses.RequestsMock():
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
             test_file = {"file": f}
-            response = client.post(ENDPOINT, params=params, headers=headers, files=test_file)
+            response = client.post(ENDPOINT, params=PARAMS_DRAFT, headers=HEADERS, files=test_file)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST, response.json()
         assert response.json()["detail"] == (

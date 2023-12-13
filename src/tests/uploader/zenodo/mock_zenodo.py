@@ -17,7 +17,7 @@ RECORDS_URL = "https://zenodo.org/api/records"
 RESOURCE_ID = 100
 
 
-def mock_create_repo(mocked_requests: responses.RequestsMock) -> responses.RequestsMock:
+def mock_create_repo(mocked_requests: responses.RequestsMock) -> None:
     mocked_requests.add(
         responses.POST,
         BASE_URL,
@@ -25,12 +25,10 @@ def mock_create_repo(mocked_requests: responses.RequestsMock) -> responses.Reque
         status=201,
     )
 
-    return mocked_requests
-
 
 def mock_get_repo_metadata(
     mocked_requests: responses.RequestsMock, is_published: bool = False
-) -> responses.RequestsMock:
+) -> None:
     mocked_requests.add(
         responses.GET,
         f"{BASE_URL}/{RESOURCE_ID}",
@@ -38,63 +36,50 @@ def mock_get_repo_metadata(
         status=200,
     )
 
-    return mocked_requests
 
-
-def mock_update_metadata(mocked_requests: responses.RequestsMock) -> responses.RequestsMock:
+def mock_update_metadata(mocked_requests: responses.RequestsMock) -> None:
     mocked_requests.add(
         responses.PUT,
         f"{BASE_URL}/{RESOURCE_ID}",
         json={},
         status=200,
     )
-    return mocked_requests
 
 
-def mock_upload_file(
-    mocked_requests: responses.RequestsMock, new_file: str
-) -> responses.RequestsMock:
+def mock_upload_file(mocked_requests: responses.RequestsMock, new_file: str) -> None:
     mocked_requests.add(
         responses.PUT,
         f"{REPO_URL}/{new_file}",
         json={},
         status=201,
     )
-    return mocked_requests
 
 
-def mock_publish_resource(mocked_requests: responses.RequestsMock) -> responses.RequestsMock:
+def mock_publish_resource(mocked_requests: responses.RequestsMock) -> None:
     mocked_requests.add(
         responses.POST,
         f"{BASE_URL}/{RESOURCE_ID}/actions/publish",
         json=publish_response(),
         status=202,
     )
-    return mocked_requests
 
 
-def mock_get_draft_files(
-    mocked_requests: responses.RequestsMock, files: list[str]
-) -> responses.RequestsMock:
+def mock_get_draft_files(mocked_requests: responses.RequestsMock, files: list[str]) -> None:
     mocked_requests.add(
         responses.GET,
         f"{BASE_URL}/{RESOURCE_ID}/files",
         json=files_response_from_draft(*files),
         status=200,
     )
-    return mocked_requests
 
 
-def mock_get_published_files(
-    mocked_requests: responses.RequestsMock, files: list[str]
-) -> responses.RequestsMock:
+def mock_get_published_files(mocked_requests: responses.RequestsMock, files: list[str]) -> None:
     mocked_requests.add(
         responses.GET,
         f"{RECORDS_URL}/{RESOURCE_ID}/files",
         json=files_response_from_published(*files),
         status=200,
     )
-    return mocked_requests
 
 
 def record_response(is_published: bool = False) -> dict:
