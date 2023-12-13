@@ -1,5 +1,6 @@
 import copy
 import responses
+import pytest
 
 from unittest.mock import Mock
 
@@ -45,40 +46,49 @@ def distribution_from_zenodo(*filenames: str, is_published: bool = False) -> lis
     return dist
 
 
-def set_up(client: TestClient, mocked_privileged_token: Mock, body: dict, person: Person):
-    """
-    Set up the test environment for API endpoint testing.
-    This function prepares the test environment by mocking user info,
-    adding a person to the database, and sending a POST request to the
-    specified endpoint for the given resource.
-    """
+@pytest.fixture
+def body_empty(body_asset: dict) -> dict:
+    body = copy.deepcopy(body_asset)
+    body["platform"] = None
+    body["platform_resource_identifier"] = None
+    body["distribution"] = []
+    return body
+
+
+@pytest.fixture
+def body_no_dist(body_empty: dict) -> dict:
+    body = copy.deepcopy(body_empty)
+    body["platform"] = "zenodo"
+    body["platform_resource_identifier"] = f"zenodo.org:{zenodo.RESOURCE_ID}"
+    return body
+
+
+@pytest.fixture
+def body_with_dist(body_no_dist: dict) -> dict:
+    body = copy.deepcopy(body_no_dist)
+    body["distribution"] = distribution_from_zenodo(FILE1)
+    return body
+
+
+@pytest.fixture
+def db_with_person_and_empty_dataset(
+    client: TestClient, mocked_privileged_token: Mock, body_empty: dict, person: Person
+) -> None:
     keycloak_openid.introspect = mocked_privileged_token
 
     with DbSession() as session:
         session.add(person)
         session.commit()
 
-    response = client.post("/datasets/v1", json=body, headers={"Authorization": "Fake token"})
+    response = client.post("/datasets/v1", json=body_empty, headers={"Authorization": "Fake token"})
     assert response.status_code == status.HTTP_200_OK, response.json()
 
 
-def test_happy_path_creating_repo(
-    client: TestClient,
-    mocked_privileged_token: Mock,
-    body_asset: dict,
-    person: Person,
-):
+def test_happy_path_creating_repo(client: TestClient, db_with_person_and_empty_dataset: None):
     """
     Test the successful path for creating a new repository on Zenodo before uploading a file.
     The creation of a new repo must be triggered when platform_resource_identifier is None.
     """
-
-    body = copy.deepcopy(body_asset)
-    body["platform"] = None
-    body["platform_resource_identifier"] = None
-    body["distribution"] = []
-
-    set_up(client, mocked_privileged_token, body, person)
 
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_create_repo(mocked_requests)
@@ -98,29 +108,31 @@ def test_happy_path_creating_repo(
     assert (
         response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
     ), response_json
-
     assert response_json["distribution"] == distribution_from_zenodo(FILE1), response_json
 
 
-def test_happy_path_existing_repo(
-    client: TestClient,
-    mocked_privileged_token: Mock,
-    body_asset: dict,
-    person: Person,
-):
+@pytest.fixture
+def db_with_person_and_dataset_no_dist(
+    client: TestClient, mocked_privileged_token: Mock, body_no_dist: dict, person: Person
+) -> None:
+    keycloak_openid.introspect = mocked_privileged_token
+
+    with DbSession() as session:
+        session.add(person)
+        session.commit()
+
+    response = client.post(
+        "/datasets/v1", json=body_no_dist, headers={"Authorization": "Fake token"}
+    )
+    assert response.status_code == status.HTTP_200_OK, response.json()
+
+
+def test_happy_path_existing_repo(client: TestClient, db_with_person_and_dataset_no_dist: None):
     """
     Test the successful path for an existing repository on Zenodo.
     When the platform_resource_identifier is not None (zenodo.org:int) the code should
     get metadata and url of the existing repo, then upload a file.
     """
-
-    body = copy.deepcopy(body_asset)
-    body["platform"] = "zenodo"
-    body["platform_resource_identifier"] = f"zenodo.org:{zenodo.RESOURCE_ID}"
-    body["distribution"] = []
-
-    set_up(client, mocked_privileged_token, body, person)
-
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_get_repo_metadata(mocked_requests)
         zenodo.mock_update_metadata(mocked_requests)
@@ -140,26 +152,29 @@ def test_happy_path_existing_repo(
     assert (
         response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
     ), response_json
-
     assert response_json["distribution"] == distribution_from_zenodo(FILE1), response_json
 
 
-def test_happy_path_existing_file(
-    client: TestClient,
-    mocked_privileged_token: Mock,
-    body_asset: dict,
-    person: Person,
-):
+@pytest.fixture
+def db_with_person_and_dataset_with_dist(
+    client: TestClient, mocked_privileged_token: Mock, body_with_dist: dict, person: Person
+) -> None:
+    keycloak_openid.introspect = mocked_privileged_token
+
+    with DbSession() as session:
+        session.add(person)
+        session.commit()
+
+    response = client.post(
+        "/datasets/v1", json=body_with_dist, headers={"Authorization": "Fake token"}
+    )
+    assert response.status_code == status.HTTP_200_OK, response.json()
+
+
+def test_happy_path_existing_file(client: TestClient, db_with_person_and_dataset_with_dist: None):
     """
     Test uploading a second file to zenodo.
     """
-
-    body = copy.deepcopy(body_asset)
-    body["platform"] = "zenodo"
-    body["platform_resource_identifier"] = f"zenodo.org:{zenodo.RESOURCE_ID}"
-    body["distribution"] = distribution_from_zenodo(FILE1)
-
-    set_up(client, mocked_privileged_token, body, person)
 
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_get_repo_metadata(mocked_requests)
@@ -180,29 +195,18 @@ def test_happy_path_existing_file(
     assert (
         response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
     ), response_json
-
-    assert response_json["distribution"] == body["distribution"] + distribution_from_zenodo(
-        FILE2
-    ), response_json
+    assert response_json["distribution"] == distribution_from_zenodo(
+        FILE1
+    ) + distribution_from_zenodo(FILE2), response_json
 
 
 def test_happy_path_updating_an_existing_file(
-    client: TestClient,
-    mocked_privileged_token: Mock,
-    body_asset: dict,
-    person: Person,
+    client: TestClient, db_with_person_and_dataset_with_dist: None
 ):
     """
     Test uploading a second file to zenodo with the same name.
     This must update the existing file.
     """
-
-    body = copy.deepcopy(body_asset)
-    body["platform"] = "zenodo"
-    body["platform_resource_identifier"] = f"zenodo.org:{zenodo.RESOURCE_ID}"
-    body["distribution"] = distribution_from_zenodo(FILE1)
-
-    set_up(client, mocked_privileged_token, body, person)
 
     updated_file_new_id = "new-fake-id"
 
@@ -233,30 +237,16 @@ def test_happy_path_updating_an_existing_file(
     assert (
         response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
     ), response_json
-
     expected_updated_dist = distribution_from_zenodo(FILE1)
     expected_updated_dist[0]["platform_resource_identifier"] = updated_file_new_id
     assert response_json["distribution"] == expected_updated_dist, response_json
 
 
-def test_happy_path_publishing(
-    client: TestClient,
-    mocked_privileged_token: Mock,
-    body_asset: dict,
-    person: Person,
-):
+def test_happy_path_publishing(client: TestClient, db_with_person_and_empty_dataset: None):
     """
     Test publishing the resource on Zenodo after uploading a file.
     The URL of the content should not be empty
     """
-
-    body = copy.deepcopy(body_asset)
-    body["platform"] = None
-    body["platform_resource_identifier"] = None
-    body["distribution"] = []
-
-    set_up(client, mocked_privileged_token, body, person)
-
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_create_repo(mocked_requests)
         zenodo.mock_upload_file(mocked_requests, FILE1)
@@ -278,7 +268,6 @@ def test_happy_path_publishing(
     assert (
         response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
     ), response_json
-
     assert response_json["distribution"] == distribution_from_zenodo(
         FILE1, is_published=True
     ), response_json
@@ -287,21 +276,23 @@ def test_happy_path_publishing(
 def test_attempt_to_upload_published_resource(
     client: TestClient,
     mocked_privileged_token: Mock,
-    body_asset: dict,
+    body_no_dist: dict,
     person: Person,
 ):
     """
     Test attempt to upload a file to a resource that has already been published.
-    This must raise an error 423 (locked) and return a message stating
+    This must raise an conflict error 409 and return a message stating
     that the process can't be concluded.
     """
-
-    body = copy.deepcopy(body_asset)
-    body["platform"] = "zenodo"
-    body["platform_resource_identifier"] = f"zenodo.org:{zenodo.RESOURCE_ID}"
+    body = copy.deepcopy(body_no_dist)
     body["distribution"] = distribution_from_zenodo(FILE1, is_published=True)
 
-    set_up(client, mocked_privileged_token, body, person)
+    keycloak_openid.introspect = mocked_privileged_token
+    with DbSession() as session:
+        session.add(person)
+        session.commit()
+    response = client.post("/datasets/v1", json=body, headers={"Authorization": "Fake token"})
+    assert response.status_code == status.HTTP_200_OK, response.json()
 
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_get_repo_metadata(mocked_requests, is_published=True)
@@ -328,7 +319,7 @@ def test_attempt_to_upload_published_resource(
 def test_platform_name_conflict(
     client: TestClient,
     mocked_privileged_token: Mock,
-    body_asset: dict,
+    body_empty: dict,
     person: Person,
 ):
     """
@@ -336,12 +327,16 @@ def test_platform_name_conflict(
     different than zenodo.
     """
 
-    body = copy.deepcopy(body_asset)
+    body = copy.deepcopy(body_empty)
     body["platform"] = "huggingface"
     body["platform_resource_identifier"] = "fake-id"
-    body["distribution"] = []
 
-    set_up(client, mocked_privileged_token, body, person)
+    keycloak_openid.introspect = mocked_privileged_token
+    with DbSession() as session:
+        session.add(person)
+        session.commit()
+    response = client.post("/datasets/v1", json=body, headers={"Authorization": "Fake token"})
+    assert response.status_code == status.HTTP_200_OK, response.json()
 
     with responses.RequestsMock():
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
@@ -357,5 +352,4 @@ def test_platform_name_conflict(
 
     assert response_json["platform"] == "huggingface", response_json
     assert response_json["platform_resource_identifier"] == "fake-id", response_json
-
     assert response_json["distribution"] == []
