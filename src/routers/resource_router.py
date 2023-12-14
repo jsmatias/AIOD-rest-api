@@ -27,6 +27,7 @@ from database.model.resource_read_and_create import (
 )
 from database.model.serializers import deserialize_resource_relationships
 from database.session import DbSession
+from error_handlers import _wrap_as_http_exception
 
 
 class Pagination(BaseModel):
@@ -588,19 +589,6 @@ class ResourceRouter(abc.ABC):
             # error_msg = "Unexpected exception."
             # status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         raise HTTPException(status_code=status_code, detail=error_msg) from e
-
-
-def _wrap_as_http_exception(exception: Exception) -> HTTPException:
-    if isinstance(exception, HTTPException):
-        return exception
-    traceback.print_exc()
-    return HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail=(
-            "Unexpected exception while processing your request. Please contact the maintainers: "
-            f"{exception}"
-        ),
-    )
 
 
 def _raise_error_on_invalid_schema(possible_schemas, schema):

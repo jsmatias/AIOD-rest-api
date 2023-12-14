@@ -3,7 +3,8 @@ from fastapi import APIRouter, HTTPException, status, Path
 from fastapi.responses import Response
 
 from database.model.ai_asset.ai_asset import AIAsset
-from .resource_router import ResourceRouter, _wrap_as_http_exception
+from error_handlers import _wrap_as_http_exception
+from .resource_router import ResourceRouter
 
 
 class ResourceAIAssetRouter(ResourceRouter):

@@ -12,7 +12,7 @@ from database.model.concept.concept import AIoDConcept
 from database.model.platform.platform import Platform
 from database.model.resource_read_and_create import resource_read
 from database.session import DbSession
-from .resource_router import _wrap_as_http_exception
+from error_handlers import _wrap_as_http_exception
 from .search_routers.elasticsearch import ElasticsearchSingleton
 
 SORT = {"identifier": "asc"}

@@ -8,6 +8,7 @@ from database.model.dataset.dataset import Dataset
 from database.model.platform.platform_names import PlatformName
 from database.session import DbSession
 from database.validators import zenodo_validators
+from error_handlers import _wrap_as_http_exception
 from uploaders.uploader import Uploader
 
 
@@ -78,11 +79,11 @@ class ZenodoUploader(Uploader):
                 json={"metadata": metadata},
             )
         except Exception as exc:
-            raise _wrap_exception_as_http_exception(exc)
+            raise _wrap_as_http_exception(exc)
 
         if res.status_code != status.HTTP_201_CREATED:
-            msg = "Error creating a new repo on zenodo. Zenodo api returned a http error:"
-            raise HTTPException(status_code=res.status_code, detail=f"{msg} {res.text}")
+            msg = "Failed to create a new repo on Zenodo."
+            _wrap_bad_gateway_error(msg, res.status_code)
 
         return res.json()
 
@@ -94,11 +95,11 @@ class ZenodoUploader(Uploader):
         try:
             res = requests.get(f"{self.BASE_URL}/{self.repo_id}", params=params)
         except Exception as exc:
-            raise _wrap_exception_as_http_exception(exc)
+            raise _wrap_as_http_exception(exc)
 
         if res.status_code != status.HTTP_200_OK:
-            msg = "Error retrieving information from zenodo. Zenodo api returned a http error:"
-            raise HTTPException(status_code=res.status_code, detail=f"{msg} {res.text}")
+            msg = "Failed to retrieve information from Zenodo."
+            _wrap_bad_gateway_error(msg, res.status_code)
 
         return res.json()
 
@@ -115,11 +116,11 @@ class ZenodoUploader(Uploader):
                 headers=headers,
             )
         except Exception as exc:
-            raise _wrap_exception_as_http_exception(exc)
+            raise _wrap_as_http_exception(exc)
 
         if res.status_code != status.HTTP_200_OK:
-            msg = "Error uploading metadata to zenodo. Zenodo api returned a http error:"
-            raise HTTPException(status_code=res.status_code, detail=f"{msg} {res.text}")
+            msg = "Failed to upload metadata to Zenodo."
+            _wrap_bad_gateway_error(msg, res.status_code)
 
     def _upload_file(self, repo_url: str, file: UploadFile) -> None:
         """
@@ -131,11 +132,11 @@ class ZenodoUploader(Uploader):
                 f"{repo_url}/{file.filename}", data=io.BufferedReader(file.file), params=params
             )
         except Exception as exc:
-            raise _wrap_exception_as_http_exception(exc)
+            raise _wrap_as_http_exception(exc)
 
         if res.status_code != status.HTTP_201_CREATED:
-            msg = "Error uploading a file to zenodo. Zenodo api returned a http error:"
-            raise HTTPException(status_code=res.status_code, detail=f"{msg} {res.text}")
+            msg = "Failed to upload the file to zenodo."
+            _wrap_bad_gateway_error(msg, res.status_code)
 
     def _publish_resource(self) -> dict:
         """
@@ -145,10 +146,12 @@ class ZenodoUploader(Uploader):
         try:
             res = requests.post(f"{self.BASE_URL}/{self.repo_id}/actions/publish", params=params)
         except Exception as exc:
-            raise _wrap_exception_as_http_exception(exc)
+            raise _wrap_as_http_exception(exc)
 
         if res.status_code != status.HTTP_202_ACCEPTED:
-            msg = "Error publishing the dataset on zenodo. Zenodo api returned a http error:"
+            msg = "Failed to publish the dataset on zenodo."
+            _wrap_bad_gateway_error(msg, res.status_code)
+
             raise HTTPException(status_code=res.status_code, detail=f"{msg} {res.text}")
 
         return res.json()
@@ -163,14 +166,14 @@ class ZenodoUploader(Uploader):
         try:
             res = requests.get(f"{url}/files", params=params)
         except Exception as exc:
-            raise _wrap_exception_as_http_exception(exc)
+            raise _wrap_as_http_exception(exc)
 
         if res.status_code != status.HTTP_200_OK:
             msg = (
-                f"Error retrieving the resource files {'' if public_url else 'in draft'} "
-                "from zenodo. Zenodo api returned a http error:"
+                f"Failed to retrieve the resource files {'' if public_url else 'in draft'} "
+                "from zenodo."
             )
-            raise HTTPException(status_code=res.status_code, detail=f"{msg} {res.text}")
+            _wrap_bad_gateway_error(msg, res.status_code)
 
         files_metadata = res.json()["entries"] if public_url else res.json()
         distribution = [
@@ -197,11 +200,9 @@ class ZenodoUploader(Uploader):
             "description": f"{dataset.description.plain if dataset.description else ''}.\n"
             "Created from AIOD platform",
             "upload_type": "dataset",
-            "creators": [
-                {"name": f"{creator.name}", "affiliation": ""} for creator in dataset.creator
-            ],
+            "creators": [{"name": f"{creator.name}"} for creator in dataset.creator],
             "keywords": [kw.name for kw in dataset.keyword],
-            "method": dataset.measurement_technique or "",
+            "method": dataset.measurement_technique,
             "access_right": f"{'open' if dataset.is_accessible_for_free else 'closed'}",
             # TODO: include licence in the right format.
             # "license": dataset.license.name if dataset.license else "cc-zero",
@@ -210,16 +211,8 @@ class ZenodoUploader(Uploader):
         return metadata
 
 
-def _wrap_exception_as_http_exception(exc: Exception):
-    if isinstance(exc, HTTPException):
-        return exc
-
-    exception = HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail=(
-            "Unexpected exception while processing your request. "
-            "Please contact the maintainers: "
-            f"{exc}"
-        ),
+def _wrap_bad_gateway_error(msg: str, status_code: int):
+    raise HTTPException(
+        status_code=status.HTTP_502_BAD_GATEWAY,
+        detail=f"{msg} Zenodo returned a http error with status code: {status_code}.",
     )
-    return exception
