@@ -1,10 +1,11 @@
 import sqlite3
 import tempfile
-from typing import Iterator, Type
+from typing import Iterator, Type, Any
 from unittest.mock import Mock
 
 import pytest
 from fastapi import FastAPI
+from pytest_asyncio.plugin import SubRequest
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from sqlmodel import create_engine, SQLModel, Session, select
@@ -107,10 +108,9 @@ def client_test_resource(engine: Engine) -> TestClient:
     return TestClient(app, base_url="http://localhost")
 
 
-@pytest.fixture()
-def mocked_token() -> Mock:
-    default_user = {
-        "realm_access": {"roles": ["offline_access", "uma_authorization", "default-roles-aiod"]},
+def _user_with_roles(*roles: str) -> dict[str, Any]:
+    return {
+        "realm_access": {"roles": roles},
         "resource_access": {
             "account": {"roles": ["manage-account", "manage-account-links", "view-profile"]}
         },
@@ -119,26 +119,25 @@ def mocked_token() -> Mock:
         "token_type": "Bearer",
         "active": True,
     }
-    return Mock(return_value=default_user)
+
+
+@pytest.fixture()
+def mocked_token(request: SubRequest) -> Mock:
+    """
+    Return a mocked function that returns a user, to mock the authentication.
+
+    Optionally, you can give a list of roles to this fixture, using Pytest indirect parametrization:
+    https://docs.pytest.org/en/latest/example/parametrize.html#deferring-the-setup-of-parametrized-resources
+    """
+    roles = (
+        request.param
+        if hasattr(request, "param")
+        else ["offline_access", "uma_authorization", "default-roles-aiod"]
+    )
+    return Mock(return_value=_user_with_roles(*roles))
 
 
 @pytest.fixture()
 def mocked_privileged_token() -> Mock:
-    default_user = {
-        "realm_access": {
-            "roles": [
-                "offline_access",
-                "uma_authorization",
-                "default-roles-aiod",
-                "edit_aiod_resources",
-            ]
-        },
-        "resource_access": {
-            "account": {"roles": ["manage-account", "manage-account-links", "view-profile"]}
-        },
-        "scope": "openid profile email",
-        "username": "user",
-        "token_type": "Bearer",
-        "active": True,
-    }
-    return Mock(return_value=default_user)
+    roles = ["offline_access", "uma_authorization", "default-roles-aiod", "edit_aiod_resources"]
+    return Mock(return_value=_user_with_roles(*roles))
