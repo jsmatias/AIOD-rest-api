@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Path
 from fastapi import File, Query, UploadFile
 
@@ -10,18 +12,22 @@ class UploadRouterHuggingface:
 
         @router.post(url_prefix + "/upload/datasets/{identifier}/huggingface", tags=["upload"])
         def huggingFaceUpload(
-            identifier: int = Path(
-                description="The AIoD dataset identifier",
-            ),
-            file: UploadFile = File(
-                ..., title="File", description="This file will be uploaded to HuggingFace"
-            ),
-            token: str = Query(
-                ..., title="Huggingface Token", description="The access token of HuggingFace"
-            ),
-            username: str = Query(
-                ..., title="Huggingface username", description="The username of HuggingFace"
-            ),
+            identifier: Annotated[
+                int,
+                Path(
+                    description="The AIoD dataset identifier",
+                ),
+            ],
+            file: Annotated[
+                UploadFile,
+                File(title="File", description="This file will be uploaded to HuggingFace"),
+            ],
+            token: Annotated[
+                str, Query(title="Huggingface Token", description="The access token of HuggingFace")
+            ],
+            username: Annotated[
+                str, Query(title="Huggingface username", description="The username of HuggingFace")
+            ],
         ) -> int:
             return handle_upload(identifier, file, token, username)
 
