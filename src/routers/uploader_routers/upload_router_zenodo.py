@@ -9,7 +9,7 @@ from routers.uploader_router import UploaderRouter
 
 class UploadRouterZenodo(UploaderRouter):
     def create(self, url_prefix: str) -> APIRouter:
-        router = super().create(url_prefix)
+        router = APIRouter()
 
         zenodo_uploader = ZenodoUploader()
 

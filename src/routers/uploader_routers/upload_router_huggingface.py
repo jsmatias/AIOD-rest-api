@@ -7,7 +7,7 @@ from uploaders.hugging_face_uploader import HuggingfaceUploader
 
 class UploadRouterHuggingface(UploaderRouter):
     def create(self, url_prefix: str) -> APIRouter:
-        router = super().create(url_prefix)
+        router = APIRouter()
 
         hugging_face_uploader = HuggingfaceUploader()
 
