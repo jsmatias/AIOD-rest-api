@@ -85,8 +85,6 @@ def mock_get_published_files(mocked_requests: responses.RequestsMock, files: lis
 def record_response(is_published: bool = False) -> dict:
     response = {
         "id": RESOURCE_ID,
-        # just the state `done` matters here
-        "state": "done" if is_published else "unsubmitted/inprogress",
         "links": {"bucket": REPO_URL, "record": f"{RECORDS_URL}/{RESOURCE_ID}"},
     }
     return response

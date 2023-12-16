@@ -1,5 +1,6 @@
 import abc
 from collections.abc import Callable
+import datetime
 
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
@@ -67,6 +68,7 @@ class Uploader(abc.ABC):
                 resource.distribution = distribution
             else:
                 resource.distribution.extend(distribution)
+            resource.aiod_entry.date_modified = datetime.datetime.utcnow()
             session.merge(resource)
             session.commit()
         except Exception as exc:

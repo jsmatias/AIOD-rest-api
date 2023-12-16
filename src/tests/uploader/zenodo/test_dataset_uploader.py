@@ -2,6 +2,8 @@ import copy
 import responses
 import pytest
 
+from datetime import datetime
+
 from unittest.mock import Mock
 
 from fastapi import status
@@ -108,6 +110,9 @@ def test_happy_path_creating_repo(client: TestClient, db_with_person_and_empty_d
     assert (
         response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
     ), response_json
+    assert (
+        datetime.utcnow().strftime("%Y-%m-%dT%H:%M") in response_json["aiod_entry"]["date_modified"]
+    )
     assert response_json["distribution"] == distribution_from_zenodo(FILE1), response_json
 
 
@@ -264,12 +269,9 @@ def test_happy_path_publishing(client: TestClient, db_with_person_and_empty_data
 
     response_json = client.get("datasets/v1/1").json()
 
-    assert response_json["platform"] == "zenodo", response_json
+    assert response_json["aiod_entry"]["status"] == "published", response_json
     assert (
-        response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
-    ), response_json
-    assert response_json["distribution"] == distribution_from_zenodo(
-        FILE1, is_published=True
+        datetime.utcnow().strftime("%Y-%m-%dT%H:%M") in response_json["date_published"]
     ), response_json
 
 
@@ -286,6 +288,7 @@ def test_attempt_to_upload_published_resource(
     """
     body = copy.deepcopy(body_no_dist)
     body["distribution"] = distribution_from_zenodo(FILE1, is_published=True)
+    body["aiod_entry"]["status"] = "published"
 
     keycloak_openid.introspect = mocked_privileged_token
     with DbSession() as session:
@@ -312,7 +315,6 @@ def test_attempt_to_upload_published_resource(
         ], response.json()
 
     response_json = client.get("datasets/v1/1").json()
-
     assert response_json["distribution"] == body["distribution"], response_json
 
 

@@ -1,11 +1,14 @@
+from datetime import datetime
 import io
 import json
 import requests
 
 from fastapi import UploadFile, HTTPException, status
 
+from database.model.concept.status import Status
 from database.model.dataset.dataset import Dataset
 from database.model.platform.platform_names import PlatformName
+
 from database.session import DbSession
 from database.validators import zenodo_validators
 from error_handlers import _wrap_as_http_exception
@@ -41,13 +44,12 @@ class ZenodoUploader(Uploader):
                 self.repo_id = platform_resource_id.split(":")[-1]
                 zenodo_metadata = self._get_metadata_from_zenodo()
 
-                if zenodo_metadata["state"] == "done":
+                if dataset.aiod_entry.status and dataset.aiod_entry.status.name == "published":
                     raise HTTPException(
                         status_code=status.HTTP_409_CONFLICT,
                         detail=(
-                            "This resource is already public and "
-                            "can't be edited with this endpoint. "
-                            "You can access and modify it at "
+                            "This resource is already public and can't be edited with this "
+                            "endpoint. You can access and modify it at "
                             f"{zenodo_metadata['links']['record']}",
                         ),
                     )
@@ -60,6 +62,12 @@ class ZenodoUploader(Uploader):
                 new_zenodo_metadata = self._publish_resource()
                 record_url = new_zenodo_metadata["links"]["record"]
                 distribution = self._get_distribution(record_url)
+
+                new_status = session.query(Status).filter(
+                    Status.name == "published"
+                ).first() or Status(name="published")
+                dataset.aiod_entry.status = new_status
+                dataset.date_published = datetime.utcnow()
             else:
                 distribution = self._get_distribution()
 
@@ -195,12 +203,35 @@ class ZenodoUploader(Uploader):
         """
         Generates metadata as a dictionary based on the data from the dataset model.
         """
+
+        description = ""
+        if dataset.description:
+            if dataset.description.html:
+                description = (
+                    dataset.description.html + "<p><strong>Created from AIOD platform.</strong></p>"
+                )
+            elif dataset.description.plain:
+                description = dataset.description.plain + "\nCreated from AIOD platform."
+
+        creator_names = []
+        if dataset.creator:
+            for creator in dataset.creator:
+                if creator.person and creator.person.given_name and creator.person.surname:
+                    creator_formatted_name: str | None = ", ".join(
+                        [creator.person.surname, creator.person.given_name]
+                    )
+                elif creator.person and creator.person.name:
+                    creator_formatted_name = creator.person.name
+                else:
+                    creator_formatted_name = creator.name
+                creator_names.append({"name": creator_formatted_name})
+
         metadata = {
             "title": dataset.name,
-            "description": f"{dataset.description.plain if dataset.description else ''}.\n"
-            "Created from AIOD platform",
+            "version": dataset.version,
+            "description": description,
             "upload_type": "dataset",
-            "creators": [{"name": f"{creator.name}"} for creator in dataset.creator],
+            "creators": creator_names,
             "keywords": [kw.name for kw in dataset.keyword],
             "method": dataset.measurement_technique,
             "access_right": f"{'open' if dataset.is_accessible_for_free else 'closed'}",
