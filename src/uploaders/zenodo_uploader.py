@@ -4,6 +4,7 @@ import json
 import requests
 
 from fastapi import UploadFile, HTTPException, status
+from database.model.ai_asset.license import License
 
 from database.model.concept.status import Status
 from database.model.dataset.dataset import Dataset
@@ -160,8 +161,6 @@ class ZenodoUploader(Uploader):
             msg = "Failed to publish the dataset on zenodo."
             _wrap_bad_gateway_error(msg, res.status_code)
 
-            raise HTTPException(status_code=res.status_code, detail=f"{msg} {res.text}")
-
         return res.json()
 
     def _get_distribution(self, public_url: str | None = None) -> list[dict]:
@@ -199,12 +198,35 @@ class ZenodoUploader(Uploader):
 
         return distribution
 
+    def _validate_zenodo_license(self, license: License | None) -> str:
+        """
+        Checks if the provided license is valid for uploading content to Zenodo.
+        """
+        try:
+            res = requests.get("https://zenodo.org/api/vocabularies/licenses?q=&tags=data")
+        except Exception as exc:
+            raise _wrap_as_http_exception(exc)
+        if res.status_code != status.HTTP_200_OK:
+            msg = "Failed to get the list of valid licenses to upload content on Zenodo."
+            _wrap_bad_gateway_error(msg, res.status_code)
+
+        valid_license_ids: list[str] = [item["id"] for item in res.json()["hits"]["hits"]]
+        if (license is None) or (license.name not in valid_license_ids):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="License must be one of the following license identifiers allowed "
+                "to upload data on Zenodo: " + ", ".join(valid_license_ids) + ". "
+                "For details, refer to Zenodo API documentation: "
+                "https://developers.zenodo.org/#licenses.",
+            )
+        return license.name
+
     def _generate_metadata(self, dataset: Dataset) -> dict:
         """
         Generates metadata as a dictionary based on the data from the dataset model.
         """
 
-        description = ""
+        description = None
         if dataset.description:
             if dataset.description.html:
                 description = (
@@ -213,8 +235,9 @@ class ZenodoUploader(Uploader):
             elif dataset.description.plain:
                 description = dataset.description.plain + "\nCreated from AIOD platform."
 
-        creator_names = []
+        creator_names = None
         if dataset.creator:
+            creator_names = []
             for creator in dataset.creator:
                 if creator.person and creator.person.given_name and creator.person.surname:
                     creator_formatted_name: str | None = ", ".join(
@@ -226,6 +249,8 @@ class ZenodoUploader(Uploader):
                     creator_formatted_name = creator.name
                 creator_names.append({"name": creator_formatted_name})
 
+        license = self._validate_zenodo_license(dataset.license)
+
         metadata = {
             "title": dataset.name,
             "version": dataset.version,
@@ -235,8 +260,7 @@ class ZenodoUploader(Uploader):
             "keywords": [kw.name for kw in dataset.keyword],
             "method": dataset.measurement_technique,
             "access_right": f"{'open' if dataset.is_accessible_for_free else 'closed'}",
-            # TODO: include licence in the right format.
-            # "license": dataset.license.name if dataset.license else "cc-zero",
+            "license": license,
         }
 
         return metadata

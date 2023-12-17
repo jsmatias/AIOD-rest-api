@@ -53,6 +53,7 @@ def body_empty(body_asset: dict) -> dict:
     body = copy.deepcopy(body_asset)
     body["platform"] = None
     body["platform_resource_identifier"] = None
+    body["license"] = "a-valid-license-id"
     body["distribution"] = []
     return body
 
@@ -77,7 +78,6 @@ def db_with_person_and_empty_dataset(
     client: TestClient, mocked_privileged_token: Mock, body_empty: dict, person: Person
 ) -> None:
     keycloak_openid.introspect = mocked_privileged_token
-
     with DbSession() as session:
         session.add(person)
         session.commit()
@@ -91,21 +91,19 @@ def test_happy_path_creating_repo(client: TestClient, db_with_person_and_empty_d
     Test the successful path for creating a new repository on Zenodo before uploading a file.
     The creation of a new repo must be triggered when platform_resource_identifier is None.
     """
-
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_create_repo(mocked_requests)
+        zenodo.mock_get_licenses(mocked_requests)
         zenodo.mock_upload_file(mocked_requests, FILE1)
         zenodo.mock_get_draft_files(mocked_requests, [FILE1])
 
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
             test_file = {"file": f}
             response = client.post(ENDPOINT, params=PARAMS_DRAFT, headers=HEADERS, files=test_file)
-
         assert response.status_code == status.HTTP_200_OK, response.json()
         assert response.json() == 1, response.json()
 
     response_json = client.get("datasets/v1/1").json()
-
     assert response_json["platform"] == "zenodo", response_json
     assert (
         response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
@@ -121,7 +119,6 @@ def db_with_person_and_dataset_no_dist(
     client: TestClient, mocked_privileged_token: Mock, body_no_dist: dict, person: Person
 ) -> None:
     keycloak_openid.introspect = mocked_privileged_token
-
     with DbSession() as session:
         session.add(person)
         session.commit()
@@ -140,6 +137,7 @@ def test_happy_path_existing_repo(client: TestClient, db_with_person_and_dataset
     """
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_get_repo_metadata(mocked_requests)
+        zenodo.mock_get_licenses(mocked_requests)
         zenodo.mock_update_metadata(mocked_requests)
         zenodo.mock_upload_file(mocked_requests, FILE1)
         zenodo.mock_get_draft_files(mocked_requests, [FILE1])
@@ -147,12 +145,10 @@ def test_happy_path_existing_repo(client: TestClient, db_with_person_and_dataset
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
             test_file = {"file": f}
             response = client.post(ENDPOINT, params=PARAMS_DRAFT, headers=HEADERS, files=test_file)
-
         assert response.status_code == status.HTTP_200_OK, response.json()
         assert response.json() == 1, response.json()
 
     response_json = client.get("datasets/v1/1").json()
-
     assert response_json["platform"] == "zenodo", response_json
     assert (
         response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
@@ -165,7 +161,6 @@ def db_with_person_and_dataset_with_dist(
     client: TestClient, mocked_privileged_token: Mock, body_with_dist: dict, person: Person
 ) -> None:
     keycloak_openid.introspect = mocked_privileged_token
-
     with DbSession() as session:
         session.add(person)
         session.commit()
@@ -183,6 +178,7 @@ def test_happy_path_existing_file(client: TestClient, db_with_person_and_dataset
 
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_get_repo_metadata(mocked_requests)
+        zenodo.mock_get_licenses(mocked_requests)
         zenodo.mock_update_metadata(mocked_requests)
         zenodo.mock_upload_file(mocked_requests, FILE2)
         zenodo.mock_get_draft_files(mocked_requests, [FILE1, FILE2])
@@ -190,12 +186,10 @@ def test_happy_path_existing_file(client: TestClient, db_with_person_and_dataset
         with open(path_test_resources() / "contents" / FILE2, "rb") as f:
             test_file = {"file": f}
             response = client.post(ENDPOINT, params=PARAMS_DRAFT, headers=HEADERS, files=test_file)
-
         assert response.status_code == status.HTTP_200_OK, response.json()
         assert response.json() == 1, response.json()
 
     response_json = client.get("datasets/v1/1").json()
-
     assert response_json["platform"] == "zenodo", response_json
     assert (
         response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
@@ -212,11 +206,11 @@ def test_happy_path_updating_an_existing_file(
     Test uploading a second file to zenodo with the same name.
     This must update the existing file.
     """
-
     updated_file_new_id = "new-fake-id"
 
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_get_repo_metadata(mocked_requests)
+        zenodo.mock_get_licenses(mocked_requests)
         zenodo.mock_update_metadata(mocked_requests)
         zenodo.mock_upload_file(mocked_requests, FILE1)
 
@@ -232,12 +226,10 @@ def test_happy_path_updating_an_existing_file(
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
             test_file = {"file": f}
             response = client.post(ENDPOINT, params=PARAMS_DRAFT, headers=HEADERS, files=test_file)
-
         assert response.status_code == status.HTTP_200_OK, response.json()
         assert response.json() == 1, response.json()
 
     response_json = client.get("datasets/v1/1").json()
-
     assert response_json["platform"] == "zenodo", response_json
     assert (
         response_json["platform_resource_identifier"] == f"zenodo.org:{zenodo.RESOURCE_ID}"
@@ -254,6 +246,7 @@ def test_happy_path_publishing(client: TestClient, db_with_person_and_empty_data
     """
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_create_repo(mocked_requests)
+        zenodo.mock_get_licenses(mocked_requests)
         zenodo.mock_upload_file(mocked_requests, FILE1)
         zenodo.mock_publish_resource(mocked_requests)
         zenodo.mock_get_published_files(mocked_requests, [FILE1])
@@ -263,12 +256,10 @@ def test_happy_path_publishing(client: TestClient, db_with_person_and_empty_data
             response = client.post(
                 ENDPOINT, params=PARAMS_PUBLISH, headers=HEADERS, files=test_file
             )
-
         assert response.status_code == status.HTTP_200_OK, response.json()
         assert response.json() == 1, response.json()
 
     response_json = client.get("datasets/v1/1").json()
-
     assert response_json["aiod_entry"]["status"] == "published", response_json
     assert (
         datetime.utcnow().strftime("%Y-%m-%dT%H:%M") in response_json["date_published"]
@@ -299,6 +290,7 @@ def test_attempt_to_upload_published_resource(
 
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_get_repo_metadata(mocked_requests, is_published=True)
+        zenodo.mock_get_licenses(mocked_requests)
 
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
             test_file = {"file": f}
@@ -351,7 +343,6 @@ def test_platform_name_conflict(
         ), response.json()
 
     response_json = client.get("datasets/v1/1").json()
-
     assert response_json["platform"] == "huggingface", response_json
     assert response_json["platform_resource_identifier"] == "fake-id", response_json
     assert response_json["distribution"] == []

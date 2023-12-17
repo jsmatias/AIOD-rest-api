@@ -14,6 +14,7 @@ import responses
 BASE_URL = "https://zenodo.org/api/deposit/depositions"
 REPO_URL = "https://zenodo.org/api/files/fake-bucket-id00"
 RECORDS_URL = "https://zenodo.org/api/records"
+LICENSES_URL = "https://zenodo.org/api/vocabularies/licenses?q=&tags=data"
 RESOURCE_ID = 100
 
 
@@ -33,6 +34,15 @@ def mock_get_repo_metadata(
         responses.GET,
         f"{BASE_URL}/{RESOURCE_ID}",
         json=record_response(is_published),
+        status=200,
+    )
+
+
+def mock_get_licenses(mocked_requests: responses.RequestsMock) -> None:
+    mocked_requests.add(
+        responses.GET,
+        LICENSES_URL,
+        json={"hits": {"hits": [{"id": "a-valid-license-id"}]}},
         status=200,
     )
 
@@ -95,9 +105,9 @@ def publish_response() -> dict:
     return response
 
 
-def files_response(*filenames: str, is_published: bool = False) -> list[dict]:
+def files_metadata(*filenames: str, is_published: bool = False) -> list[dict]:
     f"""
-    Truncated reponse from zenodo when a request is made to the
+    Truncated metadata from zenodo when a request is made to the
     {'published' if is_published else 'draft'} repo url.
     """
     metadata: list[dict] = [
@@ -116,11 +126,17 @@ def files_response(*filenames: str, is_published: bool = False) -> list[dict]:
 
 
 def files_response_from_draft(*filenames) -> list[dict]:
-    response = files_response(*filenames)
+    """
+    Truncated reponse from zenodo when a request is made to the draft repo url.
+    """
+    response = files_metadata(*filenames)
     return response
 
 
 def files_response_from_published(*filenames: str) -> dict:
+    """
+    Truncated reponse from zenodo when a request is made to the published repo url.
+    """
     response = {}
-    response["entries"] = files_response(*filenames, is_published=True)
+    response["entries"] = files_metadata(*filenames, is_published=True)
     return response
