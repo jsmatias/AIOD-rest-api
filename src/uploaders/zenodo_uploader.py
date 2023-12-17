@@ -34,6 +34,7 @@ class ZenodoUploader(Uploader):
 
             self._validate_patform_name(platform_name, identifier)
             self._validate_repo_id(platform_resource_id)
+            self._validate_zenodo_license(dataset.license)
 
             metadata = self._generate_metadata(dataset)
             if platform_resource_id is None:
@@ -198,7 +199,7 @@ class ZenodoUploader(Uploader):
 
         return distribution
 
-    def _validate_zenodo_license(self, license: License | None) -> str:
+    def _validate_zenodo_license(self, license: License | None) -> None:
         """
         Checks if the provided license is valid for uploading content to Zenodo.
         """
@@ -219,7 +220,6 @@ class ZenodoUploader(Uploader):
                 "For details, refer to Zenodo API documentation: "
                 "https://developers.zenodo.org/#licenses.",
             )
-        return license.name
 
     def _generate_metadata(self, dataset: Dataset) -> dict:
         """
@@ -249,8 +249,6 @@ class ZenodoUploader(Uploader):
                     creator_formatted_name = creator.name
                 creator_names.append({"name": creator_formatted_name})
 
-        license = self._validate_zenodo_license(dataset.license)
-
         metadata = {
             "title": dataset.name,
             "version": dataset.version,
@@ -260,7 +258,10 @@ class ZenodoUploader(Uploader):
             "keywords": [kw.name for kw in dataset.keyword],
             "method": dataset.measurement_technique,
             "access_right": f"{'open' if dataset.is_accessible_for_free else 'closed'}",
-            "license": license,
+            # The if clause for license was included just to avoid error during type checking.
+            # Its validation is done at the begining of the handle_upload method and
+            # it won't be None here.
+            "license": dataset.license.name if dataset.license else None,
         }
 
         return metadata
