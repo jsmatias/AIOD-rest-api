@@ -2,6 +2,7 @@
     Generates mocked responses for zenodo endpoints.
     - POST to BASE_URL: Creates an empty record
     - GET to BASE_URL/RESOURCE_ID: Gets the info of the record.
+    - GET to LICENSES_URL: Gets a list of valid licenses to upload content on Zenodo
     - PUT to BASE_URL/REOURCE_ID: Updates metadata
     - PUT to REPO_URL/FILE_NAME: Uploads a file
     - POST to BASE_URL/REOURCE_ID/actions/publish: Publishes the dataset with all content
