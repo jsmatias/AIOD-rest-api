@@ -96,8 +96,8 @@ class Contact(ContactBase, AIoDConcept, table=True):  # type: ignore [call-arg]
         return self.name
 
     @classmethod
-    def constraints(cls) -> list:
-        return [
+    def table_arguments(cls) -> list:
+        return super().table_arguments() + [
             CheckConstraint(
                 "NOT(person_identifier IS NOT NULL AND organisation_identifier IS NOT NULL)",
                 name="contact_person_and_organisation_not_both_filled",

@@ -88,7 +88,9 @@ class AIoDConcept(AIoDConceptBase):
         )
 
     @classmethod
-    def constraints(cls) -> list:
+    def table_arguments(cls) -> list:
+        """This function can be implemented by children of this class, to add additional table
+        arguments"""
         return []
 
     @declared_attr
@@ -106,4 +108,4 @@ class AIoDConcept(AIoDConceptBase):
                 name=f"{cls.__name__}_platform_xnor_platform_id_null",
             ),
             CheckConstraint(CONSTRAINT_LOWERCASE, name=f"{cls.__name__}_platform_lowercase"),
-        ) + tuple(cls.constraints())
+        ) + tuple(cls.table_arguments())
