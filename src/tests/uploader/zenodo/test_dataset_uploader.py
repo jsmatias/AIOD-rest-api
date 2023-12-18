@@ -306,7 +306,7 @@ def test_attempt_to_upload_published_resource(
             "This resource is already public and "
             "can't be edited with this endpoint. "
             "You can access and modify it at "
-            f"{zenodo.RECORDS_URL}/{zenodo.RESOURCE_ID}"
+            f"{zenodo.HTML_URL}/{zenodo.RESOURCE_ID}"
         ], response.json()
 
     response_json = client.get("datasets/v1/1").json()

@@ -16,6 +16,7 @@ BASE_URL = "https://zenodo.org/api/deposit/depositions"
 REPO_URL = "https://zenodo.org/api/files/fake-bucket-id00"
 RECORDS_URL = "https://zenodo.org/api/records"
 LICENSES_URL = "https://zenodo.org/api/vocabularies/licenses?q=&tags=data"
+HTML_URL = "https://zenodo.org/records"
 RESOURCE_ID = 100
 
 
@@ -34,7 +35,7 @@ def mock_get_repo_metadata(
     mocked_requests.add(
         responses.GET,
         f"{BASE_URL}/{RESOURCE_ID}",
-        json=record_response(is_published),
+        json=record_response(),
         status=200,
     )
 
@@ -93,10 +94,10 @@ def mock_get_published_files(mocked_requests: responses.RequestsMock, files: lis
     )
 
 
-def record_response(is_published: bool = False) -> dict:
+def record_response() -> dict:
     response = {
         "id": RESOURCE_ID,
-        "links": {"bucket": REPO_URL, "record": f"{RECORDS_URL}/{RESOURCE_ID}"},
+        "links": {"bucket": REPO_URL, "html": f"{HTML_URL}/{RESOURCE_ID}"},
     }
     return response
 

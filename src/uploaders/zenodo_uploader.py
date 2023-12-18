@@ -55,7 +55,7 @@ class ZenodoUploader(Uploader):
                         detail=(
                             "This resource is already public and can't be edited with this "
                             "endpoint. You can access and modify it at "
-                            f"{zenodo_metadata['links']['record']}",
+                            f"{zenodo_metadata['links']['html']}",
                         ),
                     )
                 self._update_zenodo_metadata(metadata)
