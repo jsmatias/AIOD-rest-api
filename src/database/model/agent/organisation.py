@@ -68,3 +68,7 @@ class Organisation(OrganisationBase, Agent, table=True):  # type: ignore [call-a
             deserializer=FindByIdentifierDeserializerList(AgentTable),
             default_factory_pydantic=list,
         )
+
+
+deserializer = FindByIdentifierDeserializer(Organisation)
+Contact.RelationshipConfig.organisation.deserializer = deserializer  # type: ignore

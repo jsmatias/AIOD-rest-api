@@ -83,7 +83,13 @@ class FindByIdentifierDeserializer(DeSerializer[SQLModel]):
                 "FindByIdentifierDeserializerList instead?"
             )
         existing = FindByIdentifierDeserializer.deserialize_ids(self.clazz, session, [input_])
-        (single_result,) = existing
+        try:
+            (single_result,) = existing
+        except ValueError as e:
+            raise HTTPException(
+                status_code=HTTP_404_NOT_FOUND,
+                detail=f"Could not find {self.clazz.__name__} with identifier {input_}.",
+            ) from e
         return single_result
 
     @staticmethod
@@ -94,8 +100,8 @@ class FindByIdentifierDeserializer(DeSerializer[SQLModel]):
         if any(ids_not_found):
             raise HTTPException(
                 status_code=HTTP_404_NOT_FOUND,
-                detail=f"Nested object with identifiers "
-                f"{', '.join([str(i) for i in ids_not_found])} not found",
+                detail=f"Could not find {clazz.__name__} with identifiers "
+                f"{', '.join([str(i) for i in ids_not_found])}.",
             )
         return existing
 
