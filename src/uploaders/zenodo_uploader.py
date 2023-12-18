@@ -1,10 +1,13 @@
 from datetime import datetime
 import io
 import json
+from typing import Optional
 import requests
 
 from fastapi import UploadFile, HTTPException, status
+from database.model.agent.contact import Contact
 from database.model.ai_asset.license import License
+from database.model.ai_resource.text import TextORM
 
 from database.model.concept.status import Status
 from database.model.dataset.dataset import Dataset
@@ -34,9 +37,9 @@ class ZenodoUploader(Uploader):
 
             self._validate_patform_name(platform_name, identifier)
             self._validate_repo_id(platform_resource_id)
-            self._validate_zenodo_license(dataset.license)
 
-            metadata = self._generate_metadata(dataset)
+            metadata = self._generate_metadata(dataset, publish)
+
             if platform_resource_id is None:
                 zenodo_metadata = self._create_repo(metadata)
                 self.repo_id = zenodo_metadata["id"]
@@ -76,6 +79,39 @@ class ZenodoUploader(Uploader):
             self._store_resource_updated(session, dataset, *distribution, update_all=True)
 
             return dataset.identifier
+
+    def _generate_metadata(self, dataset: Dataset, publish: bool) -> dict:
+        """
+        Generates metadata as a dictionary based on the data from the dataset model.
+        """
+
+        if not dataset.name:
+            msg = "A 'name' of the dataset is required."
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+
+        if publish and not (dataset.is_accessible_for_free):
+            msg = (
+                "To publish the dataset on zenodo, you must set the field "
+                "'is_accessible_for_free' as `True`"
+            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+
+        description = self._get_and_validate_description(dataset.description)
+        creator_names = self._get_and_validate_creators(dataset.creator, publish)
+        license_id = self._get_and_validate_license(dataset.license)
+
+        metadata = {
+            "title": dataset.name,
+            "version": dataset.version,
+            "description": description,
+            "upload_type": "dataset",
+            "creators": creator_names,
+            "keywords": [kw.name for kw in dataset.keyword],
+            "method": dataset.measurement_technique,
+            "access_right": f"{'open' if dataset.is_accessible_for_free else 'closed'}",
+            "license": license_id,
+        }
+        return metadata
 
     def _create_repo(self, metadata: dict) -> dict:
         """
@@ -189,7 +225,7 @@ class ZenodoUploader(Uploader):
                 "platform": "zenodo",
                 "platform_resource_identifier": file["file_id" if public_url else "id"],
                 "checksum": file["checksum"].split(":")[-1] if public_url else file["checksum"],
-                "checksum_algorithm": file["checksum"].split(":")[0] if public_url else "md5",
+                "checksum_algorithm": "md5",
                 "content_url": file["links"]["content" if public_url else "download"],
                 "content_size_kb": round(file["size" if public_url else "filesize"] / 1000),
                 "name": file["key" if public_url else "filename"],
@@ -199,7 +235,7 @@ class ZenodoUploader(Uploader):
 
         return distribution
 
-    def _validate_zenodo_license(self, license: License | None) -> None:
+    def _get_and_validate_license(self, license: License | None) -> str:
         """
         Checks if the provided license is valid for uploading content to Zenodo.
         """
@@ -213,58 +249,55 @@ class ZenodoUploader(Uploader):
 
         valid_license_ids: list[str] = [item["id"] for item in res.json()["hits"]["hits"]]
         if (license is None) or (license.name not in valid_license_ids):
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="License must be one of the following license identifiers allowed "
+            msg = (
+                "License must be one of the following license identifiers allowed "
                 "to upload data on Zenodo: " + ", ".join(valid_license_ids) + ". "
                 "For details, refer to Zenodo API documentation: "
-                "https://developers.zenodo.org/#licenses.",
+                "https://developers.zenodo.org/#licenses."
             )
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=msg)
 
-    def _generate_metadata(self, dataset: Dataset) -> dict:
-        """
-        Generates metadata as a dictionary based on the data from the dataset model.
-        """
+        return license.name
 
-        description = None
-        if dataset.description:
-            if dataset.description.html:
-                description = (
-                    dataset.description.html + "<p><strong>Created from AIOD platform.</strong></p>"
-                )
-            elif dataset.description.plain:
-                description = dataset.description.plain + "\nCreated from AIOD platform."
+    def _get_and_validate_description(self, description: TextORM | None) -> str:
+        if description and description.html:
+            desc = description.html + "<p><strong>Created from AIOD platform.</strong></p>"
+        elif description and description.plain:
+            desc = description.plain + "\nCreated from AIOD platform."
 
-        creator_names = None
-        if dataset.creator:
-            creator_names = []
-            for creator in dataset.creator:
-                if creator.person and creator.person.given_name and creator.person.surname:
-                    creator_formatted_name: str | None = ", ".join(
-                        [creator.person.surname, creator.person.given_name]
-                    )
-                elif creator.person and creator.person.name:
-                    creator_formatted_name = creator.person.name
-                else:
-                    creator_formatted_name = creator.name
-                creator_names.append({"name": creator_formatted_name})
+        else:
+            msg = "Provide a description for this dataset, either as html or as plain text."
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
 
-        metadata = {
-            "title": dataset.name,
-            "version": dataset.version,
-            "description": description,
-            "upload_type": "dataset",
-            "creators": creator_names,
-            "keywords": [kw.name for kw in dataset.keyword],
-            "method": dataset.measurement_technique,
-            "access_right": f"{'open' if dataset.is_accessible_for_free else 'closed'}",
-            # The if clause for license was included just to avoid error during type checking.
-            # Its validation is done at the begining of the handle_upload method and
-            # it won't be None here.
-            "license": dataset.license.name if dataset.license else None,
-        }
+        return desc
 
-        return metadata
+    def _get_and_validate_creators(
+        self, creators: list[Contact], publish: bool
+    ) -> list[Optional[dict[str, str]]]:
+        creator_names: list[Optional[dict[str, str]]] = []
+        for contact in creators:
+            if contact.person and contact.person.given_name and contact.person.surname:
+                name: str | None = ", ".join([contact.person.surname, contact.person.given_name])
+            elif contact.person and contact.person.name:
+                name = contact.person.name
+            elif contact.organisation and contact.organisation.name:
+                name = contact.organisation.name
+            else:
+                name = contact.name
+            if name:
+                creator_names.append({"name": name})
+
+        if publish and (not creator_names):
+            msg = (
+                "The dataset must have the name of at least one contact. "
+                "Please provide either the person's given name and surname "
+                "or the organization name. If given name and surname are not provided, "
+                "the API will attempt to retrieve the name from the fields person.name, "
+                "organization.name, and contact.name, in this order."
+            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+
+        return creator_names
 
 
 def _wrap_bad_gateway_error(msg: str, status_code: int):

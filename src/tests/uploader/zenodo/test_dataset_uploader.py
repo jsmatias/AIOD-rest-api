@@ -10,7 +10,9 @@ from fastapi import status
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
+from database.model.agent.contact import Contact
 from database.model.agent.person import Person
+
 from database.model.platform.platform_names import PlatformName
 from database.session import DbSession
 
@@ -38,7 +40,7 @@ def distribution_from_zenodo(*filenames: str, is_published: bool = False) -> lis
             "platform": "zenodo",
             "platform_resource_identifier": file["file_id" if is_published else "id"],
             "checksum": file["checksum"].split(":")[-1] if is_published else file["checksum"],
-            "checksum_algorithm": file["checksum"].split(":")[0] if is_published else "md5",
+            "checksum_algorithm": "md5",
             "content_url": file["links"]["content" if is_published else "download"],
             "content_size_kb": round(file["size" if is_published else "filesize"] / 1000),
             "name": file["key" if is_published else "filename"],
@@ -49,12 +51,25 @@ def distribution_from_zenodo(*filenames: str, is_published: bool = False) -> lis
 
 
 @pytest.fixture
+def db_with_person_and_contact(mocked_privileged_token: Mock, person: Person, contact: Contact):
+    keycloak_openid.introspect = mocked_privileged_token
+    with DbSession() as session:
+        person.name = "full name"
+        person.given_name = "Alice"
+        person.surname = "Lewis"
+        contact.person = person
+        session.add(contact)
+        session.commit()
+
+
+@pytest.fixture
 def body_empty(body_asset: dict) -> dict:
     body = copy.deepcopy(body_asset)
     body["platform"] = None
     body["platform_resource_identifier"] = None
     body["license"] = "a-valid-license-id"
     body["distribution"] = []
+    body["creator"] = [1]
     return body
 
 
@@ -73,24 +88,16 @@ def body_with_dist(body_no_dist: dict) -> dict:
     return body
 
 
-@pytest.fixture
-def db_with_person_and_empty_dataset(
-    client: TestClient, mocked_privileged_token: Mock, body_empty: dict, person: Person
-) -> None:
-    keycloak_openid.introspect = mocked_privileged_token
-    with DbSession() as session:
-        session.add(person)
-        session.commit()
-
-    response = client.post("/datasets/v1", json=body_empty, headers={"Authorization": "Fake token"})
-    assert response.status_code == status.HTTP_200_OK, response.json()
-
-
-def test_happy_path_creating_repo(client: TestClient, db_with_person_and_empty_dataset: None):
+def test_happy_path_creating_repo(
+    client: TestClient, body_empty: dict, db_with_person_and_contact: None
+):
     """
     Test the successful path for creating a new repository on Zenodo before uploading a file.
     The creation of a new repo must be triggered when platform_resource_identifier is None.
     """
+    response = client.post("/datasets/v1", json=body_empty, headers={"Authorization": "Fake token"})
+    assert response.status_code == status.HTTP_200_OK, response.json()
+
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_create_repo(mocked_requests)
         zenodo.mock_get_licenses(mocked_requests)
@@ -114,27 +121,19 @@ def test_happy_path_creating_repo(client: TestClient, db_with_person_and_empty_d
     assert response_json["distribution"] == distribution_from_zenodo(FILE1), response_json
 
 
-@pytest.fixture
-def db_with_person_and_dataset_no_dist(
-    client: TestClient, mocked_privileged_token: Mock, body_no_dist: dict, person: Person
-) -> None:
-    keycloak_openid.introspect = mocked_privileged_token
-    with DbSession() as session:
-        session.add(person)
-        session.commit()
-
-    response = client.post(
-        "/datasets/v1", json=body_no_dist, headers={"Authorization": "Fake token"}
-    )
-    assert response.status_code == status.HTTP_200_OK, response.json()
-
-
-def test_happy_path_existing_repo(client: TestClient, db_with_person_and_dataset_no_dist: None):
+def test_happy_path_existing_repo(
+    client: TestClient, body_with_dist: dict, db_with_person_and_contact: None
+):
     """
     Test the successful path for an existing repository on Zenodo.
     When the platform_resource_identifier is not None (zenodo.org:int) the code should
     get metadata and url of the existing repo, then upload a file.
     """
+    response = client.post(
+        "/datasets/v1", json=body_with_dist, headers={"Authorization": "Fake token"}
+    )
+    assert response.status_code == status.HTTP_200_OK, response.json()
+
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_get_repo_metadata(mocked_requests)
         zenodo.mock_get_licenses(mocked_requests)
@@ -156,25 +155,16 @@ def test_happy_path_existing_repo(client: TestClient, db_with_person_and_dataset
     assert response_json["distribution"] == distribution_from_zenodo(FILE1), response_json
 
 
-@pytest.fixture
-def db_with_person_and_dataset_with_dist(
-    client: TestClient, mocked_privileged_token: Mock, body_with_dist: dict, person: Person
-) -> None:
-    keycloak_openid.introspect = mocked_privileged_token
-    with DbSession() as session:
-        session.add(person)
-        session.commit()
-
+def test_happy_path_existing_file(
+    client: TestClient, body_with_dist: dict, db_with_person_and_contact: None
+):
+    """
+    Test uploading a second file to zenodo.
+    """
     response = client.post(
         "/datasets/v1", json=body_with_dist, headers={"Authorization": "Fake token"}
     )
     assert response.status_code == status.HTTP_200_OK, response.json()
-
-
-def test_happy_path_existing_file(client: TestClient, db_with_person_and_dataset_with_dist: None):
-    """
-    Test uploading a second file to zenodo.
-    """
 
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_get_repo_metadata(mocked_requests)
@@ -200,7 +190,7 @@ def test_happy_path_existing_file(client: TestClient, db_with_person_and_dataset
 
 
 def test_happy_path_updating_an_existing_file(
-    client: TestClient, db_with_person_and_dataset_with_dist: None
+    client: TestClient, body_with_dist: dict, db_with_person_and_contact: None
 ):
     """
     Test uploading a second file to zenodo with the same name.
@@ -208,6 +198,10 @@ def test_happy_path_updating_an_existing_file(
     """
     updated_file_new_id = "new-fake-id"
 
+    response = client.post(
+        "/datasets/v1", json=body_with_dist, headers={"Authorization": "Fake token"}
+    )
+    assert response.status_code == status.HTTP_200_OK, response.json()
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_get_repo_metadata(mocked_requests)
         zenodo.mock_get_licenses(mocked_requests)
@@ -239,11 +233,16 @@ def test_happy_path_updating_an_existing_file(
     assert response_json["distribution"] == expected_updated_dist, response_json
 
 
-def test_happy_path_publishing(client: TestClient, db_with_person_and_empty_dataset: None):
+def test_happy_path_publishing(
+    client: TestClient, body_empty: dict, db_with_person_and_contact: None
+):
     """
     Test publishing the resource on Zenodo after uploading a file.
     The URL of the content should not be empty
     """
+    response = client.post("/datasets/v1", json=body_empty, headers={"Authorization": "Fake token"})
+    assert response.status_code == status.HTTP_200_OK, response.json()
+
     with responses.RequestsMock() as mocked_requests:
         zenodo.mock_create_repo(mocked_requests)
         zenodo.mock_get_licenses(mocked_requests)
@@ -270,6 +269,7 @@ def test_attempt_to_upload_published_resource(
     client: TestClient,
     mocked_privileged_token: Mock,
     body_no_dist: dict,
+    contact: Contact,
     person: Person,
 ):
     """
@@ -283,8 +283,11 @@ def test_attempt_to_upload_published_resource(
 
     keycloak_openid.introspect = mocked_privileged_token
     with DbSession() as session:
-        session.add(person)
+        person.name = "Alice Lewis"
+        contact.person = person
+        session.add(contact)
         session.commit()
+
     response = client.post("/datasets/v1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == status.HTTP_200_OK, response.json()
 
@@ -315,6 +318,7 @@ def test_platform_name_conflict(
     mocked_privileged_token: Mock,
     body_empty: dict,
     person: Person,
+    contact: Contact,
 ):
     """
     Test error handling on the attempt to upload a dataset with a platform name
@@ -327,7 +331,8 @@ def test_platform_name_conflict(
 
     keycloak_openid.introspect = mocked_privileged_token
     with DbSession() as session:
-        session.add(person)
+        contact.person = person
+        session.add(contact)
         session.commit()
     response = client.post("/datasets/v1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == status.HTTP_200_OK, response.json()
@@ -346,3 +351,38 @@ def test_platform_name_conflict(
     assert response_json["platform"] == "huggingface", response_json
     assert response_json["platform_resource_identifier"] == "fake-id", response_json
     assert response_json["distribution"] == []
+
+
+def test_fail_due_to_missing_contact_name(
+    client: TestClient,
+    mocked_privileged_token: Mock,
+    body_empty: dict,
+    person: Person,
+):
+    """
+    Test to attempt to publish a dataset without creator's name.
+    """
+    body = copy.deepcopy(body_empty)
+    body["creator"] = []
+
+    keycloak_openid.introspect = mocked_privileged_token
+    with DbSession() as session:
+        session.add(person)
+        session.commit()
+    response = client.post("/datasets/v1", json=body, headers={"Authorization": "Fake token"})
+    assert response.status_code == status.HTTP_200_OK, response.json()
+
+    with responses.RequestsMock():
+        with open(path_test_resources() / "contents" / FILE1, "rb") as f:
+            test_file = {"file": f}
+            response = client.post(
+                ENDPOINT, params=PARAMS_PUBLISH, headers=HEADERS, files=test_file
+            )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST, response.json()
+        assert response.json()["detail"] == (
+            "The dataset must have the name of at least one contact. "
+            "Please provide either the person's given name and surname or the organization name. "
+            "If given name and surname are not provided, the API will attempt to retrieve the name "
+            "from the fields person.name, organization.name, and contact.name, in this order."
+        ), response.json()
