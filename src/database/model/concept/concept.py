@@ -87,11 +87,14 @@ class AIoDConcept(AIoDConceptBase):
             on_delete_trigger_deletion_by="aiod_entry_identifier",
         )
 
+    @classmethod
+    def table_arguments(cls) -> list:
+        """This function can be implemented by children of this class, to add additional table
+        arguments"""
+        return []
+
     @declared_attr
     def __table_args__(cls) -> Tuple:
-        # Note to developer: this will give problems if we'll add another child which has extra
-        # constraints, because this might lead to a duplicate check constraint name.
-        # TODO: solve it when this becomes a problem.
         return (
             Index(
                 f"{cls.__name__}_same_platform_and_platform_id",
@@ -105,4 +108,4 @@ class AIoDConcept(AIoDConceptBase):
                 name=f"{cls.__name__}_platform_xnor_platform_id_null",
             ),
             CheckConstraint(CONSTRAINT_LOWERCASE, name=f"{cls.__name__}_platform_lowercase"),
-        )
+        ) + tuple(cls.table_arguments())

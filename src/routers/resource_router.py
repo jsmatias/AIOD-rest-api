@@ -603,6 +603,9 @@ class ResourceRouter(abc.ABC):
                 "and vice versa."
             )
             status_code = status.HTTP_400_BAD_REQUEST
+        elif "contact_person_and_organisation_not_both_filled" in error:
+            error_msg = "Person and organisation cannot be both filled."
+            status_code = status.HTTP_400_BAD_REQUEST
         elif "constraint failed" in error:
             error_msg = error.split("constraint failed: ")[-1]
             status_code = status.HTTP_400_BAD_REQUEST
