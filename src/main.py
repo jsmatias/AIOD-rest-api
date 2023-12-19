@@ -96,7 +96,10 @@ def create_app() -> FastAPI:
         openapi_url=f"{args.url_prefix}/openapi.json",
         docs_url=f"{args.url_prefix}/docs",
         title="AIoD Metadata Catalogue",
-        description="This is the Swagger documentation of the AIoD Metadata Catalogue.",
+        description="This is the Swagger documentation of the AIoD Metadata Catalogue. For the "
+        "Changelog, refer to "
+        '<a href="https://github.com/aiondemand/AIOD-rest-api/releases">https'
+        "://github.com/aiondemand/AIOD-rest-api/releases</a>.",
         version=pyproject_toml.version,
         swagger_ui_oauth2_redirect_url=f"{args.url_prefix}/docs/oauth2-redirect",
         swagger_ui_init_oauth={

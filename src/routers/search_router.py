@@ -1,5 +1,5 @@
 import abc
-from typing import TypeVar, Generic, Any, Type, Literal
+from typing import TypeVar, Generic, Any, Type, Literal, Annotated, TypeAlias
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -67,7 +67,7 @@ class SearchRouter(Generic[RESOURCE], abc.ABC):
     def create(self, url_prefix: str) -> APIRouter:
         router = APIRouter()
         read_class = resource_read(self.resource_class)  # type: ignore
-        indexed_fields = Literal[tuple(self.indexed_fields)]  # type: ignore
+        indexed_fields: TypeAlias = Literal[tuple(self.indexed_fields)]  # type: ignore
 
         @router.get(
             f"{url_prefix}/search/{self.resource_name_plural}/v1",
@@ -76,32 +76,38 @@ class SearchRouter(Generic[RESOURCE], abc.ABC):
             # response_model=SearchResult[read_class],  # This gives errors, so not used.
         )
         def search(
-            search_query: str = Query(
-                ...,
-                description="Text you wish to find. It is used in an ElasticSearch match " "query.",
-                examples=["Name of the resource"],
-            ),
-            search_fields: list[indexed_fields]  # type: ignore
-            | None = Query(
-                description="Search in these fields. If empty, the query will be matched "
-                "against all fields. Do not use the '--' option in Swagger, it is a Swagger "
-                "artifact.",
-                default=None,
-            ),
-            platforms: list[str]
-            | None = Query(
-                description="Search for resources of these platforms. If empty, results from "
-                "all platforms will be returned.",
-                examples=["huggingface", "openml"],
-                default=None,
-            ),
-            limit: int = Query(ge=1, le=LIMIT_MAX, default=10),
-            offset: int = Query(ge=0, default=0),
-            get_all: bool = Query(
-                description="If true, a request to the database is made to retrieve all data. "
-                "If false, only the indexed information is returned.",
-                default=False,
-            ),
+            search_query: Annotated[
+                str,
+                Query(
+                    description="The text to find. It is used in an ElasticSearch match query.",
+                    examples=["Name of the resource"],
+                ),
+            ],
+            search_fields: Annotated[
+                list[indexed_fields] | None,
+                Query(
+                    description="Search in these fields. If empty, the query will be matched "
+                    "against all fields. Do not use the '--' option in Swagger, it is a Swagger "
+                    "artifact.",
+                ),
+            ] = None,
+            platforms: Annotated[
+                list[str] | None,
+                Query(
+                    description="Search for resources of these platforms. If empty, results from "
+                    "all platforms will be returned.",
+                    examples=["huggingface", "openml"],
+                ),
+            ] = None,
+            limit: Annotated[int, Query(ge=1, le=LIMIT_MAX)] = 10,
+            offset: Annotated[int, Query(ge=0)] = 0,
+            get_all: Annotated[
+                bool,
+                Query(
+                    description="If true, a request to the database is made to retrieve all data. "
+                    "If false, only the indexed information is returned.",
+                ),
+            ] = False,
         ):
             try:
                 with DbSession() as session:

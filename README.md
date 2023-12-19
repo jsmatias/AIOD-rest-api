@@ -55,8 +55,7 @@ following figure:
 
 For development:
 - `Python3.11` with `python3.11-dev` (`sudo apt install python3.11-dev` on Debian)
-- Additional 'mysqlclient' dependencies. Please have a look at [their installation instructions]
-  (https://github.com/PyMySQL/mysqlclient#install).
+- Additional 'mysqlclient' dependencies. Please have a look at [their installation instructions](https://github.com/PyMySQL/mysqlclient#install).
 
 ## Production environment
 
