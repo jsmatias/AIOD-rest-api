@@ -1,11 +1,10 @@
 from typing import Annotated
 
-import requests
 from fastapi import APIRouter, HTTPException, status, Path
-from fastapi.responses import Response
+from fastapi.responses import RedirectResponse
 
 from database.model.ai_asset.ai_asset import AIAsset
-from .resource_router import ResourceRouter, _wrap_as_http_exception
+from .resource_router import ResourceRouter
 
 
 class ResourceAIAssetRouter(ResourceRouter):
@@ -82,25 +81,17 @@ class ResourceAIAssetRouter(ResourceRouter):
                     detail="Distribution index out of range.",
                 )
 
-            try:
-                url = distributions[distribution_idx].content_url
-                encoding_format = distributions[distribution_idx].encoding_format
-                filename = distributions[distribution_idx].name
+            url = distributions[distribution_idx].content_url
+            encoding_format = distributions[distribution_idx].encoding_format
+            filename = distributions[distribution_idx].name
 
-                response = requests.get(url)
-                content = response.content
-                headers = {
-                    "Content-Disposition": (
-                        "attachment; " f"filename={filename or url.split('/')[-1]}"
-                    )
-                }
-                if encoding_format:
-                    headers["Content-Type"] = encoding_format
+            headers = {
+                "Content-Disposition": ("attachment; " f"filename={filename or url.split('/')[-1]}")
+            }
+            if encoding_format:
+                headers["Content-Type"] = encoding_format
 
-                return Response(content=content, headers=headers)
-
-            except Exception as exc:
-                raise _wrap_as_http_exception(exc)
+            return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER, headers=headers)
 
         def get_resource_content_default(
             identifier: Annotated[
