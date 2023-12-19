@@ -66,3 +66,15 @@ def test_post_duplicate_email(
     contact = client.get("/contacts/v1/2").json()
     msg = "changing emails of contact 1 should not change emails of contact 2."
     assert set(contact["email"]) == {"b@example.com", "c@example.com"}, msg
+
+
+def test_person_and_organisation_both_specified(client: TestClient, mocked_privileged_token):
+    keycloak_openid.introspect = mocked_privileged_token
+    headers = {"Authorization": "Fake token"}
+    client.post("/persons/v1", json={"name": "test person"}, headers=headers)
+    client.post("/organisations/v1", json={"name": "test organisation"}, headers=headers)
+
+    body = {"person": 1, "organisation": 1}
+    response = client.post("/contacts/v1", json=body, headers=headers)
+    assert response.status_code == 400, response.json()
+    assert response.json()["detail"] == "Person and organisation cannot be both filled."

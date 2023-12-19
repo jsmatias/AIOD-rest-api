@@ -51,6 +51,9 @@ class User(BaseModel):
     def has_role(self, role: str) -> bool:
         return role in self.roles
 
+    def has_any_role(self, *roles: str) -> bool:
+        return bool(set(roles) & self.roles)
+
 
 async def get_current_user(token=Security(oidc)) -> User:
     """

@@ -269,9 +269,9 @@ class ResourceRouter(abc.ABC):
         """
 
         def get_resource_count(
-            detailed: bool = Query(
-                description="If true, a more detailed output is returned.", default=False
-            )
+            detailed: Annotated[
+                bool, Query(description="If true, a more detailed output is returned.")
+            ] = False,
         ):
             try:
                 with DbSession() as session:
@@ -308,11 +308,14 @@ class ResourceRouter(abc.ABC):
         """
 
         def get_resources(
-            platform: str = Path(
-                description="Return resources of this platform",
-                example="huggingface",
-            ),
-            pagination: Pagination = Depends(Pagination),
+            platform: Annotated[
+                str,
+                Path(
+                    description="Return resources of this platform",
+                    example="huggingface",
+                ),
+            ],
+            pagination: Annotated[Pagination, Depends(Pagination)],
             schema: self._possible_schemas_type = "aiod",  # type:ignore
         ):
             resources = self.get_resources(pagination=pagination, schema=schema, platform=platform)
@@ -344,11 +347,19 @@ class ResourceRouter(abc.ABC):
         """
 
         def get_resource(
-            identifier: str,
-            platform: str = Path(
-                description="Return resources of this platform",
-                example="huggingface",
-            ),
+            identifier: Annotated[
+                str,
+                Path(
+                    description="The identifier under which the resource is known by the platform.",
+                ),
+            ],
+            platform: Annotated[
+                str,
+                Path(
+                    description="Return resources of this platform",
+                    example="huggingface",
+                ),
+            ],
             schema: self._possible_schemas_type = "aiod",  # type:ignore
         ):
             return self.get_resource(identifier=identifier, schema=schema, platform=platform)
@@ -367,10 +378,14 @@ class ResourceRouter(abc.ABC):
             resource_create: clz_create,  # type: ignore
             user: User = Depends(get_current_user),
         ):
-            if not user.has_role(KEYCLOAK_CONFIG.get("role")):
+            if not user.has_any_role(
+                KEYCLOAK_CONFIG.get("role"),
+                f"create_{self.resource_name_plural}",
+                f"crud_{self.resource_name_plural}",
+            ):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You do not have permission to edit Aiod resources.",
+                    detail=f"You do not have permission to create {self.resource_name_plural}.",
                 )
             try:
                 with DbSession() as session:
@@ -407,10 +422,14 @@ class ResourceRouter(abc.ABC):
             resource_create_instance: clz_create,  # type: ignore
             user: User = Depends(get_current_user),
         ):
-            if not user.has_role(KEYCLOAK_CONFIG.get("role")):
+            if not user.has_any_role(
+                KEYCLOAK_CONFIG.get("role"),
+                f"update_{self.resource_name_plural}",
+                f"crud_{self.resource_name_plural}",
+            ):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You do not have permission to edit Aiod resources.",
+                    detail=f"You do not have permission to edit {self.resource_name_plural}.",
                 )
 
             with DbSession() as session:
@@ -448,10 +467,14 @@ class ResourceRouter(abc.ABC):
             user: User = Depends(get_current_user),
         ):
             with DbSession() as session:
-                if not user.has_role(KEYCLOAK_CONFIG.get("role")):
+                if not user.has_any_role(
+                    KEYCLOAK_CONFIG.get("role"),
+                    f"delete_{self.resource_name_plural}",
+                    f"crud_{self.resource_name_plural}",
+                ):
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
-                        detail="You do not have permission to delete Aiod resources.",
+                        detail=f"You do not have permission to delete {self.resource_name_plural}.",
                     )
                 try:
                     # Raise error if it does not exist
@@ -579,6 +602,9 @@ class ResourceRouter(abc.ABC):
                 "If platform is NULL, platform_resource_identifier should also be NULL, "
                 "and vice versa."
             )
+            status_code = status.HTTP_400_BAD_REQUEST
+        elif "contact_person_and_organisation_not_both_filled" in error:
+            error_msg = "Person and organisation cannot be both filled."
             status_code = status.HTTP_400_BAD_REQUEST
         elif "constraint failed" in error:
             error_msg = error.split("constraint failed: ")[-1]
