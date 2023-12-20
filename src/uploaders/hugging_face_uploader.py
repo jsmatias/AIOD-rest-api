@@ -23,17 +23,10 @@ class HuggingfaceUploader(Uploader):
     def handle_upload(self, identifier: int, file: UploadFile, token: str, username: str):
         with DbSession() as session:
             dataset: Dataset = self._get_resource(session=session, identifier=identifier)
-            repo_id = dataset.platform_resource_identifier
 
-            self._validate_patform_name(dataset.platform, identifier)
-            if not repo_id:
-                # this if-statement is purely to make MyPy understand that the repo_id
-                # cannot be None. This is enforced by a CheckConstraint in the db,
-                # so this error will never be thrown.
-                msg = (
-                    "Every dataset with a platform should also have a platform_resource_identifier"
-                )
-                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=msg)
+            self._validate_platform_name(dataset.platform, identifier, allow_empty_name=False)
+
+            repo_id = dataset.platform_resource_identifier
             self._validate_repo_id(repo_id, username)
 
             url = self._create_or_get_repo_url(repo_id, token)

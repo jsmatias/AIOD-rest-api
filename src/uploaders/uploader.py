@@ -13,11 +13,13 @@ class Uploader(abc.ABC):
         self.platform_name = name
         self.repo_id_validator = repo_id_validator
 
-    def _validate_patform_name(self, name: str | None, identifier: int | None) -> None:
+    def _validate_platform_name(
+        self, name: str | None, identifier: int | None, allow_empty_name: bool = True
+    ) -> None:
         """
         Validates that the provided platform name matches the expected platform name.
         """
-        if (name is not None) and (name != self.platform_name):
+        if not ((name == self.platform_name) or (allow_empty_name and (name is None))):
             msg = (
                 f"The dataset with identifier {identifier} should have platform="
                 f"{self.platform_name}."

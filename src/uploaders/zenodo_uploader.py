@@ -35,7 +35,7 @@ class ZenodoUploader(Uploader):
             platform_resource_id = dataset.platform_resource_identifier
             platform_name = dataset.platform
 
-            self._validate_patform_name(platform_name, identifier)
+            self._validate_platform_name(platform_name, identifier)
             self._validate_repo_id(platform_resource_id)
 
             metadata = self._generate_metadata(dataset, publish)
@@ -235,7 +235,7 @@ class ZenodoUploader(Uploader):
 
         return distribution
 
-    def _get_and_validate_license(self, license: License | None) -> str:
+    def _get_and_validate_license(self, license_: License | None) -> str:
         """
         Checks if the provided license is valid for uploading content to Zenodo.
         """
@@ -248,7 +248,7 @@ class ZenodoUploader(Uploader):
             _wrap_bad_gateway_error(msg, res.status_code)
 
         valid_license_ids: list[str] = [item["id"] for item in res.json()["hits"]["hits"]]
-        if (license is None) or (license.name not in valid_license_ids):
+        if (license_ is None) or (license_.name not in valid_license_ids):
             msg = (
                 "License must be one of the following license identifiers allowed "
                 "to upload data on Zenodo: " + ", ".join(valid_license_ids) + ". "
@@ -257,7 +257,7 @@ class ZenodoUploader(Uploader):
             )
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=msg)
 
-        return license.name
+        return license_.name
 
     def _get_and_validate_description(self, description: TextORM | None) -> str:
         if description and description.html:
