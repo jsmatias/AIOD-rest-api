@@ -44,9 +44,76 @@ def test_happy_path_new_repository(
             files=files,
         )
 
-    assert response.status_code == 200, response.json()
-    id_response = response.json()
-    assert id_response == 1
+        assert response.status_code == 200, response.json()
+        id_response = response.json()
+        assert id_response == 1
+
+
+def test_happy_path_generating_repo_id(
+    client: TestClient, mocked_privileged_token: Mock, dataset: Dataset
+):
+    dataset = copy.deepcopy(dataset)
+    dataset.platform = None
+    dataset.platform_resource_identifier = None
+    dataset.name = "Repo Test Name 1"
+
+    keycloak_openid.introspect = mocked_privileged_token
+    with DbSession() as session:
+        session.add(dataset)
+        session.commit()
+
+    with open(path_test_resources() / "uploaders" / "huggingface" / "example.csv", "rb") as f:
+        files = {"file": f.read()}
+
+    with responses.RequestsMock() as mocked_requests:
+        mocked_requests.add(
+            responses.POST,
+            "https://huggingface.co/api/repos/create",
+            json={"url": "url"},
+            status=200,
+        )
+        huggingface_hub.upload_file = Mock(return_value=None)
+        response = client.post(
+            "/upload/datasets/1/huggingface",
+            params={"username": "Fake-username", "token": "Fake-token"},
+            headers={"Authorization": "Fake token"},
+            files=files,
+        )
+
+        assert response.status_code == 200, response.json()
+        id_response = response.json()
+        assert id_response == 1
+
+
+def test_failed_generating_repo_id(
+    client: TestClient, mocked_privileged_token: Mock, dataset: Dataset
+):
+    dataset = copy.deepcopy(dataset)
+    dataset.platform = None
+    dataset.platform_resource_identifier = None
+    dataset.name = "Repo inv@lid name"
+
+    keycloak_openid.introspect = mocked_privileged_token
+    with DbSession() as session:
+        session.add(dataset)
+        session.commit()
+
+    with open(path_test_resources() / "uploaders" / "huggingface" / "example.csv", "rb") as f:
+        files = {"file": f.read()}
+
+    huggingface_hub.upload_file = Mock(return_value=None)
+    response = client.post(
+        "/upload/datasets/1/huggingface",
+        params={"username": "Fake-username", "token": "Fake-token"},
+        headers={"Authorization": "Fake token"},
+        files=files,
+    )
+
+    assert response.status_code == 400, response.json()
+    error_msg = response.json()["detail"]
+    assert (
+        "We derived an invalid HuggingFace identifier: Fake-username/Repo_inv@lid_name" in error_msg
+    )
 
 
 def test_repo_already_exists(client: TestClient, mocked_privileged_token: Mock, dataset: Dataset):
@@ -80,9 +147,9 @@ def test_repo_already_exists(client: TestClient, mocked_privileged_token: Mock, 
             headers={"Authorization": "Fake token"},
             files=files,
         )
-    assert response.status_code == 200, response.json()
-    id_response = response.json()
-    assert id_response == 1
+        assert response.status_code == 200, response.json()
+        id_response = response.json()
+        assert id_response == 1
 
 
 def test_wrong_platform(client: TestClient, mocked_privileged_token: Mock, dataset: Dataset):

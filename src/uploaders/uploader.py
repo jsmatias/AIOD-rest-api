@@ -13,28 +13,25 @@ class Uploader(abc.ABC):
         self.platform_name = name
         self.repo_id_validator = repo_id_validator
 
-    def _validate_platform_name(
-        self, name: str | None, identifier: int | None, allow_empty_name: bool = True
-    ) -> None:
+    def _validate_platform_name(self, name: str, identifier: int) -> None:
         """
         Validates that the provided platform name matches the expected platform name.
         """
-        if not ((name == self.platform_name) or (allow_empty_name and (name is None))):
+        if name != self.platform_name:
             msg = (
                 f"The dataset with identifier {identifier} should have platform="
                 f"{self.platform_name}."
             )
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
 
-    def _validate_repo_id(self, repo_id: str | None, *args: str) -> None:
+    def _validate_repo_id(self, repo_id: str, *args: str) -> None:
         """
         Validates a repository ID using a custom validator function.
         """
-        if repo_id is not None:
-            try:
-                self.repo_id_validator(repo_id, *args)
-            except ValueError as e:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.args[0])
+        try:
+            self.repo_id_validator(repo_id, *args)
+        except ValueError as e:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.args[0])
 
     def _get_resource(self, session: Session, identifier: int) -> Dataset:
         """

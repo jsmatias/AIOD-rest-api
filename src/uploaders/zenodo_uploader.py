@@ -32,20 +32,21 @@ class ZenodoUploader(Uploader):
         self.token = token
         with DbSession() as session:
             dataset = self._get_resource(session, identifier)
-            platform_resource_id = dataset.platform_resource_identifier
-            platform_name = dataset.platform
-
-            self._validate_platform_name(platform_name, identifier)
-            self._validate_repo_id(platform_resource_id)
-
             metadata = self._generate_metadata(dataset, publish)
 
+            dataset.platform = dataset.platform or PlatformName.zenodo
+            self._validate_platform_name(dataset.platform, identifier)
+
+            platform_resource_id = dataset.platform_resource_identifier
             if platform_resource_id is None:
                 zenodo_metadata = self._create_repo(metadata)
+
                 self.repo_id = zenodo_metadata["id"]
-                dataset.platform = PlatformName.zenodo
-                dataset.platform_resource_identifier = f"zenodo.org:{self.repo_id}"
+                platform_resource_id = f"zenodo.org:{self.repo_id}"
+                self._validate_repo_id(platform_resource_id)
+                dataset.platform_resource_identifier = platform_resource_id
             else:
+                self._validate_repo_id(platform_resource_id)
                 self.repo_id = platform_resource_id.split(":")[-1]
                 zenodo_metadata = self._get_metadata_from_zenodo()
 
@@ -113,7 +114,7 @@ class ZenodoUploader(Uploader):
             "creators": creator_names,
             "keywords": [kw.name for kw in dataset.keyword],
             "method": dataset.measurement_technique,
-            "access_right": f"{'open' if dataset.is_accessible_for_free else 'closed'}",
+            "access_right": "open" if dataset.is_accessible_for_free else "closed",
             "license": license_id,
         }
         return metadata
@@ -294,7 +295,7 @@ class ZenodoUploader(Uploader):
 
         if publish and (not creator_names):
             msg = (
-                "The dataset must have the name of at least one contact. "
+                "The dataset must have the name of at least one creator. "
                 "Please provide either the person's given name and surname "
                 "or the organization name. If given name and surname are not provided, "
                 "the API will attempt to retrieve the name from the fields person.name, "

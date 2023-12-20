@@ -335,7 +335,8 @@ def test_platform_name_conflict(
     response = client.post("/datasets/v1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == status.HTTP_200_OK, response.json()
 
-    with responses.RequestsMock():
+    with responses.RequestsMock() as mocked_request:
+        zenodo.mock_get_licenses(mocked_request)
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
             test_file = {"file": f}
             response = client.post(ENDPOINT, params=PARAMS_DRAFT, headers=HEADERS, files=test_file)
@@ -379,7 +380,7 @@ def test_fail_due_to_missing_contact_name(
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST, response.json()
         assert response.json()["detail"] == (
-            "The dataset must have the name of at least one contact. "
+            "The dataset must have the name of at least one creator. "
             "Please provide either the person's given name and surname or the organization name. "
             "If given name and surname are not provided, the API will attempt to retrieve the name "
             "from the fields person.name, organization.name, and contact.name, in this order."

@@ -24,10 +24,26 @@ class HuggingfaceUploader(Uploader):
         with DbSession() as session:
             dataset: Dataset = self._get_resource(session=session, identifier=identifier)
 
-            self._validate_platform_name(dataset.platform, identifier, allow_empty_name=False)
+            dataset.platform = dataset.platform or PlatformName.huggingface
+            self._validate_platform_name(dataset.platform, identifier)
+
+            if dataset.platform_resource_identifier is None:
+                generated_id = f"{username}/{dataset.name}".replace(" ", "_")
+                try:
+                    self._validate_repo_id(generated_id, username)
+                except HTTPException as exc:
+                    msg = (
+                        f"We derived an invalid HuggingFace identifier: {generated_id}. "
+                        "Fix this either by changing dataset.name or by adding a correct "
+                        f"dataset.platform_resource_identifier. {exc.detail}"
+                    )
+                    raise HTTPException(status_code=exc.status_code, detail=msg)
+
+                dataset.platform_resource_identifier = generated_id
+            else:
+                self._validate_repo_id(dataset.platform_resource_identifier, username)
 
             repo_id = dataset.platform_resource_identifier
-            self._validate_repo_id(repo_id, username)
 
             url = self._create_or_get_repo_url(repo_id, token)
             metadata_file = self._generate_metadata_file(dataset)
@@ -124,9 +140,9 @@ def _throw_error_on_invalid_repo_id(username: str, platform_resource_identifier:
     huggingface_validators.throw_error_on_invalid_identifier(platform_resource_identifier)
     if "/" not in platform_resource_identifier:
         msg = (
-            f"The username should be part of the platform_resource_identifier for HuggingFace: "
+            "The username should be part of the platform_resource_identifier for HuggingFace: "
             f"{username}/{platform_resource_identifier}. Please update the dataset "
-            f"platform_resource_identifier."
+            "platform_resource_identifier."
         )
         # In general, it's allowed in HuggingFace to have a dataset name without namespace. This
         # is legacy: "The legacy GitHub datasets were added originally on our GitHub repository
