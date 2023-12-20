@@ -63,6 +63,9 @@ For production environments elasticsearch recommends -Xss4G and -Xmx8G for the J
 This parameters can be defined in the .env file.
 See the [elasticsearch guide](https://www.elastic.co/guide/en/logstash/current/jvm-settings.html).
 
+For Keycloak, the `--http-enabled=true` and `--hostname-strict-https=false` should be omitted 
+from the docker-compose file.
+
 ## Installation
 
 This repository contains two systems; the database and the REST API.
