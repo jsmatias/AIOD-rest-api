@@ -2,7 +2,7 @@ import traceback
 from fastapi import HTTPException, status
 
 
-def _wrap_as_http_exception(exception: Exception) -> HTTPException:
+def as_http_exception(exception: Exception) -> HTTPException:
     if isinstance(exception, HTTPException):
         return exception
     traceback.print_exc()

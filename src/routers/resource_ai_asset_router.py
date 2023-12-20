@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, status, Path
 from fastapi.responses import Response
 
 from database.model.ai_asset.ai_asset import AIAsset
-from error_handlers import _wrap_as_http_exception
+from error_handling import as_http_exception
 from .resource_router import ResourceRouter
 
 
@@ -101,7 +101,7 @@ class ResourceAIAssetRouter(ResourceRouter):
                 return Response(content=content, headers=headers)
 
             except Exception as exc:
-                raise _wrap_as_http_exception(exc)
+                raise as_http_exception(exc)
 
         def get_resource_content_default(
             identifier: Annotated[

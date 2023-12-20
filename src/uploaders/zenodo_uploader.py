@@ -15,7 +15,7 @@ from database.model.platform.platform_names import PlatformName
 
 from database.session import DbSession
 from database.validators import zenodo_validators
-from error_handlers import _wrap_as_http_exception
+from error_handling import as_http_exception
 from uploaders.uploader import Uploader
 
 
@@ -125,7 +125,7 @@ class ZenodoUploader(Uploader):
                 json={"metadata": metadata},
             )
         except Exception as exc:
-            raise _wrap_as_http_exception(exc)
+            raise as_http_exception(exc)
 
         if res.status_code != status.HTTP_201_CREATED:
             msg = "Failed to create a new repo on Zenodo."
@@ -141,7 +141,7 @@ class ZenodoUploader(Uploader):
         try:
             res = requests.get(f"{self.BASE_URL}/{self.repo_id}", params=params)
         except Exception as exc:
-            raise _wrap_as_http_exception(exc)
+            raise as_http_exception(exc)
 
         if res.status_code != status.HTTP_200_OK:
             msg = "Failed to retrieve information from Zenodo."
@@ -162,7 +162,7 @@ class ZenodoUploader(Uploader):
                 headers=headers,
             )
         except Exception as exc:
-            raise _wrap_as_http_exception(exc)
+            raise as_http_exception(exc)
 
         if res.status_code != status.HTTP_200_OK:
             msg = "Failed to upload metadata to Zenodo."
@@ -178,7 +178,7 @@ class ZenodoUploader(Uploader):
                 f"{repo_url}/{file.filename}", data=io.BufferedReader(file.file), params=params
             )
         except Exception as exc:
-            raise _wrap_as_http_exception(exc)
+            raise as_http_exception(exc)
 
         if res.status_code != status.HTTP_201_CREATED:
             msg = "Failed to upload the file to zenodo."
@@ -192,7 +192,7 @@ class ZenodoUploader(Uploader):
         try:
             res = requests.post(f"{self.BASE_URL}/{self.repo_id}/actions/publish", params=params)
         except Exception as exc:
-            raise _wrap_as_http_exception(exc)
+            raise as_http_exception(exc)
 
         if res.status_code != status.HTTP_202_ACCEPTED:
             msg = "Failed to publish the dataset on zenodo."
@@ -210,7 +210,7 @@ class ZenodoUploader(Uploader):
         try:
             res = requests.get(f"{url}/files", params=params)
         except Exception as exc:
-            raise _wrap_as_http_exception(exc)
+            raise as_http_exception(exc)
 
         if res.status_code != status.HTTP_200_OK:
             msg = (
@@ -242,7 +242,7 @@ class ZenodoUploader(Uploader):
         try:
             res = requests.get("https://zenodo.org/api/vocabularies/licenses?q=&tags=data")
         except Exception as exc:
-            raise _wrap_as_http_exception(exc)
+            raise as_http_exception(exc)
         if res.status_code != status.HTTP_200_OK:
             msg = "Failed to get the list of valid licenses to upload content on Zenodo."
             _wrap_bad_gateway_error(msg, res.status_code)
