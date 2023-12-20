@@ -23,12 +23,13 @@ class ZenodoUploader(Uploader):
     BASE_URL = "https://zenodo.org/api/deposit/depositions"
 
     def __init__(self) -> None:
-        super().__init__(PlatformName.zenodo, zenodo_validators.throw_error_on_invalid_identifier)
+        self.platform_name = PlatformName.zenodo
 
-    def handle_upload(self, identifier: int, publish: bool, token: str, file: UploadFile):
+    def handle_upload(self, identifier: int, file: UploadFile, token: str, *args: bool) -> int:
         """
         Method to upload content to the Zenodo platform.
         """
+        publish = args[0]
         self.token = token
         with DbSession() as session:
             dataset = self._get_resource(session, identifier)
@@ -80,6 +81,10 @@ class ZenodoUploader(Uploader):
             self._store_resource_updated(session, dataset, *distribution, update_all=True)
 
             return dataset.identifier
+
+    @staticmethod
+    def _platform_resource_id_validator(platform_resource_identifier: str, *args) -> None:
+        return zenodo_validators.throw_error_on_invalid_identifier(platform_resource_identifier)
 
     def _generate_metadata(self, dataset: Dataset, publish: bool) -> dict:
         """

@@ -11,7 +11,7 @@ from authentication import keycloak_openid
 from database.model.dataset.dataset import Dataset
 from database.session import DbSession
 from tests.testutils.paths import path_test_resources
-from uploaders.hugging_face_uploader import _throw_error_on_invalid_repo_id
+from uploaders.hugging_face_uploader import HuggingfaceUploader
 
 
 def test_happy_path_new_repository(
@@ -231,8 +231,8 @@ def test_wrong_platform(client: TestClient, mocked_privileged_token: Mock, datas
 )
 def test_repo_id(username: str, dataset_name: str, expected_error: ValueError | None):
     if expected_error is None:
-        _throw_error_on_invalid_repo_id(username, dataset_name)
+        HuggingfaceUploader._platform_resource_id_validator(dataset_name, username)
     else:
         with pytest.raises(type(expected_error)) as exception_info:
-            _throw_error_on_invalid_repo_id(username, dataset_name)
+            HuggingfaceUploader._platform_resource_id_validator(dataset_name, username)
         assert exception_info.value.args[0] == expected_error.args[0]

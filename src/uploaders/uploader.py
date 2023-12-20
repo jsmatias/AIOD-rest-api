@@ -1,17 +1,26 @@
 import abc
-from collections.abc import Callable
 import datetime
+from typing import Any
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, UploadFile
 from sqlmodel import Session, select
 
 from database.model.dataset.dataset import Dataset
 
 
 class Uploader(abc.ABC):
-    def __init__(self, name: str, repo_id_validator: Callable[..., None]) -> None:
-        self.platform_name = name
-        self.repo_id_validator = repo_id_validator
+    platform_name: str
+
+    @abc.abstractmethod
+    def handle_upload(self, identifier: int, file: UploadFile, token: str, *args: Any) -> int:
+        """Handle upload of a file to the platform."""
+        ...
+
+    @staticmethod
+    @abc.abstractmethod
+    def _platform_resource_id_validator(platform_resource_identifier: str, *args: str) -> None:
+        """Validates a repository ID."""
+        ...
 
     def _validate_platform_name(self, name: str, identifier: int) -> None:
         """
@@ -29,7 +38,7 @@ class Uploader(abc.ABC):
         Validates a repository ID using a custom validator function.
         """
         try:
-            self.repo_id_validator(repo_id, *args)
+            self._platform_resource_id_validator(repo_id, *args)
         except ValueError as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.args[0])
 

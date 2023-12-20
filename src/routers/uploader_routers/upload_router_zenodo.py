@@ -63,6 +63,6 @@ class UploadRouterZenodo(UploaderRouter):
             - You can replace an existing file on Zenodo by uploading another one with same name.
 
             """
-            return zenodo_uploader.handle_upload(identifier, publish, token, file)
+            return zenodo_uploader.handle_upload(identifier, file, token, publish)
 
         return router
