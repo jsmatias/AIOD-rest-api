@@ -3,9 +3,9 @@
     - POST to BASE_URL: Creates an empty record
     - GET to BASE_URL/RESOURCE_ID: Gets the info of the record.
     - GET to LICENSES_URL: Gets a list of valid licenses to upload content on Zenodo
-    - PUT to BASE_URL/REOURCE_ID: Updates metadata
+    - PUT to BASE_URL/RESOURCE_ID: Updates metadata
     - PUT to REPO_URL/FILE_NAME: Uploads a file
-    - POST to BASE_URL/REOURCE_ID/actions/publish: Publishes the dataset with all content
+    - POST to BASE_URL/RESOURCE_ID/actions/publish: Publishes the dataset with all content
     - GET to BASE_URL/RESOURCE_ID/files: Gets the list of files in draft mode
     - GET to RECORDS_URL/RESOURCE_ID/files: Gets the list of published data
 """
@@ -76,7 +76,7 @@ def mock_publish_resource(mocked_requests: responses.RequestsMock) -> None:
     )
 
 
-def mock_get_draft_files(mocked_requests: responses.RequestsMock, files: list[str]) -> None:
+def mock_get_draft_files(mocked_requests: responses.RequestsMock, *files: str) -> None:
     mocked_requests.add(
         responses.GET,
         f"{BASE_URL}/{RESOURCE_ID}/files",
@@ -85,7 +85,7 @@ def mock_get_draft_files(mocked_requests: responses.RequestsMock, files: list[st
     )
 
 
-def mock_get_published_files(mocked_requests: responses.RequestsMock, files: list[str]) -> None:
+def mock_get_published_files(mocked_requests: responses.RequestsMock, *files: str) -> None:
     mocked_requests.add(
         responses.GET,
         f"{RECORDS_URL}/{RESOURCE_ID}/files",
@@ -112,10 +112,17 @@ def files_metadata(*filenames: str, is_published: bool = False) -> list[dict]:
     Truncated metadata from zenodo when a request is made to the
     {'published' if is_published else 'draft'} repo url.
     """
+
+    def fake_id(name):
+        zenodo_pattern = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        name = list(name.replace(".", ""))
+        file_id = "".join([name.pop() if (s != "-" and name) else s for s in zenodo_pattern])
+        return file_id
+
     metadata: list[dict] = [
         {
             "key" if is_published else "filename": name,
-            "file_id" if is_published else "id": f"123-{name}",
+            "file_id" if is_published else "id": fake_id(name),
             "checksum": f"{'md5:' if is_published else ''}12345abcd",
             "size" if is_published else "filesize": 20,
             "links": {"content": f"{RECORDS_URL}/{RESOURCE_ID}/files/{name}/content"}
@@ -129,7 +136,7 @@ def files_metadata(*filenames: str, is_published: bool = False) -> list[dict]:
 
 def files_response_from_draft(*filenames) -> list[dict]:
     """
-    Truncated reponse from zenodo when a request is made to the draft repo url.
+    Truncated response from zenodo when a request is made to the draft repo url.
     """
     response = files_metadata(*filenames)
     return response
@@ -137,7 +144,7 @@ def files_response_from_draft(*filenames) -> list[dict]:
 
 def files_response_from_published(*filenames: str) -> dict:
     """
-    Truncated reponse from zenodo when a request is made to the published repo url.
+    Truncated response from zenodo when a request is made to the published repo url.
     """
     response = {}
     response["entries"] = files_metadata(*filenames, is_published=True)

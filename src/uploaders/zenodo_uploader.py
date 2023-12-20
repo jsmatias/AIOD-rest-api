@@ -43,7 +43,7 @@ class ZenodoUploader(Uploader):
             if platform_resource_id is None:
                 zenodo_metadata = self._create_repo(metadata)
                 self.repo_id = zenodo_metadata["id"]
-                dataset.platform = "zenodo"
+                dataset.platform = PlatformName.zenodo
                 dataset.platform_resource_identifier = f"zenodo.org:{self.repo_id}"
             else:
                 self.repo_id = platform_resource_id.split(":")[-1]
@@ -222,7 +222,7 @@ class ZenodoUploader(Uploader):
         files_metadata = res.json()["entries"] if public_url else res.json()
         distribution = [
             {
-                "platform": "zenodo",
+                "platform": PlatformName.zenodo,
                 "platform_resource_identifier": file["file_id" if public_url else "id"],
                 "checksum": file["checksum"].split(":")[-1] if public_url else file["checksum"],
                 "checksum_algorithm": "md5",

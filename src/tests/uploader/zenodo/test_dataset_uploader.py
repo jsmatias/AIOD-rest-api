@@ -102,7 +102,7 @@ def test_happy_path_creating_repo(
         zenodo.mock_create_repo(mocked_requests)
         zenodo.mock_get_licenses(mocked_requests)
         zenodo.mock_upload_file(mocked_requests, FILE1)
-        zenodo.mock_get_draft_files(mocked_requests, [FILE1])
+        zenodo.mock_get_draft_files(mocked_requests, FILE1)
 
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
             test_file = {"file": f}
@@ -139,7 +139,7 @@ def test_happy_path_existing_repo(
         zenodo.mock_get_licenses(mocked_requests)
         zenodo.mock_update_metadata(mocked_requests)
         zenodo.mock_upload_file(mocked_requests, FILE1)
-        zenodo.mock_get_draft_files(mocked_requests, [FILE1])
+        zenodo.mock_get_draft_files(mocked_requests, FILE1)
 
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
             test_file = {"file": f}
@@ -171,7 +171,7 @@ def test_happy_path_existing_file(
         zenodo.mock_get_licenses(mocked_requests)
         zenodo.mock_update_metadata(mocked_requests)
         zenodo.mock_upload_file(mocked_requests, FILE2)
-        zenodo.mock_get_draft_files(mocked_requests, [FILE1, FILE2])
+        zenodo.mock_get_draft_files(mocked_requests, FILE1, FILE2)
 
         with open(path_test_resources() / "contents" / FILE2, "rb") as f:
             test_file = {"file": f}
@@ -196,7 +196,7 @@ def test_happy_path_updating_an_existing_file(
     Test uploading a second file to zenodo with the same name.
     This must update the existing file.
     """
-    updated_file_new_id = "new-fake-id"
+    updated_file_new_id = "newid000-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
     response = client.post(
         "/datasets/v1", json=body_with_dist, headers={"Authorization": "Fake token"}
@@ -248,7 +248,7 @@ def test_happy_path_publishing(
         zenodo.mock_get_licenses(mocked_requests)
         zenodo.mock_upload_file(mocked_requests, FILE1)
         zenodo.mock_publish_resource(mocked_requests)
-        zenodo.mock_get_published_files(mocked_requests, [FILE1])
+        zenodo.mock_get_published_files(mocked_requests, FILE1)
 
         with open(path_test_resources() / "contents" / FILE1, "rb") as f:
             test_file = {"file": f}
@@ -303,10 +303,8 @@ def test_attempt_to_upload_published_resource(
 
         assert response.status_code == status.HTTP_409_CONFLICT, response.json()
         assert response.json()["detail"] == [
-            "This resource is already public and "
-            "can't be edited with this endpoint. "
-            "You can access and modify it at "
-            f"{zenodo.HTML_URL}/{zenodo.RESOURCE_ID}"
+            "This resource is already public and can't be edited with this endpoint. "
+            f"You can access and modify it at {zenodo.HTML_URL}/{zenodo.RESOURCE_ID}"
         ], response.json()
 
     response_json = client.get("datasets/v1/1").json()
