@@ -33,10 +33,35 @@ class UploadRouterZenodo(UploaderRouter):
             token: str = Query(title="Zenodo Token", description="The access token of Zenodo"),
         ) -> int:
             """
-            Uploads a dataset to Zenodo using the AIoD metadata identifier.
-            If the metadata does not exist on Zenodo
-            (i.e., the platform_resource_identifier is None),
-            a new repository will be created on Zenodo.
+            Use this endpoint to upload a file (content) to Zenodo using
+            the AIoD metadata identifier of the dataset.
+
+            Before uploading a dataset content, its metadata must exist on AIoD metadata catalogue
+            and contain at least the following required fields:
+            `name`, `description`, `creator`, `version`, and `license`.
+
+            1. **Create Metadata**
+            - If the metadata doesn't exist on AIoD catalogue, you can create it sending a `POST`
+            request to `/datasets/{version}/`.
+            - If the metadata already exists on zenodo, set `platform = "zenodo"` and
+            `platform_resource_identifier = "zenodo.org:{id}`, where `{id}` is the identifier
+            of this dataset on zenodo.
+            If you don't set a value to these fields, a new repository will be create
+            on Zenodo when you upload the first file the external platform with the following step.
+
+            2. **Upload Files**
+            - Use this `POST` endpoint to upload a file to Zenodo using the AIoD metadata identifier
+            of the metadata dataset.
+            - Zenodo accepts multiple files for each dataset. Thus, repeat this step for each file.
+
+            3. **Publish Dataset**
+            - To make the dataset and all its content public to the AI community on Zenodo, perform
+            a new `POST` request setting `publish` to `True` only when posting the last file.
+
+            **Note:**
+            - Zenodo supports multiple files within the same dataset.
+            - You can replace an existing file on Zenodo by uploading another one with same name.
+
             """
             return zenodo_uploader.handle_upload(identifier, publish, token, file)
 
