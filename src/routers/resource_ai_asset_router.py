@@ -1,11 +1,9 @@
 from typing import Annotated
 
-import requests
 from fastapi import APIRouter, HTTPException, status, Path
-from fastapi.responses import Response
+from fastapi.responses import RedirectResponse
 
 from database.model.ai_asset.ai_asset import AIAsset
-from error_handling import as_http_exception
 from .resource_router import ResourceRouter
 
 
@@ -74,7 +72,7 @@ class ResourceAIAssetRouter(ResourceRouter):
                     detail=(
                         "Multiple distributions encountered. "
                         "Use another endpoint indicating the distribution index `distribution_idx` "
-                        "at the end of the url for a especific distribution.",
+                        "at the end of the url for a specific distribution.",
                     ),
                 )
             elif distribution_idx >= len(distributions):
@@ -82,26 +80,9 @@ class ResourceAIAssetRouter(ResourceRouter):
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Distribution index out of range.",
                 )
+            url = distributions[distribution_idx].content_url
 
-            try:
-                url = distributions[distribution_idx].content_url
-                encoding_format = distributions[distribution_idx].encoding_format
-                filename = distributions[distribution_idx].name
-
-                response = requests.get(url)
-                content = response.content
-                headers = {
-                    "Content-Disposition": (
-                        "attachment; " f"filename={filename or url.split('/')[-1]}"
-                    )
-                }
-                if encoding_format:
-                    headers["Content-Type"] = encoding_format
-
-                return Response(content=content, headers=headers)
-
-            except Exception as exc:
-                raise as_http_exception(exc)
+            return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
         def get_resource_content_default(
             identifier: Annotated[
