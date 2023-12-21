@@ -13,13 +13,13 @@ class Uploader(abc.ABC):
 
     @abc.abstractmethod
     def handle_upload(self, identifier: int, file: UploadFile, token: str, *args: Any) -> int:
-        """Handle upload of a file to the platform."""
+        """Handle upload of a file to the platform and return its AIoD identifier."""
         ...
 
     @staticmethod
     @abc.abstractmethod
     def _platform_resource_id_validator(platform_resource_identifier: str, *args: str) -> None:
-        """Validates a repository ID."""
+        """Throw a ValueError on an invalid platform_resource_identifier."""
         ...
 
     def _validate_platform_name(self, name: str, identifier: int) -> None:
@@ -63,7 +63,7 @@ class Uploader(abc.ABC):
         resource: Dataset,
         *distribution_list: dict[str, str],
         update_all: bool = False,
-    ):
+    ) -> None:
         """
         Updates the resource data appending the content information as a distribution.
         """
