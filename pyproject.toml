@@ -18,7 +18,7 @@ dependencies = [
     "bibtexparser==1.4.1",
     "huggingface_hub==0.19.4",
     "fastapi==0.105.0",
-    "uvicorn==0.24.0.post1",
+    "uvicorn==0.25.0",
     "requests==2.31.0",
     "mysqlclient==2.2.1",
     "oic==1.6.0",
