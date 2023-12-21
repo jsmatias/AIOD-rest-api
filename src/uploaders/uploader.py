@@ -3,16 +3,20 @@ import datetime
 from typing import Any
 
 from fastapi import HTTPException, status, UploadFile
-from sqlmodel import Session, select
 
+from authentication import User
+from config import KEYCLOAK_CONFIG
 from database.model.dataset.dataset import Dataset
+from sqlmodel import Session, select
 
 
 class Uploader(abc.ABC):
     platform_name: str
 
     @abc.abstractmethod
-    def handle_upload(self, identifier: int, file: UploadFile, token: str, *args: Any) -> int:
+    def handle_upload(
+        self, identifier: int, file: UploadFile, token: str, *args: Any, user: User
+    ) -> int:
         """Handle upload of a file to the platform and return its AIoD identifier."""
         ...
 
@@ -21,6 +25,20 @@ class Uploader(abc.ABC):
     def _platform_resource_id_validator(platform_resource_identifier: str, *args: str) -> None:
         """Throw a ValueError on an invalid platform_resource_identifier."""
         ...
+
+    def _check_authorization(self, user: User) -> None:
+        """
+        Verifies if the user is authorised on AIoD to upload content to the external platform.
+        """
+        if not user.has_any_role(
+            KEYCLOAK_CONFIG.get("role"),
+            f"upload_{self.platform_name}",
+            f"upload_{self.platform_name}_dataset",
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"You do not have permission to upload files to {self.platform_name}.",
+            )
 
     def _validate_platform_name(self, name: str, identifier: int) -> None:
         """

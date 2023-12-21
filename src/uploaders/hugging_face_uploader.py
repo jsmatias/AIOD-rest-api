@@ -4,7 +4,7 @@ import huggingface_hub
 from fastapi import HTTPException, UploadFile, status
 from requests import HTTPError
 
-
+from authentication import User
 from database.model.dataset.dataset import Dataset
 from database.model.platform.platform_names import PlatformName
 from database.session import DbSession
@@ -17,7 +17,11 @@ class HuggingfaceUploader(Uploader):
     def __init__(self) -> None:
         self.platform_name = PlatformName.huggingface
 
-    def handle_upload(self, identifier: int, file: UploadFile, token: str, *args: str) -> int:
+    def handle_upload(
+        self, identifier: int, file: UploadFile, token: str, *args: str, user: User
+    ) -> int:
+        self._check_authorization(user)
+
         username = args[0]
         with DbSession() as session:
             dataset: Dataset = self._get_resource(session=session, identifier=identifier)

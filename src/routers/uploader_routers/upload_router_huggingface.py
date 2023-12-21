@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi import File, Query, UploadFile
 
+from authentication import User, get_current_user
 from routers.uploader_router import UploaderRouter
 from uploaders.hugging_face_uploader import HuggingfaceUploader
 
@@ -23,6 +24,7 @@ class UploadRouterHuggingface(UploaderRouter):
             username: str = Query(
                 ..., title="Huggingface username", description="The username of HuggingFace"
             ),
+            user: User = Depends(get_current_user),
         ) -> int:
             """
             Use this endpoint to upload a file (content) to Hugging Face using
@@ -40,6 +42,6 @@ class UploadRouterHuggingface(UploaderRouter):
             - Use this `POST` endpoint to upload a file to Hugging Face using the AIoD
             metadata identifier of the metadata dataset.
             """
-            return hugging_face_uploader.handle_upload(identifier, file, token, username)
+            return hugging_face_uploader.handle_upload(identifier, file, token, username, user=user)
 
         return router

@@ -1,8 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi import File, Query, UploadFile, Path
 
+from authentication import User, get_current_user
 from uploaders.zenodo_uploader import ZenodoUploader
 from routers.uploader_router import UploaderRouter
 
@@ -31,6 +32,7 @@ class UploadRouterZenodo(UploaderRouter):
                 ),
             ] = False,
             token: str = Query(title="Zenodo Token", description="The access token of Zenodo"),
+            user: User = Depends(get_current_user),
         ) -> int:
             """
             Use this endpoint to upload a file (content) to Zenodo using
@@ -63,6 +65,6 @@ class UploadRouterZenodo(UploaderRouter):
             - You can replace an existing file on Zenodo by uploading another one with same name.
 
             """
-            return zenodo_uploader.handle_upload(identifier, file, token, publish)
+            return zenodo_uploader.handle_upload(identifier, file, token, publish, user=user)
 
         return router

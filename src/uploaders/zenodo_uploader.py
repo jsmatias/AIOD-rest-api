@@ -1,20 +1,23 @@
-from datetime import datetime
 import io
 import json
-from typing import Optional
 import requests
 
+from datetime import datetime
+from typing import Optional
+
 from fastapi import UploadFile, HTTPException, status
+
+from authentication import User
+
 from database.model.agent.contact import Contact
 from database.model.ai_asset.license import License
 from database.model.ai_resource.text import TextORM
-
 from database.model.concept.status import Status
 from database.model.dataset.dataset import Dataset
 from database.model.platform.platform_names import PlatformName
-
 from database.session import DbSession
 from database.validators import zenodo_validators
+
 from error_handling import as_http_exception
 from uploaders.uploader import Uploader
 
@@ -25,10 +28,14 @@ class ZenodoUploader(Uploader):
     def __init__(self) -> None:
         self.platform_name = PlatformName.zenodo
 
-    def handle_upload(self, identifier: int, file: UploadFile, token: str, *args: bool) -> int:
+    def handle_upload(
+        self, identifier: int, file: UploadFile, token: str, *args: bool, user: User
+    ) -> int:
         """
         Method to upload content to the Zenodo platform.
         """
+        self._check_authorization(user)
+
         publish = args[0]
         with DbSession() as session:
             dataset = self._get_resource(session, identifier)
