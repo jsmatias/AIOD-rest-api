@@ -134,8 +134,10 @@ def _description(mlmodel_json: dict[str, Any], identifier: int) -> Text | None |
     description = (
         mlmodel_json["full_description"]
         if mlmodel_json.get("full_description", None)
-        else mlmodel_json["description"]
+        else mlmodel_json.get("description", None)
     )
+    if isinstance(description, type(None)):
+        return None
     if isinstance(description, list) and len(description) == 0:
         return None
     elif not isinstance(description, str):
