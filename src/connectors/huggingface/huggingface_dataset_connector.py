@@ -84,7 +84,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
             )
             for pq_file in parquet_info
         ]
-        size = None
+
         ds_license = None
         if (
             dataset.card_data is not None
@@ -124,11 +124,10 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                 name=dataset.id,
                 same_as=f"https://huggingface.co/datasets/{dataset.id}",
                 description=description,
-                date_published=dataset.createdAt if hasattr(dataset, "createdAt") else None,
+                date_published=dataset.created_at if hasattr(dataset, "created_at") else None,
                 license=ds_license,
                 distribution=distributions,
                 is_accessible_for_free=True,
-                size=size,
                 keyword=dataset.tags,
             ),
             resource_ORM_class=Dataset,
