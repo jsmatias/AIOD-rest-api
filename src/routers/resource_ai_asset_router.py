@@ -72,7 +72,7 @@ class ResourceAIAssetRouter(ResourceRouter):
                     detail=(
                         "Multiple distributions encountered. "
                         "Use another endpoint indicating the distribution index `distribution_idx` "
-                        "at the end of the url for a especific distribution.",
+                        "at the end of the url for a specific distribution.",
                     ),
                 )
             elif distribution_idx >= len(distributions):
@@ -80,18 +80,9 @@ class ResourceAIAssetRouter(ResourceRouter):
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Distribution index out of range.",
                 )
-
             url = distributions[distribution_idx].content_url
-            encoding_format = distributions[distribution_idx].encoding_format
-            filename = distributions[distribution_idx].name
 
-            headers = {
-                "Content-Disposition": ("attachment; " f"filename={filename or url.split('/')[-1]}")
-            }
-            if encoding_format:
-                headers["Content-Type"] = encoding_format
-
-            return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER, headers=headers)
+            return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
         def get_resource_content_default(
             identifier: Annotated[

@@ -106,7 +106,7 @@ def test_endpoints_when_single_distribution(
 
     This test case checks the behavior of the API when attempting to retrieve content
     from an AIAsset with single distribution. It verifies that the correct HTTP status,
-    content, headers, and filename are returned.
+    content, and headers are returned.
     """
     body = copy.deepcopy(body_asset_with_single_distribution)
     response = client.post(
@@ -117,15 +117,11 @@ def test_endpoints_when_single_distribution(
     response = client.get(SAMPLE_ENDPOINT, allow_redirects=False)
     assert response.status_code == status.HTTP_303_SEE_OTHER, response.content
     headers = response.headers
-    assert headers["Content-Disposition"] == "attachment; filename=example1.csv", headers
-    assert headers["Content-Type"] == "text/csv", headers
     assert headers["location"] == TEST_URL1, headers
 
     response0 = client.get(SAMPLE_ENDPOINT + "/0", allow_redirects=False)
     assert response0.status_code == status.HTTP_303_SEE_OTHER, response0.content
     headers0 = response.headers
-    assert headers0["Content-Disposition"] == "attachment; filename=example1.csv", headers0
-    assert headers0["Content-Type"] == "text/csv", headers0
     assert headers0["location"] == TEST_URL1, headers0
 
     response1 = client.get(SAMPLE_ENDPOINT + "/1", allow_redirects=False)
@@ -156,7 +152,7 @@ def test_endpoints_when_two_distributions(
 
     This test case checks the behavior of the API when attempting to retrieve content
     from an AIAsset with two distribution. It verifies that the correct HTTP status,
-    content, headers, and filename are returned.
+    content, and headers are returned.
     """
     body = copy.deepcopy(body_asset_with_two_distributions)
     response = client.post(
@@ -169,65 +165,15 @@ def test_endpoints_when_two_distributions(
     assert response.json()["detail"] == [
         "Multiple distributions encountered. "
         "Use another endpoint indicating the distribution index `distribution_idx` "
-        "at the end of the url for a especific distribution."
+        "at the end of the url for a specific distribution."
     ], response.content
 
     response0 = client.get(SAMPLE_ENDPOINT + "/0", allow_redirects=False)
     assert response0.status_code == status.HTTP_303_SEE_OTHER, response0.content
     headers0 = response0.headers
-    assert headers0["Content-Disposition"] == "attachment; filename=example1.csv", headers0
-    assert headers0["Content-Type"] == "text/csv", headers0
     assert headers0["location"] == TEST_URL1, headers0
 
     response1 = client.get(SAMPLE_ENDPOINT + "/1", allow_redirects=False)
     headers1 = response1.headers
     assert response1.status_code == status.HTTP_303_SEE_OTHER, response1.content
     assert headers1["location"] == TEST_URL2, headers1
-
-
-@pytest.fixture(params=["", None])
-def filename(request: FixtureRequest) -> str:
-    return request.param
-
-
-@pytest.fixture(params=["", None])
-def encoding_format(request: FixtureRequest) -> str:
-    return request.param
-
-
-def test_headers_when_distribution_has_missing_fields(
-    client: TestClient,
-    body_asset_with_single_distribution: dict,
-    db_with_person: None,
-    filename: str,
-    encoding_format: str,
-):
-    """
-    Test response headers from an AIAsset with a distribution with missing
-    filename and/or encoding format.
-
-    The headers should be filled with the last part of the url in case the filename is missing
-    in the distribution.
-    """
-    body = copy.deepcopy(body_asset_with_single_distribution)
-    body["distribution"][0]["name"] = filename
-    body["distribution"][0]["encoding_format"] = encoding_format
-
-    alternate_filename = body["distribution"][0]["content_url"].split("/")[-1]
-
-    response = client.post(
-        f"/{SAMPLE_RESOURCE_NAME}/v1", json=body, headers={"Authorization": "Fake token"}
-    )
-    assert response.status_code == status.HTTP_200_OK, response.json()
-
-    response = client.get(SAMPLE_ENDPOINT, allow_redirects=False)
-    assert response.status_code == status.HTTP_303_SEE_OTHER, response.content
-    headers = response.headers
-    assert headers["Content-Disposition"] == f"attachment; filename={alternate_filename}", headers
-    assert "content-type" not in headers.keys(), headers
-
-    response0 = client.get(SAMPLE_ENDPOINT + "/0", allow_redirects=False)
-    assert response0.status_code == status.HTTP_303_SEE_OTHER, response0.content
-    headers0 = response0.headers
-    assert headers0["Content-Disposition"] == f"attachment; filename={alternate_filename}", headers0
-    assert "content-type" not in headers0.keys(), headers0
