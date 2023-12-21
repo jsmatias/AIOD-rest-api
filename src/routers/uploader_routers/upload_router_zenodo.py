@@ -49,7 +49,7 @@ class UploadRouterZenodo(UploaderRouter):
             `platform_resource_identifier = "zenodo.org:{id}`, where `{id}` is the identifier
             of this dataset on zenodo.
             If you don't set a value to these fields, a new repository will be create
-            on Zenodo when you upload the first file the external platform with the following step.
+            on Zenodo when you upload the first file on the external platform.
 
             2. **Upload Files**
             - Use this `POST` endpoint to upload a file to Zenodo using the AIoD metadata identifier
