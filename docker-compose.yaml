@@ -146,9 +146,9 @@ services:
     ports:
       - 8080:8080
     volumes:
-     - ./quay-keycloak:/opt/keycloak/data/import:ro
+     - ./data/keycloak:/opt/keycloak/data
     command: >
-      start-dev
+      start
       --hostname-url http://${HOSTNAME}/aiod-auth
       --hostname-admin-url http://${HOSTNAME}/aiod-auth
       --http-relative-path=/aiod-auth
