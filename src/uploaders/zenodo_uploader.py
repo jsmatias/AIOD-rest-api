@@ -30,7 +30,6 @@ class ZenodoUploader(Uploader):
         Method to upload content to the Zenodo platform.
         """
         publish = args[0]
-        self.token = token
         with DbSession() as session:
             dataset = self._get_resource(session, identifier)
             metadata = self._generate_metadata(dataset, publish)
@@ -40,16 +39,16 @@ class ZenodoUploader(Uploader):
 
             platform_resource_id = dataset.platform_resource_identifier
             if platform_resource_id is None:
-                zenodo_metadata = self._create_repo(metadata)
+                zenodo_metadata = self._create_repo(metadata, token)
 
-                self.repo_id = zenodo_metadata["id"]
-                platform_resource_id = f"zenodo.org:{self.repo_id}"
+                repo_id = zenodo_metadata["id"]
+                platform_resource_id = f"zenodo.org:{repo_id}"
                 self._validate_repo_id(platform_resource_id)
                 dataset.platform_resource_identifier = platform_resource_id
             else:
                 self._validate_repo_id(platform_resource_id)
-                self.repo_id = platform_resource_id.split(":")[-1]
-                zenodo_metadata = self._get_metadata_from_zenodo()
+                repo_id = platform_resource_id.split(":")[-1]
+                zenodo_metadata = self._get_metadata_from_zenodo(repo_id, token)
 
                 if dataset.aiod_entry.status and dataset.aiod_entry.status.name == "published":
                     raise HTTPException(
@@ -60,15 +59,15 @@ class ZenodoUploader(Uploader):
                             f"{zenodo_metadata['links']['html']}",
                         ),
                     )
-                self._update_zenodo_metadata(metadata)
+                self._update_zenodo_metadata(metadata, repo_id, token)
 
             repo_url = zenodo_metadata["links"]["bucket"]
-            self._upload_file(repo_url, file)
+            self._upload_file(repo_url, file, token)
 
             if publish:
-                new_zenodo_metadata = self._publish_resource()
+                new_zenodo_metadata = self._publish_resource(repo_id, token)
                 record_url = new_zenodo_metadata["links"]["record"]
-                distribution = self._get_distribution(record_url)
+                distribution = self._get_distribution(repo_id, token, record_url)
 
                 new_status = session.query(Status).filter(
                     Status.name == "published"
@@ -76,7 +75,7 @@ class ZenodoUploader(Uploader):
                 dataset.aiod_entry.status = new_status
                 dataset.date_published = datetime.utcnow()
             else:
-                distribution = self._get_distribution()
+                distribution = self._get_distribution(repo_id, token)
 
             self._store_resource_updated(session, dataset, *distribution, update_all=True)
 
@@ -124,11 +123,11 @@ class ZenodoUploader(Uploader):
         }
         return metadata
 
-    def _create_repo(self, metadata: dict) -> dict:
+    def _create_repo(self, metadata: dict, token: str) -> dict:
         """
         Creates an empty repo with some metadata on Zenodo.
         """
-        params = {"access_token": self.token}
+        params = {"access_token": token}
         try:
             res = requests.post(
                 self.BASE_URL,
@@ -144,13 +143,13 @@ class ZenodoUploader(Uploader):
 
         return res.json()
 
-    def _get_metadata_from_zenodo(self) -> dict:
+    def _get_metadata_from_zenodo(self, repo_id: str, token: str) -> dict:
         """
         Get metadata of the dataset identified by its identifier `repo_id` from Zenodo.
         """
-        params = {"access_token": self.token}
+        params = {"access_token": token}
         try:
-            res = requests.get(f"{self.BASE_URL}/{self.repo_id}", params=params)
+            res = requests.get(f"{self.BASE_URL}/{repo_id}", params=params)
         except Exception as exc:
             raise as_http_exception(exc)
 
@@ -160,15 +159,15 @@ class ZenodoUploader(Uploader):
 
         return res.json()
 
-    def _update_zenodo_metadata(self, metadata: dict) -> None:
+    def _update_zenodo_metadata(self, metadata: dict, repo_id: str, token: str) -> None:
         """
         Updates the zenodo repo with some metadata.
         """
         headers = {"Content-Type": "application/json"}
         try:
             res = requests.put(
-                f"{self.BASE_URL}/{self.repo_id}",
-                params={"access_token": self.token},
+                f"{self.BASE_URL}/{repo_id}",
+                params={"access_token": token},
                 data=json.dumps({"metadata": metadata}),
                 headers=headers,
             )
@@ -179,11 +178,11 @@ class ZenodoUploader(Uploader):
             msg = "Failed to upload metadata to Zenodo."
             _wrap_bad_gateway_error(res, msg)
 
-    def _upload_file(self, repo_url: str, file: UploadFile) -> None:
+    def _upload_file(self, repo_url: str, file: UploadFile, token: str) -> None:
         """
         Uploads a file to zenodo using a bucket url where the files are stored.
         """
-        params = {"access_token": self.token}
+        params = {"access_token": token}
         try:
             res = requests.put(
                 f"{repo_url}/{file.filename}", data=io.BufferedReader(file.file), params=params
@@ -195,13 +194,13 @@ class ZenodoUploader(Uploader):
             msg = "Failed to upload the file to zenodo."
             _wrap_bad_gateway_error(res, msg)
 
-    def _publish_resource(self) -> dict:
+    def _publish_resource(self, repo_id: str, token: str) -> dict:
         """
         Publishes the dataset with all content on Zenodo.
         """
-        params = {"access_token": self.token}
+        params = {"access_token": token}
         try:
-            res = requests.post(f"{self.BASE_URL}/{self.repo_id}/actions/publish", params=params)
+            res = requests.post(f"{self.BASE_URL}/{repo_id}/actions/publish", params=params)
         except Exception as exc:
             raise as_http_exception(exc)
 
@@ -211,12 +210,14 @@ class ZenodoUploader(Uploader):
 
         return res.json()
 
-    def _get_distribution(self, public_url: str | None = None) -> list[dict]:
+    def _get_distribution(
+        self, repo_id: str, token: str, public_url: str | None = None
+    ) -> list[dict]:
         """
         Gets metadata of the published files.
         """
-        params = None if public_url else {"access_token": self.token}
-        url = public_url or f"{self.BASE_URL}/{self.repo_id}"
+        params = None if public_url else {"access_token": token}
+        url = public_url or f"{self.BASE_URL}/{repo_id}"
 
         try:
             res = requests.get(f"{url}/files", params=params)
