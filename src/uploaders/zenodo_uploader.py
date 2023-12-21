@@ -140,7 +140,7 @@ class ZenodoUploader(Uploader):
 
         if res.status_code != status.HTTP_201_CREATED:
             msg = "Failed to create a new repo on Zenodo."
-            _wrap_bad_gateway_error(msg, res.status_code)
+            _wrap_bad_gateway_error(res, msg)
 
         return res.json()
 
@@ -156,7 +156,7 @@ class ZenodoUploader(Uploader):
 
         if res.status_code != status.HTTP_200_OK:
             msg = "Failed to retrieve information from Zenodo."
-            _wrap_bad_gateway_error(msg, res.status_code)
+            _wrap_bad_gateway_error(res, msg)
 
         return res.json()
 
@@ -177,7 +177,7 @@ class ZenodoUploader(Uploader):
 
         if res.status_code != status.HTTP_200_OK:
             msg = "Failed to upload metadata to Zenodo."
-            _wrap_bad_gateway_error(msg, res.status_code)
+            _wrap_bad_gateway_error(res, msg)
 
     def _upload_file(self, repo_url: str, file: UploadFile) -> None:
         """
@@ -193,7 +193,7 @@ class ZenodoUploader(Uploader):
 
         if res.status_code != status.HTTP_201_CREATED:
             msg = "Failed to upload the file to zenodo."
-            _wrap_bad_gateway_error(msg, res.status_code)
+            _wrap_bad_gateway_error(res, msg)
 
     def _publish_resource(self) -> dict:
         """
@@ -207,7 +207,7 @@ class ZenodoUploader(Uploader):
 
         if res.status_code != status.HTTP_202_ACCEPTED:
             msg = "Failed to publish the dataset on zenodo."
-            _wrap_bad_gateway_error(msg, res.status_code)
+            _wrap_bad_gateway_error(res, msg)
 
         return res.json()
 
@@ -228,7 +228,7 @@ class ZenodoUploader(Uploader):
                 f"Failed to retrieve the resource files {'' if public_url else 'in draft'} "
                 "from zenodo."
             )
-            _wrap_bad_gateway_error(msg, res.status_code)
+            _wrap_bad_gateway_error(res, msg)
 
         files_metadata = res.json()["entries"] if public_url else res.json()
         distribution = [
@@ -256,7 +256,7 @@ class ZenodoUploader(Uploader):
             raise as_http_exception(exc)
         if res.status_code != status.HTTP_200_OK:
             msg = "Failed to get the list of valid licenses to upload content on Zenodo."
-            _wrap_bad_gateway_error(msg, res.status_code)
+            _wrap_bad_gateway_error(res, msg)
 
         valid_license_ids: list[str] = [item["id"] for item in res.json()["hits"]["hits"]]
         if (license_ is None) or (license_.name not in valid_license_ids):
@@ -311,8 +311,11 @@ class ZenodoUploader(Uploader):
         return creator_names
 
 
-def _wrap_bad_gateway_error(msg: str, status_code: int):
+def _wrap_bad_gateway_error(response: requests.Response, msg: str):
+    res_json = response.json()
+    res_msg = res_json.get("message", "")
+    msg_to_append = str(response.status_code) + (f" - {res_msg}" if res_msg else "")
     raise HTTPException(
         status_code=status.HTTP_502_BAD_GATEWAY,
-        detail=f"{msg} Zenodo returned a http error with status code: {status_code}.",
+        detail=f"{msg} Zenodo returned an error or an unexpected status code: {msg_to_append}",
     )
