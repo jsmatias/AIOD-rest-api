@@ -1,0 +1,24 @@
+{
+    "flows":
+    {
+        "flow":
+        [
+            {
+                "id":1,
+                "full_name":"openml.evaluation.EuclideanDistance(1.0)",
+                "name":"openml.evaluation.EuclideanDistance",
+                "version":1,
+                "external_version":"",
+                "uploader":1
+            },
+            {
+                "id":2,
+                "full_name":"openml.evaluation.PolynomialKernel(1.0)",
+                "name":"openml.evaluation.PolynomialKernel",
+                "version":1,
+                "external_version":"",
+                "uploader":1	   
+            }
+    ]
+}
+}
