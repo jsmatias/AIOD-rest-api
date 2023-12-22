@@ -10,8 +10,8 @@ logstash/config/pipeline
 logstash/config/sql
 
 
-
-
+# MacOS 
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -12,7 +12,7 @@ from database.model.concept.concept import AIoDConcept
 from database.model.platform.platform import Platform
 from database.model.resource_read_and_create import resource_read
 from database.session import DbSession
-from .resource_router import _wrap_as_http_exception
+from error_handling import as_http_exception
 from .search_routers.elasticsearch import ElasticsearchSingleton
 
 SORT = {"identifier": "asc"}
@@ -115,7 +115,7 @@ class SearchRouter(Generic[RESOURCE], abc.ABC):
                     database_platforms = session.scalars(query).all()
                     platform_names = {p.name for p in database_platforms}
             except Exception as e:
-                raise _wrap_as_http_exception(e)
+                raise as_http_exception(e)
 
             if platforms and not set(platforms).issubset(platform_names):
                 raise HTTPException(
@@ -176,7 +176,7 @@ class SearchRouter(Generic[RESOURCE], abc.ABC):
                     )
                 return [read_class.from_orm(resource) for resource in resources]
         except Exception as e:
-            raise _wrap_as_http_exception(e)
+            raise as_http_exception(e)
 
     def _cast_resource(
         self, read_class: Type[SQLModel], resource_dict: dict[str, Any]

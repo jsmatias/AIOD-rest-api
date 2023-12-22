@@ -14,14 +14,13 @@ from database.model.field_length import SHORT, NORMAL
 from database.model.platform.platform_names import PlatformName
 from database.model.relationships import OneToOne
 from database.model.serializers import CastDeserializer
-from database.validators import huggingface_validators, openml_validators
+from database.validators import huggingface_validators, openml_validators, zenodo_validators
 
 IS_SQLITE = os.getenv("DB") == "SQLite"
 CONSTRAINT_LOWERCASE = f"{'platform' if IS_SQLITE else 'BINARY(platform)'} = LOWER(platform)"
 
 
 class AIoDConceptBase(SQLModel):
-
     platform: str | None = Field(
         max_length=SHORT,
         default=None,
@@ -58,6 +57,10 @@ class AIoDConceptBase(SQLModel):
                     )
                 case PlatformName.openml:
                     openml_validators.throw_error_on_invalid_identifier(
+                        platform_resource_identifier
+                    )
+                case PlatformName.zenodo:
+                    zenodo_validators.throw_error_on_invalid_identifier(
                         platform_resource_identifier
                     )
         return platform_resource_identifier

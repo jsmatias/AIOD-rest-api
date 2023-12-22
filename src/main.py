@@ -12,7 +12,6 @@ from fastapi import Depends, FastAPI
 from fastapi.responses import HTMLResponse
 from sqlmodel import select
 
-import routers
 from authentication import get_current_user, User
 from config import KEYCLOAK_CONFIG
 from database.deletion.triggers import add_delete_triggers
@@ -21,7 +20,7 @@ from database.model.platform.platform import Platform
 from database.model.platform.platform_names import PlatformName
 from database.session import EngineSingleton, DbSession
 from database.setup import drop_or_create_database
-from routers import resource_routers, parent_routers, enum_routers
+from routers import resource_routers, parent_routers, enum_routers, uploader_routers
 from routers import search_routers
 from setup_logger import setup_logger
 
@@ -80,10 +79,10 @@ def add_routes(app: FastAPI, url_prefix=""):
 
     for router in (
         resource_routers.router_list
-        + routers.other_routers
         + parent_routers.router_list
         + enum_routers.router_list
         + search_routers.router_list
+        + uploader_routers.router_list
     ):
         app.include_router(router.create(url_prefix))
 
