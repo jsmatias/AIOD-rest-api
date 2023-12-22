@@ -18,13 +18,11 @@ class Uploader(abc.ABC):
         self, identifier: int, file: UploadFile, token: str, *args: Any, user: User
     ) -> int:
         """Handle upload of a file to the platform and return its AIoD identifier."""
-        ...
 
     @staticmethod
     @abc.abstractmethod
     def _platform_resource_id_validator(platform_resource_identifier: str, *args: str) -> None:
         """Throw a ValueError on an invalid platform_resource_identifier."""
-        ...
 
     def _check_authorization(self, user: User) -> None:
         """
@@ -58,7 +56,8 @@ class Uploader(abc.ABC):
         try:
             self._platform_resource_id_validator(repo_id, *args)
         except ValueError as e:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.args[0])
+            msg = "The platform_resource_identifier is invalid. "
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg + e.args[0])
 
     def _get_resource(self, session: Session, identifier: int) -> Dataset:
         """
