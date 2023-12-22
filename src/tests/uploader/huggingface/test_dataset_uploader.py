@@ -1,5 +1,6 @@
 import copy
 from unittest.mock import Mock
+from fastapi import HTTPException
 
 import huggingface_hub
 import pytest
@@ -9,6 +10,7 @@ from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
 from database.model.dataset.dataset import Dataset
+from database.model.platform.platform_names import PlatformName
 from database.session import DbSession
 from tests.testutils.paths import path_test_resources
 from uploaders.hugging_face_uploader import HuggingfaceUploader
@@ -179,6 +181,9 @@ def test_wrong_platform(client: TestClient, mocked_privileged_token: Mock, datas
     )
 
 
+ERROR_MSG_PREFIX = f"The platform_resource_identifier is invalid for {PlatformName.huggingface}. "
+
+
 @pytest.mark.parametrize(
     "username,dataset_name,expected_error",
     [
@@ -187,52 +192,75 @@ def test_wrong_platform(client: TestClient, mocked_privileged_token: Mock, datas
         (
             "user",
             "user/Test name with ?",
-            ValueError(
-                "The platform_resource_identifier for HuggingFace should be a valid repo_id. "
-                "A repo_id should only contain [a-zA-Z0-9] or ”-”, ”_”, ”.”"
+            HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    ERROR_MSG_PREFIX
+                    + "The platform_resource_identifier for HuggingFace should be a valid repo_id. "
+                    "A repo_id should only contain [a-zA-Z0-9] or ”-”, ”_”, ”.”"
+                ),
             ),
         ),
         (
             "username",
             "acronym_identification",
-            ValueError(
-                "The username should be part of the platform_resource_identifier for HuggingFace: "
-                "username/acronym_identification. Please update the dataset "
-                "platform_resource_identifier."
+            HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    ERROR_MSG_PREFIX
+                    + "The username should be part of the platform_resource_identifier "
+                    "for HuggingFace: username/acronym_identification. Please update the dataset "
+                    "platform_resource_identifier."
+                ),
             ),
         ),
         (
             "user",
             "user/data/set",
-            ValueError(
-                "The platform_resource_identifier for HuggingFace should be a valid repo_id. "
-                "For new repositories, there should be a single forward slash in the repo_id "
-                "(namespace/repo_name). Legacy repositories are without a namespace. This "
-                "repo_id has too many forward slashes."
+            HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    ERROR_MSG_PREFIX
+                    + "The platform_resource_identifier for HuggingFace should be a valid repo_id. "
+                    "For new repositories, there should be a single forward slash in the repo_id "
+                    "(namespace/repo_name). Legacy repositories are without a namespace. This "
+                    "repo_id has too many forward slashes."
+                ),
             ),
         ),
         (
             "user",
             "wrong-namespace/name",
-            ValueError(
-                "The namespace (the first part of the platform_resource_identifier) should be "
-                "equal to the username, but wrong-namespace != user."
+            HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    ERROR_MSG_PREFIX
+                    + "The namespace (the first part of the platform_resource_identifier) should be"
+                    " equal to the username, but wrong-namespace != user."
+                ),
             ),
         ),
         (
             "user",
             "user/" + "a" * 200,
-            ValueError(
-                "The platform_resource_identifier for HuggingFace should be a valid repo_id. "
-                "A repo_id should be between 1 and 96 characters."
+            HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    ERROR_MSG_PREFIX
+                    + "The platform_resource_identifier for HuggingFace should be a valid repo_id. "
+                    "A repo_id should be between 1 and 96 characters."
+                ),
             ),
         ),
     ],
 )
-def test_repo_id(username: str, dataset_name: str, expected_error: ValueError | None):
+def test_validate_repo_id(username: str, dataset_name: str, expected_error: HTTPException | None):
+    huggingface_uploader = HuggingfaceUploader()
     if expected_error is None:
-        HuggingfaceUploader._platform_resource_id_validator(dataset_name, username)
+        huggingface_uploader._validate_repo_id(dataset_name, username)
     else:
         with pytest.raises(type(expected_error)) as exception_info:
-            HuggingfaceUploader._platform_resource_id_validator(dataset_name, username)
-        assert exception_info.value.args[0] == expected_error.args[0]
+            huggingface_uploader._validate_repo_id(dataset_name, username)
+
+        assert exception_info.value.status_code == expected_error.status_code
+        assert exception_info.value.detail == expected_error.detail

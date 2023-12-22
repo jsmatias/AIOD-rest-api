@@ -10,7 +10,7 @@ class UploadRouterHuggingface(UploaderRouter):
     def create(self, url_prefix: str) -> APIRouter:
         router = APIRouter()
 
-        hugging_face_uploader = HuggingfaceUploader()
+        huggingface_uploader = HuggingfaceUploader()
 
         @router.post(url_prefix + "/upload/datasets/{identifier}/huggingface", tags=["upload"])
         def huggingface_upload(
@@ -42,6 +42,6 @@ class UploadRouterHuggingface(UploaderRouter):
             - Use this `POST` endpoint to upload a file to Hugging Face using the AIoD
             metadata identifier of the metadata dataset.
             """
-            return hugging_face_uploader.handle_upload(identifier, file, token, username, user=user)
+            return huggingface_uploader.handle_upload(identifier, file, token, username, user=user)
 
         return router

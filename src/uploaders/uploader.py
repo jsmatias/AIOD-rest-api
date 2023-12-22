@@ -56,7 +56,7 @@ class Uploader(abc.ABC):
         try:
             self._platform_resource_id_validator(repo_id, *args)
         except ValueError as e:
-            msg = "The platform_resource_identifier is invalid. "
+            msg = f"The platform_resource_identifier is invalid for {self.platform_name}. "
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg + e.args[0])
 
     def _get_resource(self, session: Session, identifier: int) -> Dataset:

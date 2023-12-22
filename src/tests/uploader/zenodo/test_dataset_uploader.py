@@ -6,7 +6,7 @@ from datetime import datetime
 
 from unittest.mock import Mock
 
-from fastapi import status
+from fastapi import HTTPException, status
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
@@ -400,32 +400,57 @@ ERROR_MSG = (
 )
 
 
+def test_platform_resource_id_validator():
+    """
+    Tests if the method `_platform_resource_id_validator` raises a ValueError for an invalid
+    value.
+    """
+    invalid_repo_id = "an/inv@lid|id"
+    expected_error = ValueError(ERROR_MSG)
+
+    if expected_error is None:
+        ZenodoUploader._platform_resource_id_validator(invalid_repo_id)
+    else:
+        with pytest.raises(type(expected_error)) as exception_info:
+            ZenodoUploader._platform_resource_id_validator(invalid_repo_id)
+        assert exception_info.value.args[0] == expected_error.args[0]
+
+
+MSG_RAISED_TO_CLIENT = (
+    f"The platform_resource_identifier is invalid for {PlatformName.zenodo}. " + ERROR_MSG
+)
+
+HTTP_EXC = HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=MSG_RAISED_TO_CLIENT)
+
+
 @pytest.mark.parametrize(
     "repo_id,expected_error",
     [
         ("zenodo.org:1", None),
         ("zenodo.org:1234567", None),
-        ("zenodo.org:02334", ValueError(ERROR_MSG)),
-        ("zenodo_org:100", ValueError(ERROR_MSG)),
-        ("zenodo.org.100", ValueError(ERROR_MSG)),
-        ("zenodo.org.abc", ValueError(ERROR_MSG)),
+        ("zenodo.org:02334", HTTP_EXC),
+        ("zenodo_org:100", HTTP_EXC),
+        ("zenodo.org.100", HTTP_EXC),
+        ("zenodo.org.abc", HTTP_EXC),
         ("11111111-9999-0000-1111-123456789012", None),
         ("abcdefgh-abcd-abcd-abcd-abcdefghijkl", None),
         ("abcde123-abcd-0000-ab00-abcdef000000", None),
-        ("ABCde123-abcd-0000-ab00-abcdef000000", ValueError(ERROR_MSG)),
-        ("abdef123_abcd-0000-ab00-abcdef000000", ValueError(ERROR_MSG)),
-        ("abd.0123-abcd-0000-ab00-abcdef000000", ValueError(ERROR_MSG)),
-        ("abdef-23-abcd-0000-ab00-abcdef000000", ValueError(ERROR_MSG)),
-        ("abcd0123-abcd-0000-ab00-abcdef0000000", ValueError(ERROR_MSG)),
-        ("abcd0123-abcd0-0000-ab00-abcdef000000", ValueError(ERROR_MSG)),
-        ("abcd0123-abcd-00000-ab00-abcdef000000", ValueError(ERROR_MSG)),
-        ("abcd0123-abcd-0000-ab000-abcdef000000", ValueError(ERROR_MSG)),
+        ("ABCde123-abcd-0000-ab00-abcdef000000", HTTP_EXC),
+        ("abdef123_abcd-0000-ab00-abcdef000000", HTTP_EXC),
+        ("abd.0123-abcd-0000-ab00-abcdef000000", HTTP_EXC),
+        ("abdef-23-abcd-0000-ab00-abcdef000000", HTTP_EXC),
+        ("abcd0123-abcd-0000-ab00-abcdef0000000", HTTP_EXC),
+        ("abcd0123-abcd0-0000-ab00-abcdef000000", HTTP_EXC),
+        ("abcd0123-abcd-00000-ab00-abcdef000000", HTTP_EXC),
+        ("abcd0123-abcd-0000-ab000-abcdef000000", HTTP_EXC),
     ],
 )
-def test_repo_id(repo_id: str, expected_error: ValueError | None):
+def test_repo_id(repo_id: str, expected_error: HTTPException | None):
+    zenodo_uploader = ZenodoUploader()
     if expected_error is None:
-        ZenodoUploader._platform_resource_id_validator(repo_id)
+        zenodo_uploader._validate_repo_id(repo_id)
     else:
         with pytest.raises(type(expected_error)) as exception_info:
-            ZenodoUploader._platform_resource_id_validator(repo_id)
-        assert exception_info.value.args[0] == expected_error.args[0]
+            zenodo_uploader._validate_repo_id(repo_id)
+        assert exception_info.value.status_code == expected_error.status_code
+        assert exception_info.value.detail == expected_error.detail
