@@ -60,6 +60,7 @@ class ResourceConnectorById(ResourceConnector, Generic[RESOURCE]):
                     id_ = item.identifier
                 else:
                     id_ = item.platform_resource_identifier
+
                 id_ = int(id_) if id_ else None
 
                 if id_ is None or id_ >= state["from_id"]:
