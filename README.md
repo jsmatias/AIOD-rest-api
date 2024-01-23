@@ -183,7 +183,7 @@ See [authentication README](authentication/README.md) for more information.
 By default, the app will connect to the database and populate it with a few items if there is no data present.
 You can change this behavior through parameters of the script:
 
-* **rebuild-db**: "no", "only-if-empty", "always". Default is "data".
+* **rebuild-db**: "no", "only-if-empty", "always". Default is "only-if-empty".
     * no: connect to the database but don't make any modifications on startup.
     * only-if-empty: if the database does not exist, create it. Then, if the tables do not exist, create them.
       Then, if the tables are empty, populate according to `populate`.
@@ -283,4 +283,4 @@ To create a new release,
    release branch. Look at all closed PRs and create a changelog
 6. Create a PR from release branch to master
 7. After that's merged, create a PR from master to develop
-8. Notice everyone (e.g., in the API channel in Slack) and update the code on the server(s). 
+8. Notify everyone (e.g., in the API channel in Slack) and update the code on the server(s). 
