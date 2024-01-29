@@ -81,7 +81,7 @@ services:
         condition: service_healthy
 
   openml-connector:
-    profiles: ["openml-datasets"]
+    profiles: ["openml"]
     build:
       context: connectors/openml
       dockerfile: Dockerfile

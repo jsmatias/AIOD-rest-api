@@ -110,8 +110,8 @@ Now, you can visit the server from your browser at `localhost:8000/docs`.
 You can specify different connectors using
 
 ```bash
-docker compose --profile examples --profile huggingface-datasets --profile openml-datasets --profile zenodo-datasets up -d
-docker compose --profile examples --profile huggingface-datasets --profile openml-datasets --profile zenodo-datasets down
+docker compose --profile examples --profile huggingface-datasets --profile openml --profile zenodo-datasets up -d
+docker compose --profile examples --profile huggingface-datasets --profile openml --profile zenodo-datasets down
 ```
 
 Make sure you use the same profile for `up` and `down`, otherwise some containers might keep 
