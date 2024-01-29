@@ -30,10 +30,8 @@ class ResourceWithRelations(Generic[RESOURCE]):
         with the key "creator" should be of datetype "ContactCreate".
         """
         for name, resource_values in self.related_resources.items():
-
             # ToDo:We could use from __future__ import annotations instead of using string-types.
             # Refer:https://stackoverflow.com/questions/33837918/type-hints-solve-circular-dependency
-
             name_type = datatype_of_field(clazz=self.resource_ORM_class, field_name=name)
             if not isinstance(
                 name_type, str

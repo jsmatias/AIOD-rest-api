@@ -63,6 +63,9 @@ For production environments elasticsearch recommends -Xss4G and -Xmx8G for the J
 This parameters can be defined in the .env file.
 See the [elasticsearch guide](https://www.elastic.co/guide/en/logstash/current/jvm-settings.html).
 
+For Keycloak, the `--http-enabled=true` and `--hostname-strict-https=false` should be omitted 
+from the docker-compose file.
+
 ## Installation
 
 This repository contains two systems; the database and the REST API.
@@ -71,7 +74,7 @@ Information on how to install Docker is found in [their documentation](https://d
 
 ### Using docker compose
 ```bash
-docker compose --profile examples up
+docker compose --profile examples up -d
 ```
 
 starts the MYSQL Server, the REST API, Keycloak for Identy and access management and Nginx for reverse proxing. \
@@ -107,8 +110,8 @@ Now, you can visit the server from your browser at `localhost:8000/docs`.
 You can specify different connectors using
 
 ```bash
-docker compose --profile examples --profile huggingface-datasets --profile openml-datasets up -d
-docker compose --profile examples --profile huggingface-datasets --profile openml-datasets down
+docker compose --profile examples --profile huggingface-datasets --profile openml --profile zenodo-datasets up -d
+docker compose --profile examples --profile huggingface-datasets --profile openml --profile zenodo-datasets down
 ```
 
 Make sure you use the same profile for `up` and `down`, otherwise some containers might keep 
@@ -180,7 +183,7 @@ See [authentication README](authentication/README.md) for more information.
 By default, the app will connect to the database and populate it with a few items if there is no data present.
 You can change this behavior through parameters of the script:
 
-* **rebuild-db**: "no", "only-if-empty", "always". Default is "data".
+* **rebuild-db**: "no", "only-if-empty", "always". Default is "only-if-empty".
     * no: connect to the database but don't make any modifications on startup.
     * only-if-empty: if the database does not exist, create it. Then, if the tables do not exist, create them.
       Then, if the tables are empty, populate according to `populate`.
@@ -280,4 +283,4 @@ To create a new release,
    release branch. Look at all closed PRs and create a changelog
 6. Create a PR from release branch to master
 7. After that's merged, create a PR from master to develop
-8. Notice everyone (e.g., in the API channel in Slack) and update the code on the server(s). 
+8. Notify everyone (e.g., in the API channel in Slack) and update the code on the server(s). 

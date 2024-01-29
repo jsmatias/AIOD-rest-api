@@ -54,13 +54,15 @@ class ResourceConnectorById(ResourceConnector, Generic[RESOURCE]):
             i = 0
             for item in self.fetch(offset=state["offset"], from_identifier=state["from_id"]):
                 i += 1
-                if (
-                    hasattr(item, "platform_resource_identifier")
-                    and item.platform_resource_identifier is not None
-                ):
-                    id_ = int(item.platform_resource_identifier)
+                if isinstance(item, ResourceWithRelations):
+                    id_ = item.resource.platform_resource_identifier
+                elif isinstance(item, RecordError):
+                    id_ = item.identifier
                 else:
-                    id_ = None
+                    id_ = item.platform_resource_identifier
+
+                id_ = int(id_) if id_ else None
+
                 if id_ is None or id_ >= state["from_id"]:
                     if id_ is not None:
                         state["last_id"] = id_
