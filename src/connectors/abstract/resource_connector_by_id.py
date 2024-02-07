@@ -53,6 +53,9 @@ class ResourceConnectorById(ResourceConnector, Generic[RESOURCE]):
         while not finished:
             i = 0
             for item in self.fetch(offset=state["offset"], from_identifier=state["from_id"]):
+                if isinstance(item, RecordError) and item.code and (item.code >= 400):
+                    yield item
+                    return
                 i += 1
                 if isinstance(item, ResourceWithRelations):
                     id_ = item.resource.platform_resource_identifier
