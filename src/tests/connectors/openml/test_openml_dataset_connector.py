@@ -26,7 +26,7 @@ def test_first_run():
 
 
 def test_request_empty_list():
-    """Tests is the state doesn't change after a request when OpenML returns an empty list."""
+    """Tests if the state doesn't change after a request when OpenML returns an empty list."""
     state = {"offset": 2, "last_id": 3}
     connector = OpenMlDatasetConnector(limit_per_iteration=2)
     with responses.RequestsMock() as mocked_requests:

@@ -2,6 +2,7 @@
 This module knows how to load an OpenML object based on its AIoD implementation,
 and how to convert the OpenML response to some agreed AIoD format.
 """
+
 from typing import Iterator, Any
 
 import dateutil.parser
@@ -99,12 +100,13 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
             f"limit/{self.limit_per_iteration}/offset/{offset}"
         )
         response = requests.get(url_mlmodel)
+        status_code = response.status_code
+
         if not response.ok:
             msg = response.json()["error"]["message"]
-            yield RecordError(
-                identifier=None,
-                error=f"Error while fetching {url_mlmodel} from OpenML: '{msg}'.",
-            )
+            err_msg = f"Error while fetching {url_mlmodel} from OpenML: ({status_code}) {msg}"
+
+            yield RecordError(identifier=None, error=err_msg, code=status_code)
             return
 
         try:
@@ -115,7 +117,7 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
 
         for summary in mlmodel_summaries:
             identifier = None
-            # ToDo: dicuss how to accomodate pipelines. Excluding sklearn pipelines for now.
+            # ToDo: discuss how to accommodate pipelines. Excluding sklearn pipelines for now.
             # Note: weka doesn't have a standard method to define pipeline.
             # There are no mlr pipelines in OpenML.
             if "sklearn.pipeline" not in summary["name"]:

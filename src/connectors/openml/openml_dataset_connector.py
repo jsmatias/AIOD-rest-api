@@ -107,9 +107,7 @@ class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
         status_code = response.status_code
         if not response.ok:
             msg = response.json()["error"]["message"]
-            err_msg = (
-                f"Error while fetching {url_data} from OpenML: ({status_code}) with message:{msg}"
-            )
+            err_msg = f"Error while fetching {url_data} from OpenML: ({status_code}) {msg}"
 
             yield RecordError(identifier=None, error=err_msg, code=status_code)
             return

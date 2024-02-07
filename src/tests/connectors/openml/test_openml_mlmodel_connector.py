@@ -9,13 +9,16 @@ OPENML_URL = "https://www.openml.org/api/v1/json"
 
 
 def test_first_run():
+    state = {}
     connector = OpenMlMLModelConnector(limit_per_iteration=2)
     with responses.RequestsMock() as mocked_requests:
         for offset in (0, 2):
             mock_list_data(mocked_requests, offset)
         for i in range(1, 4):
             mock_get_data(mocked_requests, str(i))
-        mlmodels = list(connector.run(state={}, from_identifier=0, limit=None))
+        mlmodels = list(connector.run(state, from_identifier=0, limit=None))
+
+    assert state["offset"] == 3, state
     assert {m.resource.name for m in mlmodels} == {
         "openml.evaluation.EuclideanDistance",
         "openml.evaluation.PolynomialKernel",
@@ -25,6 +28,24 @@ def test_first_run():
     assert {len(m.related_resources["creator"]) for m in mlmodels} == {
         10,
     }
+
+
+def test_request_empty_list():
+    """Tests if the state doesn't change after a request when OpenML returns an empty list."""
+    state = {"offset": 2, "last_id": 3}
+    connector = OpenMlMLModelConnector(limit_per_iteration=2)
+    with responses.RequestsMock() as mocked_requests:
+        mocked_requests.add(
+            responses.GET,
+            f"{OPENML_URL}/flow/list/limit/2/offset/2",
+            json={"error": {"code": "500", "message": "No results"}},
+            status=412,
+        )
+        datasets = list(connector.run(state, from_identifier=0, limit=None))
+
+        assert "No results" in datasets[0].error, datasets
+        assert state["offset"] == 2, state
+        assert state["last_id"] == 3, state
 
 
 def test_second_run():
