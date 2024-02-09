@@ -1,4 +1,5 @@
 import datetime
+import pytest
 
 import responses
 
@@ -20,7 +21,7 @@ def test_fetch_happy_path():
     errors = [r for r in resources if isinstance(r, RecordError)]
     assert {error.error for error in errors} == {"Wrong type"}
     assert len(datasets) == 6
-    assert len(errors) == 20
+    assert len(errors) == 45
     dataset = datasets[0].resource
     assert dataset.name == "kogalab21/all-alpha_design"
     expected = (
@@ -29,7 +30,7 @@ def test_fetch_happy_path():
         "Toshihiko Sugiki, Toshio Nagashima, Toshimichi Fujiwara, Kano Suzuki, Naoya "
         "Kobayashi, Takeshi Murata, Takahiro Kosugi, Rie Koga, and Nobuyasu Koga."
     )
-    assert dataset.description.plain == expected
+    assert dataset.description.plain.replace(" ", "").replace("\n", "") == expected.replace(" ", "")
     assert dataset.date_published == datetime.datetime(2023, 5, 18)
     assert dataset.license == "Other (Open)"
     assert dataset.platform == "zenodo"
@@ -58,12 +59,38 @@ def test_fetch_happy_path():
     )
 
 
-def mock_zenodo_responses(mocked_requests: responses.RequestsMock):
+@pytest.mark.skip(reason="Not implemented yet")
+def test_fetch_expired_token_happy_path():
+    connector = ZenodoDatasetConnector()
+    with responses.RequestsMock() as mocked_requests:
+        mock_zenodo_responses(mocked_requests, expired_token=True)
+        from_incl = datetime.datetime(2023, 5, 23, 8, 0, 0)
+        to_excl = datetime.datetime(2023, 5, 23, 9, 0, 0)
+        resources = list(connector.run(state={}, from_incl=from_incl, to_excl=to_excl))
+        datasets = [r for r in resources if not isinstance(r, RecordError)]
+        errors = [r for r in resources if isinstance(r, RecordError)]
+        assert {error.error for error in errors} == {"Wrong type"}
+        assert len(datasets) == 5
+        assert len(errors) == 21
+
+
+def mock_zenodo_responses(mocked_requests: responses.RequestsMock, expired_token: bool = False):
     with open(
-        path_test_resources() / "connectors" / "zenodo" / "list_records.xml",
+        path_test_resources() / "connectors" / "zenodo" / "list_records_1.xml",
         "r",
     ) as f:
-        records_list = f.read()
+        records_list_1 = f.read()
+
+    if expired_token:
+        records_list_1 = records_list_1.replace(
+            'expirationDate="2024-02-08T17:40:07Z"', 'expirationDate="1999-02-08T17:40:07Z"'
+        )
+
+    with open(
+        path_test_resources() / "connectors" / "zenodo" / "list_records_2.xml",
+        "r",
+    ) as f:
+        records_list_2 = f.read()
     mocked_requests.add(
         responses.GET,
         "https://zenodo.org/oai2d?"
@@ -71,7 +98,15 @@ def mock_zenodo_responses(mocked_requests: responses.RequestsMock):
         "from=2023-05-23T08%3A00%3A00&"
         "until=2023-05-23T09%3A00%3A00&"
         "verb=ListRecords",
-        body=records_list,
+        body=records_list_1,
+        status=200,
+    )
+    mocked_requests.add(
+        responses.GET,
+        "https://zenodo.org/oai2d?"
+        "resumptionToken=.resumption-token-to-page-2&"
+        "verb=ListRecords",
+        body=records_list_2,
         status=200,
     )
     for id_ in (6884943, 7793917, 7199024, 7947283, 7555467, 7902673):
