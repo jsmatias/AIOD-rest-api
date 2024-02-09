@@ -1,5 +1,6 @@
 import abc
 import logging
+import time
 from datetime import datetime, timedelta
 from typing import Generic, Iterator, Tuple
 
@@ -12,6 +13,8 @@ from routers.resource_router import RESOURCE
 class ResourceConnectorByDate(ResourceConnector, Generic[RESOURCE]):
     """Connectors that synchronize by filtering the results on datetime. In every subsequent run,
     the previous end-datetime is used as datetime-from."""
+
+    harvesting_limit_per_minute: int
 
     @abc.abstractmethod
     def retry(self, _id: int) -> RESOURCE | ResourceWithRelations[RESOURCE] | RecordError:
@@ -49,7 +52,16 @@ class ResourceConnectorByDate(ResourceConnector, Generic[RESOURCE]):
         else:
             from_incl = datetime.fromtimestamp(state["last"] + 0.001)
 
+        starting_time = datetime.now()
+        i = 0
         while from_incl < to_excl:
+            if (datetime.now() - starting_time <= timedelta(seconds=59)) and (
+                i >= self.harvesting_limit_per_minute
+            ):
+                time.sleep(65)
+                starting_time = datetime.now()
+                i = 0
+            i += 1
             to_excl_current = min(from_incl + time_per_loop, to_excl)
             logging.info(f"Starting synchronisation {from_incl=}, {to_excl_current=}.")
             state["from_incl"] = from_incl.timestamp()

@@ -25,6 +25,10 @@ DATE_FORMAT = "%Y-%m-%d"
 
 
 class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
+    global_limit_per_minute = 60
+    global_limit_per_hour = 2000
+    harvesting_limit_per_minute = 120
+
     @property
     def resource_class(self) -> type[Dataset]:
         return Dataset
@@ -141,9 +145,9 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
                     name=entry["key"],
                     content_url=entry["links"]["content"],
                     encoding_format=entry["mimetype"],
-                    checksum_algorithm=entry["checksum"].split(":")[0]
-                    if "checksum" in entry
-                    else None,
+                    checksum_algorithm=(
+                        entry["checksum"].split(":")[0] if "checksum" in entry else None
+                    ),
                     checksum=entry["checksum"].split(":")[1] if "checksum" in entry else None,
                 )
                 for entry in entries
