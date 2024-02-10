@@ -1,12 +1,15 @@
-from datetime import datetime
-from typing import Iterator, Tuple
-
 import dateutil.parser
+import logging
 import requests
 import xmltodict
+
+from datetime import datetime, timedelta
+from ratelimit import limits, sleep_and_retry
 from sickle import Sickle
+from sickle.iterator import BaseOAIIterator
 from sqlmodel import SQLModel
 from starlette import status
+from typing import Iterator, Tuple
 
 from connectors.abstract.resource_connector_by_date import ResourceConnectorByDate
 from connectors.record_error import RecordError
@@ -22,13 +25,14 @@ from database.model.resource_read_and_create import resource_create
 
 
 DATE_FORMAT = "%Y-%m-%d"
+HARVESTING_MAX_CALLS_PER_MIN = 120
+GLOBAL_MAX_CALLS_MINUTE = 60
+GLOBAL_MAX_CALLS_HOUR = 2000
+ONE_MINUTE = 60
+ONE_HOUR = 3600
 
 
 class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
-    global_limit_per_minute = 60
-    global_limit_per_hour = 2000
-    harvesting_limit_per_minute = 120
-
     @property
     def resource_class(self) -> type[Dataset]:
         return Dataset
@@ -58,8 +62,15 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
         return f"Error while fetching record info: bad format {field}"
 
     @staticmethod
+    @sleep_and_retry
+    @limits(calls=GLOBAL_MAX_CALLS_MINUTE, period=ONE_MINUTE)
+    @limits(calls=GLOBAL_MAX_CALLS_HOUR, period=ONE_HOUR)
+    def _get_record(id_number: str) -> requests.Response:
+        response = requests.get(f"https://zenodo.org/api/records/{id_number}/files")
+        return response
+
     def _dataset_from_record(
-        identifier: str, record: dict
+        self, identifier: str, record: dict
     ) -> ResourceWithRelations[Dataset] | RecordError:
         error_fmt = ZenodoDatasetConnector._error_msg_bad_format
         if isinstance(record["creators"]["creator"], list):
@@ -137,7 +148,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             else:
                 return RecordError(identifier=identifier, error=error_fmt("keywords"))
 
-        response = requests.get(f"https://zenodo.org/api/records/{id_number}/files")
+        response: requests.Response = self._get_record(id_number)
         if response.status_code == status.HTTP_200_OK:
             entries = response.json()["entries"]
             distributions = [
@@ -188,11 +199,57 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
                 return xml_string[start:end]
         return None
 
+    @staticmethod
+    @sleep_and_retry
+    @limits(calls=HARVESTING_MAX_CALLS_PER_MIN, period=ONE_MINUTE)
+    def _check_harvesting_rate() -> None:
+        pass
+
+    def _fetch_record_list(self, records_iterator: BaseOAIIterator) -> list:
+        resumption_token = records_iterator.resumption_token
+        if resumption_token and resumption_token.expiration_date:
+            expiration_date = datetime.fromisoformat(
+                resumption_token.expiration_date.replace("Z", "")
+            ) - timedelta(seconds=10)
+        else:
+            current_date_time = datetime.utcnow()
+            expiration_date = current_date_time + timedelta(seconds=110)
+
+        complete_list_size = (
+            resumption_token.complete_list_size
+            if resumption_token and resumption_token.complete_list_size
+            else None
+        )
+
+        oai_response_dict = xmltodict.parse(records_iterator.oai_response.raw)
+        raw_records = oai_response_dict.get("OAI-PMH", {}).get("ListRecords", {}).get("record", [])
+        batchsize = len(raw_records)
+        records_list = []
+        i = 0
+        for record in records_iterator:
+            i += 1
+            records_list.append(record)
+            if batchsize and (i % batchsize) == 0:
+                now = datetime.utcnow()
+                if now >= expiration_date:
+                    logging.info(
+                        f"Resumption token expired at {expiration_date}: "
+                        f"{i} records retrieved out of {complete_list_size}."
+                    )
+                    break
+                self._check_harvesting_rate()
+                logging.info(f"{i} records retrieved")
+
+        logging.info(f"{i} records retrieved")
+        return records_list
+
     def fetch(
         self, from_incl: datetime, to_excl: datetime
     ) -> Iterator[Tuple[datetime | None, SQLModel | ResourceWithRelations[SQLModel] | RecordError]]:
         sickle = Sickle("https://zenodo.org/oai2d")
-        records = sickle.ListRecords(
+        self._check_harvesting_rate()
+        logging.info("Retrieving records from Zenodo...")
+        records_iterator = sickle.ListRecords(
             **{
                 "metadataPrefix": "oai_datacite",
                 "from": from_incl.isoformat(),
@@ -200,6 +257,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             }
         )
 
+        records = self._fetch_record_list(records_iterator)
         for record in records:
             id_ = None
             datetime_ = None
