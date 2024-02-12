@@ -72,6 +72,9 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
     def _dataset_from_record(
         self, identifier: str, record: dict
     ) -> ResourceWithRelations[Dataset] | RecordError:
+        """
+        Process the information from a dataset and calls the Zenodo API for further information.
+        """
         error_fmt = ZenodoDatasetConnector._error_msg_bad_format
         if isinstance(record["creators"]["creator"], list):
             creator_names = [item["creatorName"]["#text"] for item in record["creators"]["creator"]]
@@ -206,6 +209,10 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
         pass
 
     def _fetch_record_list(self, records_iterator: BaseOAIIterator) -> list:
+        """
+        Fetches the maximum number of records available before the resumption token expires.
+        It also ensures that the harvesting limit rate is not exceeded.
+        """
         resumption_token = records_iterator.resumption_token
         if resumption_token and resumption_token.expiration_date:
             expiration_date = datetime.fromisoformat(
@@ -246,6 +253,11 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
     def fetch(
         self, from_incl: datetime, to_excl: datetime
     ) -> Iterator[Tuple[datetime | None, SQLModel | ResourceWithRelations[SQLModel] | RecordError]]:
+        """
+        First it fetches all the records and then it process all of them.
+        This way, it ensures to retrieve the maximum number of available records before the
+        resumption token expires.
+        """
         sickle = Sickle("https://zenodo.org/oai2d")
         self._check_harvesting_rate()
         logging.info("Retrieving records from Zenodo...")

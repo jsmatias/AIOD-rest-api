@@ -1,31 +1,44 @@
 import datetime
 
-# import math
 import pytest
-import time
-
 import responses
+import requests
+
+from freezegun import freeze_time
+from ratelimit import limits
+from ratelimit.exception import RateLimitException
+
 
 from connectors.record_error import RecordError
+from connectors.zenodo import zenodo_dataset_connector
 from connectors.zenodo.zenodo_dataset_connector import ZenodoDatasetConnector
 from database.model.agent.contact import Contact
-from tests.testutils.paths import path_test_resources
+from tests.connectors.zenodo import mock_zenodo
 
 
-with open(path_test_resources() / "connectors" / "zenodo" / "list_records_1.xml", "r") as f:
-    records_list_1_expired_token = f.read()
-    records_list_1 = records_list_1_expired_token.replace(
-        'expirationDate="2024-02-08T17:40:07Z"', 'expirationDate="5000-02-08T17:40:07Z"'
-    )
-
-with open(path_test_resources() / "connectors" / "zenodo" / "list_records_2.xml", "r") as f:
-    records_list_2 = f.read()
+fake_now = datetime.datetime.fromisoformat(
+    mock_zenodo.TOKEN_EXPIRATION_DATETIME.replace("Z", "")
+) - datetime.timedelta(minutes=2)
 
 
+@freeze_time(fake_now)
 def test_fetch_happy_path():
+    """
+    Test the successful path scenario for fetching records from Zenodo.
+    This test ensures that all 51 records are fetched correctly and processed as expected
+    (6 datasets without errors and the rest due to 'wrong type).
+
+    Steps:
+    1. Mock responses for list and record requests.
+    2. Initialize the connector and fetch records within a specified time range.
+    3. Validate the fetched datasets and errors against expected values.
+    """
     connector = ZenodoDatasetConnector()
     with responses.RequestsMock() as mocked_requests:
-        mock_zenodo_responses_1(mocked_requests)
+        mock_zenodo.first_list_response(mocked_requests)
+        mock_zenodo.first_list_records_responses(mocked_requests)
+        mock_zenodo.second_list_response(mocked_requests)
+        mock_zenodo.second_list_records_responses(mocked_requests)
 
         from_incl = datetime.datetime(2023, 5, 23, 8, 0, 0)
         to_excl = datetime.datetime(2023, 5, 23, 9, 0, 0)
@@ -72,40 +85,22 @@ def test_fetch_happy_path():
     )
 
 
-# def test_fetch_harvesting_rate_limit(mock_time_sleep):
-#     connector = ZenodoDatasetConnector()
-#     rate_limit_patch = 1
-#     connector.harvesting_limit_per_minute = rate_limit_patch
-
-#     with responses.RequestsMock() as mocked_requests:
-#         mock_zenodo_responses_3(mocked_requests)
-#         from_incl = datetime.datetime(2023, 5, 23, 8, 0, 0)
-#         to_excl = datetime.datetime(2023, 5, 23, 9, 0, 0)
-#         time_per_loop = datetime.timedelta(minutes=30)
-#         resources = list(
-#             connector.run(
-#                 state={},
-#                 from_incl=from_incl,
-#                 to_excl=to_excl,
-#                 time_per_loop=time_per_loop,
-#             )
-#         )
-
-#         datasets = [r for r in resources if not isinstance(r, RecordError)]
-#         errors = [r for r in resources if isinstance(r, RecordError)]
-#         assert {error.error for error in errors} == {"Wrong type"}
-#         assert len(datasets) == 12
-#         assert len(errors) == 90
-#         assert (
-#             len(mock_time_sleep)
-#             == math.ceil((to_excl - from_incl) / (time_per_loop * rate_limit_patch)) - 1
-#         )
-
-
 def test_fetch_expired_token_happy_path():
+    """
+    Test the scenario when the resumption token expires during fetching.
+    This test ensures that the connector handles expired tokens correctly.
+    As a result only the first batch of records (26) are processed.
+
+    Steps:
+    1. Mock responses for list and record requests.
+    2. Initialize the connector and fetch records within a specified time range.
+    3. Validate the fetched datasets and errors against expected values.
+    """
     connector = ZenodoDatasetConnector()
     with responses.RequestsMock() as mocked_requests:
-        mock_zenodo_responses_2(mocked_requests)
+        mock_zenodo.first_list_response(mocked_requests)
+        mock_zenodo.first_list_records_responses(mocked_requests)
+
         from_incl = datetime.datetime(2023, 5, 23, 8, 0, 0)
         to_excl = datetime.datetime(2023, 5, 23, 9, 0, 0)
         resources = list(connector.run(state={}, from_incl=from_incl, to_excl=to_excl))
@@ -116,97 +111,76 @@ def test_fetch_expired_token_happy_path():
         assert len(errors) == 21
 
 
-@pytest.fixture
-def mock_time_sleep(monkeypatch):
-    calls = []
+@freeze_time(fake_now)
+def test_fetch_harvesting_rate_limit(monkeypatch):
+    """
+    Test the scenario when the harvesting rate limit is reached.
+    This test ensures that the connector handles rate limits correctly.
+    With harvest rate limit set to 1, the API will fail to retrieve the second list.
+    In reality the tested method will sleep and retry resuming the process.
 
-    def mock_sleep(seconds):
-        calls.append(seconds)
+    Steps:
+    1. Mock the _check_harvesting_rate method to limit the calls.
+    2. Mock responses for list requests.
+    3. Initialize the connector and attempt to fetch records.
+    4. Validate that a RateLimitException is raised with the correct message.
+    """
 
-    monkeypatch.setattr(time, "sleep", mock_sleep)
-    yield calls
+    @staticmethod
+    @limits(calls=1, period=60)
+    def mock_check():
+        pass
 
+    monkeypatch.setattr(ZenodoDatasetConnector, "_check_harvesting_rate", mock_check)
 
-def mock_zenodo_responses_1(mocked_requests: responses.RequestsMock):
-    mock_first_list_response(
-        mocked_requests,
-        from_date="2023-05-23T08%3A00%3A00",
-        until="2023-05-23T09%3A00%3A00",
-        records_list=records_list_1,
-    )
-    mock_second_list_response(mocked_requests)
-    mock_records_responses(mocked_requests)
-    with open(path_test_resources() / "connectors" / "zenodo" / "7199024.json", "r") as f:
-        body = f.read()
-    mocked_requests.add(
-        responses.GET, "https://zenodo.org/api/records/7199024/files", body=body, status=200
-    )
+    with responses.RequestsMock() as mocked_requests:
+        mock_zenodo.first_list_response(mocked_requests)
 
-
-def mock_zenodo_responses_2(mocked_requests: responses.RequestsMock):
-    mock_first_list_response(
-        mocked_requests,
-        from_date="2023-05-23T08%3A00%3A00",
-        until="2023-05-23T09%3A00%3A00",
-        records_list=records_list_1_expired_token,
-    )
-    mock_records_responses(mocked_requests)
+        from_incl = datetime.datetime(2023, 5, 23, 8, 0, 0)
+        to_excl = datetime.datetime(2023, 5, 23, 9, 0, 0)
+        connector = zenodo_dataset_connector.ZenodoDatasetConnector()
+        with pytest.raises(RateLimitException) as exc_info:
+            resources = list(connector.run(state={}, from_incl=from_incl, to_excl=to_excl))
+            assert resources is None, resources
+        assert exc_info.value.args[0] == "too many calls"
 
 
-def mock_zenodo_responses_3(mocked_requests: responses.RequestsMock):
+@freeze_time(fake_now)
+def test_fetch_records_rate_limit(monkeypatch):
+    """
+    Cheap check to test the scenario when the rate limit for fetching records is reached.
+    This test ensures that the connector handles record fetch rate limits correctly.
+    With rate limit set to 1, only the first record will be retrieved. In reality
+    the tested method will sleep and retry resuming the process.
 
-    mocked_requests.add(
-        responses.GET,
-        "https://zenodo.org/oai2d?"
-        "metadataPrefix=oai_datacite&"
-        "from=2023-05-23T08%3A00%3A00&"
-        "until=2023-05-23T08%3A30%3A00&"
-        "verb=ListRecords",
-        body=records_list_1,
-        status=200,
-    )
-    mocked_requests.add(
-        responses.GET,
-        "https://zenodo.org/oai2d?"
-        "metadataPrefix=oai_datacite&"
-        "from=2023-05-23T08%3A30%3A00&"
-        "until=2023-05-23T09%3A00%3A00&"
-        "verb=ListRecords",
-        body=records_list_1,
-        status=200,
-    )
-    mock_second_list_response(mocked_requests)
-    mock_records_responses(mocked_requests)
+    Steps:
+    1. Mock the _get_record method to limit the calls.
+    2. Mock responses for list and record requests.
+    3. Initialize the connector and attempt to fetch records.
+    4. Validate that records are fetched correctly despite rate limits.
+    """
 
+    @staticmethod
+    @limits(calls=1, period=60)
+    def mock_check(id_number):
+        response = requests.get(f"https://zenodo.org/api/records/{id_number}/files")
+        return response
 
-def mock_first_list_response(mocked_requests, from_date: str, until: str, records_list: str):
-    mocked_requests.add(
-        responses.GET,
-        "https://zenodo.org/oai2d?"
-        "metadataPrefix=oai_datacite&"
-        f"from={from_date}&"
-        f"until={until}&"
-        "verb=ListRecords",
-        body=records_list,
-        status=200,
-    )
+    monkeypatch.setattr(ZenodoDatasetConnector, "_get_record", mock_check)
 
+    with responses.RequestsMock() as mocked_requests:
+        mock_zenodo.first_list_response(mocked_requests)
+        mock_zenodo.second_list_response(mocked_requests)
+        mock_zenodo.record_response(mocked_requests, 7947283)
 
-def mock_second_list_response(mocked_requests):
-    mocked_requests.add(
-        responses.GET,
-        "https://zenodo.org/oai2d?"
-        "resumptionToken=.resumption-token-to-page-2&"
-        "verb=ListRecords",
-        body=records_list_2,
-        status=200,
-    )
+        from_incl = datetime.datetime(2023, 5, 23, 8, 0, 0)
+        to_excl = datetime.datetime(2023, 5, 23, 9, 0, 0)
+        connector = zenodo_dataset_connector.ZenodoDatasetConnector()
+        resources = list(connector.run(state={}, from_incl=from_incl, to_excl=to_excl))
 
+        datasets = [r for r in resources if not isinstance(r, RecordError)]
+        errors = [r for r in resources if isinstance(r, RecordError)]
+        assert {type(error.error) for error in errors} == {str, RateLimitException}
 
-def mock_records_responses(mocked_requests):
-    for id_ in (6884943, 7793917, 7947283, 7555467, 7902673):
-        with open(path_test_resources() / "connectors" / "zenodo" / f"{id_}.json", "r") as f:
-            body = f.read()
-        mocked_requests.add(
-            responses.GET, f"https://zenodo.org/api/records/{id_}/files", body=body, status=200
-        )
+        assert len(datasets) == 1
+        assert len(errors) == 50
