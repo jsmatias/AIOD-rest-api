@@ -76,12 +76,20 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
         Process the information from a dataset and calls the Zenodo API for further information.
         """
         error_fmt = ZenodoDatasetConnector._error_msg_bad_format
-        if isinstance(record["creators"]["creator"], list):
-            creator_names = [item["creatorName"]["#text"] for item in record["creators"]["creator"]]
-        elif isinstance(record["creators"]["creator"]["creatorName"]["#text"], str):
-            creator_names = [record["creators"]["creator"]["creatorName"]["#text"]]
-        else:
-            error_fmt("")
+        creators_raw = record.get("creators", {}).get("creator")
+        creator_names = None
+        if isinstance(creators_raw, list):
+            creator_names = [
+                item.get("creatorName", {}).get("#text")
+                for item in creators_raw
+                if isinstance(item, dict)
+            ]
+            creator_names = None if None in creator_names else creator_names
+        elif isinstance(creators_raw, dict) and isinstance(
+            creators_raw.get("creatorName", {}).get("#text"), str
+        ):
+            creator_names = [creators_raw["creatorName"]["#text"]]
+        if creator_names is None:
             return RecordError(identifier=identifier, error=error_fmt("creator"))
 
         creators = []
@@ -89,8 +97,9 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
         for name in creator_names:
             creators.append(pydantic_class_contact(name=name))
 
-        if isinstance(record["titles"]["title"], str):
-            title = record["titles"]["title"]
+        titles_raw = record.get("titles", {}).get("title")
+        if isinstance(titles_raw, str):
+            title = titles_raw
         else:
             return RecordError(identifier=identifier, error=error_fmt("title"))
         if len(title) > field_length.NORMAL:
@@ -101,29 +110,41 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
         id_number = "".join(filter(str.isdigit, number_str))
         same_as = f"https://zenodo.org/api/records/{id_number}"
 
-        description_raw = record["descriptions"]["description"]
+        description = None
+        description_raw = record.get("descriptions", {}).get("description")
         if isinstance(description_raw, list):
-            (description,) = [
+            description_list = [
                 e.get("#text") for e in description_raw if e.get("@descriptionType") == "Abstract"
             ]
-        elif description_raw["@descriptionType"] == "Abstract":
-            description = description_raw["#text"]
-        else:
+            description = description_list[0] if len(description_list) == 1 else None
+        elif isinstance(description_raw, dict) and (
+            description_raw.get("@descriptionType") == "Abstract"
+        ):
+            description = description_raw.get("#text")
+        if description is None:
             return RecordError(identifier=identifier, error=error_fmt("description"))
+
         if len(description) > field_length.LONG:
             text_break = " [...]"
             description = description[: field_length.LONG - len(text_break)] + text_break
         if description:
             description = Text(plain=description)
 
-        date_published = None
-        date_raw = record["dates"]["date"]
+        date_string = None
+        date_raw = record.get("dates", {}).get("date")
         if isinstance(date_raw, list):
-            (description,) = [e.get("#text") for e in date_raw if e.get("@dateType") == "Issued"]
-        elif date_raw["@dateType"] == "Issued":
-            date_string = date_raw["#text"]
-            date_published = datetime.strptime(date_string, DATE_FORMAT)
-        else:
+            date_list = [e.get("#text") for e in date_raw if e.get("@dateType") == "Issued"]
+            date_string = date_list[0] if len(date_list) == 1 else None
+        elif isinstance(date_raw, dict) and (date_raw.get("@dateType") == "Issued"):
+            date_string = date_raw.get("#text", "")
+
+        date_published = None
+        if date_string is not None:
+            try:
+                date_published = datetime.strptime(date_string, DATE_FORMAT)
+            except Exception:
+                date_published = None
+        if date_published is None:
             return RecordError(identifier=identifier, error=error_fmt("date_published"))
 
         publisher = None
@@ -135,23 +156,26 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
 
         license_ = None
         if "rightsList" in record:
-            if isinstance(record["rightsList"]["rights"], list):
-                license_ = record["rightsList"]["rights"][0]["#text"]
-            elif isinstance(record["rightsList"]["rights"]["#text"], str):
-                license_ = record["rightsList"]["rights"]["#text"]
+            rights_raw = record["rightsList"].get("rights")
+            if isinstance(rights_raw, list):
+                license_ = rights_raw[0].get("#text")
+            elif isinstance(rights_raw, dict) and isinstance(rights_raw.get("#text"), str):
+                license_ = rights_raw["#text"]
             else:
                 return RecordError(identifier=identifier, error=error_fmt("license"))
 
         keywords = []
         if "subjects" in record:
-            if isinstance(record["subjects"]["subject"], str):
-                keywords = [record["subjects"]["subject"]]
-            elif isinstance(record["subjects"]["subject"], list):
-                keywords = [item for item in record["subjects"]["subject"] if isinstance(item, str)]
+            subjects_raw = record["subjects"].get("subject")
+            if isinstance(subjects_raw, str):
+                keywords = [subjects_raw]
+            elif isinstance(subjects_raw, list):
+                keywords = [item for item in subjects_raw if isinstance(item, str)]
             else:
                 return RecordError(identifier=identifier, error=error_fmt("keywords"))
 
         response: requests.Response = self._get_record(id_number)
+
         if response.status_code == status.HTTP_200_OK:
             entries = response.json()["entries"]
             distributions = [
