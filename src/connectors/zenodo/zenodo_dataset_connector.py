@@ -282,9 +282,8 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
         This way, it ensures to retrieve the maximum number of available records before the
         resumption token expires.
         """
-        sickle = Sickle(
-            "https://zenodo.org/oai2d", max_retries=0, retry_status_codes=(504,)
-        )  # Change this before committing
+        sickle = Sickle("https://zenodo.org/oai2d")
+
         self._check_harvesting_rate()
         logging.info("Retrieving records from Zenodo...")
         records_iterator = sickle.ListRecords(
