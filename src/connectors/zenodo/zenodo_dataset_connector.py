@@ -237,9 +237,12 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
                     logging.info(f"{i} records retrieved")
         except HTTPError as exc:
             if (exc.response is not None) and (
-                exc.response.status_code == status.HTTP_504_GATEWAY_TIMEOUT
+                exc.response.status_code >= status.HTTP_400_BAD_REQUEST
             ):
-                msg = f"Zenodo returned gateway timeout error ({exc.response.status_code})!"
+                msg = (
+                    f"Failed to fetch new records. Zenodo returned {exc.response.reason} "
+                    f"with status code ({exc.response.status_code})!"
+                )
                 msg += " Processing the acquired records..." if i > 0 else ""
                 logging.info(msg)
             else:
