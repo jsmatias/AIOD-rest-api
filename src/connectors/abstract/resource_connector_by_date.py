@@ -15,7 +15,7 @@ class ResourceConnectorByDate(ResourceConnector, Generic[RESOURCE]):
     """Connectors that synchronize by filtering the results on datetime. In every subsequent run,
     the previous end-datetime is used as datetime-from."""
 
-    # harvesting_limit_per_minute: int
+    is_concluded: bool
 
     @abc.abstractmethod
     def retry(self, _id: int) -> RESOURCE | ResourceWithRelations[RESOURCE] | RecordError:
@@ -62,5 +62,10 @@ class ResourceConnectorByDate(ResourceConnector, Generic[RESOURCE]):
                 yield result
                 if datetime_:
                     state["last"] = datetime_.timestamp()
-            from_incl = to_excl_current
+            from_incl = (
+                to_excl_current
+                if self.is_concluded
+                else datetime.fromtimestamp(state["last"] + 0.001)
+            )
+
         state["result"] = "Complete run done (although there might be errors)."

@@ -36,6 +36,33 @@ def second_list_response(mocked_requests: responses.RequestsMock):
     )
 
 
+def second_list_response_after_time_out(mocked_requests: responses.RequestsMock):
+    mocked_requests.add(
+        responses.GET,
+        "https://zenodo.org/oai2d?"
+        "metadataPrefix=oai_datacite&"
+        "from=2023-05-23T08%3A37%3A37.001000&"
+        "until=2023-05-23T09%3A00%3A00&"
+        "verb=ListRecords",
+        body=records_list_2,
+        status=200,
+    )
+
+
+def second_list_response_time_out(mocked_requests: responses.RequestsMock):
+    mocked_requests.add(
+        responses.GET,
+        "https://zenodo.org/oai2d?"
+        "resumptionToken=.resumption-token-to-page-2&"
+        "verb=ListRecords",
+        body=(
+            "<html><body><h1>504 Gateway Time-out</h1>\n"
+            "The server didn't respond in time.\n</body></html>\n"
+        ),
+        status=504,
+    )
+
+
 def record_response(mocked_requests: responses.RequestsMock, id_: int):
     with open(path_test_resources() / "connectors" / "zenodo" / f"{id_}.json", "r") as f:
         body = f.read()

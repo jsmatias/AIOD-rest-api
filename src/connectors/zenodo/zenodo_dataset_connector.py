@@ -5,9 +5,9 @@ import xmltodict
 
 from datetime import datetime, timedelta
 from ratelimit import limits, sleep_and_retry
+from requests.exceptions import HTTPError
 from sickle import Sickle
 from sickle.iterator import BaseOAIIterator
-from sqlmodel import SQLModel
 from starlette import status
 from typing import Iterator, Tuple
 
@@ -208,7 +208,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
     def _check_harvesting_rate() -> None:
         pass
 
-    def _fetch_record_list(self, records_iterator: BaseOAIIterator) -> list:
+    def _fetch_record_list(self, records_iterator: BaseOAIIterator, batchsize: int) -> list:
         """
         Fetches the maximum number of records available before the resumption token expires.
         It also ensures that the harvesting limit rate is not exceeded.
@@ -222,43 +222,42 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             current_date_time = datetime.utcnow()
             expiration_date = current_date_time + timedelta(seconds=110)
 
-        complete_list_size = (
-            resumption_token.complete_list_size
-            if resumption_token and resumption_token.complete_list_size
-            else None
-        )
-
-        oai_response_dict = xmltodict.parse(records_iterator.oai_response.raw)
-        raw_records = oai_response_dict.get("OAI-PMH", {}).get("ListRecords", {}).get("record", [])
-        batchsize = len(raw_records)
         records_list = []
         i = 0
-        for record in records_iterator:
-            i += 1
-            records_list.append(record)
-            if batchsize and (i % batchsize) == 0:
-                now = datetime.utcnow()
-                if now >= expiration_date:
-                    logging.info(
-                        f"Resumption token expired at {expiration_date}: "
-                        f"{i} records retrieved out of {complete_list_size}."
-                    )
-                    break
-                self._check_harvesting_rate()
-                logging.info(f"{i} records retrieved")
+        try:
+            for record in records_iterator:
+                i += 1
+                records_list.append(record)
+                if batchsize and (i % batchsize) == 0:
+                    now = datetime.utcnow()
+                    if now >= expiration_date:
+                        logging.info(f"Resumption token expired at {expiration_date}!")
+                        break
+                    self._check_harvesting_rate()
+                    logging.info(f"{i} records retrieved")
+        except HTTPError as exc:
+            if (exc.response is not None) and (
+                exc.response.status_code == status.HTTP_504_GATEWAY_TIMEOUT
+            ):
+                msg = f"Zenodo returned gateway timeout error ({exc.response.status_code})!"
+                msg += " Processing the acquired records..." if i > 0 else ""
+                logging.info(msg)
+            else:
+                raise exc
 
-        logging.info(f"{i} records retrieved")
         return records_list
 
     def fetch(
         self, from_incl: datetime, to_excl: datetime
-    ) -> Iterator[Tuple[datetime | None, SQLModel | ResourceWithRelations[SQLModel] | RecordError]]:
+    ) -> Iterator[Tuple[datetime | None, Dataset | ResourceWithRelations[Dataset] | RecordError]]:
         """
         First it fetches all the records and then it process all of them.
         This way, it ensures to retrieve the maximum number of available records before the
         resumption token expires.
         """
-        sickle = Sickle("https://zenodo.org/oai2d")
+        sickle = Sickle(
+            "https://zenodo.org/oai2d", max_retries=0, retry_status_codes=(504,)
+        )  # Change this before committing
         self._check_harvesting_rate()
         logging.info("Retrieving records from Zenodo...")
         records_iterator = sickle.ListRecords(
@@ -268,14 +267,29 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
                 "until": to_excl.isoformat(),
             }
         )
+        oai_response_dict = xmltodict.parse(records_iterator.oai_response.raw)
+        raw_records = oai_response_dict.get("OAI-PMH", {}).get("ListRecords", {}).get("record", [])
+        batchsize = len(raw_records)
 
-        records = self._fetch_record_list(records_iterator)
+        complete_list_size = (
+            int(records_iterator.resumption_token.complete_list_size)
+            if records_iterator.resumption_token
+            and records_iterator.resumption_token.complete_list_size
+            else batchsize
+        )
+
+        records = self._fetch_record_list(records_iterator, batchsize)
+        logging.info(f"{len(records)} records retrieved out of {complete_list_size}")
+
+        i = 0
         for record in records:
+            processed_record: ResourceWithRelations[Dataset] | RecordError
+            i += 1
             id_ = None
-            datetime_ = None
+            datetime_: datetime | None = None
             resource_type = ZenodoDatasetConnector._resource_type(record)
             if resource_type is None:
-                yield datetime_, RecordError(
+                processed_record = RecordError(
                     identifier=id_, error="Resource type could not be determined"
                 )
             if resource_type == "Dataset":
@@ -287,8 +301,11 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
                         id_ = id_.replace("oai:", "")
                     datetime_ = dateutil.parser.parse(xml_dict["record"]["header"]["datestamp"])
                     resource = xml_dict["record"]["metadata"]["oai_datacite"]["payload"]["resource"]
-                    yield datetime_, self._dataset_from_record(id_, resource)
+                    processed_record = self._dataset_from_record(id_, resource)
                 except Exception as e:
-                    yield datetime_, RecordError(identifier=id_, error=e)
+                    processed_record = RecordError(identifier=id_, error=e)
             else:
-                yield datetime_, RecordError(identifier=id_, error="Wrong type", ignore=True)
+                processed_record = RecordError(identifier=id_, error="Wrong type", ignore=True)
+
+            self.is_concluded = i == complete_list_size
+            yield datetime_, processed_record

@@ -184,3 +184,33 @@ def test_fetch_records_rate_limit(monkeypatch):
 
         assert len(datasets) == 1
         assert len(errors) == 50
+
+
+@freeze_time(fake_now)
+def test_resuming_processing_after_timeout():
+    """
+    Test the scenario when the fetching the records is interrupted by time out error
+    from zenodo. It's expected that the API halts fetching the records and starts processing them
+    to avoid losing the records already retrieved.
+
+    Steps:
+    1. Mock responses for list and record requests.
+    2. Initialize the connector and fetch records within a specified time range.
+    3. Validate the fetched datasets and errors against expected values.
+    """
+    connector = ZenodoDatasetConnector()
+    with responses.RequestsMock() as mocked_requests:
+        mock_zenodo.first_list_response(mocked_requests)
+        mock_zenodo.second_list_response_time_out(mocked_requests)
+        mock_zenodo.first_list_records_responses(mocked_requests)
+        mock_zenodo.second_list_response_after_time_out(mocked_requests)
+        mock_zenodo.second_list_records_responses(mocked_requests)
+
+        from_incl = datetime.datetime(2023, 5, 23, 8, 0, 0)
+        to_excl = datetime.datetime(2023, 5, 23, 9, 0, 0)
+        resources = list(connector.run(state={}, from_incl=from_incl, to_excl=to_excl))
+        datasets = [r for r in resources if not isinstance(r, RecordError)]
+        errors = [r for r in resources if isinstance(r, RecordError)]
+        assert {error.error for error in errors} == {"Wrong type"}
+        assert len(datasets) == 6
+        assert len(errors) == 45
