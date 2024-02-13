@@ -295,7 +295,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
                 processed_record = RecordError(
                     identifier=id_, error="Resource type could not be determined"
                 )
-            if resource_type == "Dataset":
+            else:
                 try:
                     xml_string = record.raw
                     xml_dict = xmltodict.parse(xml_string)
@@ -303,12 +303,17 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
                     if id_.startswith("oai:"):
                         id_ = id_.replace("oai:", "")
                     datetime_ = dateutil.parser.parse(xml_dict["record"]["header"]["datestamp"])
-                    resource = xml_dict["record"]["metadata"]["oai_datacite"]["payload"]["resource"]
-                    processed_record = self._dataset_from_record(id_, resource)
+                    if resource_type == "Dataset":
+                        resource = xml_dict["record"]["metadata"]["oai_datacite"]["payload"][
+                            "resource"
+                        ]
+                        processed_record = self._dataset_from_record(id_, resource)
+                    else:
+                        processed_record = RecordError(
+                            identifier=id_, error="Wrong type", ignore=True
+                        )
                 except Exception as e:
                     processed_record = RecordError(identifier=id_, error=e)
-            else:
-                processed_record = RecordError(identifier=id_, error="Wrong type", ignore=True)
 
             self.is_concluded = i == complete_list_size
             yield datetime_, processed_record

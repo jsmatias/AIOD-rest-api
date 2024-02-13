@@ -41,7 +41,7 @@ def second_list_response_after_time_out(mocked_requests: responses.RequestsMock)
         responses.GET,
         "https://zenodo.org/oai2d?"
         "metadataPrefix=oai_datacite&"
-        "from=2023-05-23T08%3A37%3A37.001000&"
+        "from=2023-05-23T08%3A00%3A47.001000&"
         "until=2023-05-23T09%3A00%3A00&"
         "verb=ListRecords",
         body=records_list_2,
