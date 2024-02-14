@@ -3,11 +3,13 @@ This module knows how to load an OpenML object based on its AIoD implementation,
 and how to convert the OpenML response to some agreed AIoD format.
 """
 
-from typing import Iterator, Any
-
 import dateutil.parser
 import requests
+import logging
+
+from requests.exceptions import HTTPError
 from sqlmodel import SQLModel
+from typing import Iterator, Any
 
 from connectors.abstract.resource_connector_by_id import ResourceConnectorById
 from connectors.record_error import RecordError
@@ -100,13 +102,14 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
             f"limit/{self.limit_per_iteration}/offset/{offset}"
         )
         response = requests.get(url_mlmodel)
-        status_code = response.status_code
 
         if not response.ok:
+            status_code = response.status_code
             msg = response.json()["error"]["message"]
             err_msg = f"Error while fetching {url_mlmodel} from OpenML: ({status_code}) {msg}"
-
-            yield RecordError(identifier=None, error=err_msg, code=status_code)
+            logging.error(err_msg)
+            err = HTTPError(err_msg)
+            yield RecordError(identifier=None, error=err)
             return
 
         try:
@@ -120,16 +123,17 @@ class OpenMlMLModelConnector(ResourceConnectorById[MLModel]):
             # ToDo: discuss how to accommodate pipelines. Excluding sklearn pipelines for now.
             # Note: weka doesn't have a standard method to define pipeline.
             # There are no mlr pipelines in OpenML.
+            identifier = summary["id"]
             if "sklearn.pipeline" not in summary["name"]:
                 try:
-                    identifier = summary["id"]
-
                     if identifier < from_identifier:
                         yield RecordError(identifier=identifier, error="Id too low", ignore=True)
                     if from_identifier is None or identifier >= from_identifier:
                         yield self.fetch_record(identifier)
                 except Exception as e:
                     yield RecordError(identifier=identifier, error=e)
+            else:
+                yield RecordError(identifier=identifier, error="Sklearn pipeline not processed!")
 
 
 def _description(mlmodel_json: dict[str, Any], identifier: int) -> Text | None | RecordError:
@@ -154,9 +158,9 @@ def _description(mlmodel_json: dict[str, Any], identifier: int) -> Text | None |
 
 def _distributions(mlmodel_json) -> list[RunnableDistribution]:
     if (
-        mlmodel_json.get("dependencies", None)
-        and mlmodel_json.get("installation_notes", None)
-        and mlmodel_json.get("binary_url", None)
+        (mlmodel_json.get("installation_notes") is None)
+        and (mlmodel_json.get("dependencies") is None)
+        and (mlmodel_json.get("binary_url") is None)
     ):
         return []
     return [
