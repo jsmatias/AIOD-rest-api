@@ -102,8 +102,10 @@ class ZenodoUploader(Uploader):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
 
         if not dataset.version:
-            msg = "A version of the dataset is required. Any string is accepted, however "
-            "the suggested format is a semantically versioned tag (more details at semver.org)."
+            msg = (
+                "A version of the dataset is required. Any string is accepted, however "
+                "the suggested format is a semantically versioned tag (more details at semver.org)."
+            )
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
 
         if publish and not (dataset.is_accessible_for_free):
