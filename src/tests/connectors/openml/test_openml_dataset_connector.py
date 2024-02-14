@@ -1,5 +1,4 @@
 import json
-
 import responses
 
 from connectors.openml.openml_dataset_connector import OpenMlDatasetConnector
@@ -38,7 +37,8 @@ def test_request_empty_list():
         )
         datasets = list(connector.run(state, from_identifier=0, limit=None))
 
-        assert "No results" in datasets[0].error, datasets
+        assert len(datasets) == 1, datasets
+        assert "No results" in datasets[0].error.args[0], datasets
         assert state["offset"] == 2, state
         assert state["last_id"] == 3, state
 

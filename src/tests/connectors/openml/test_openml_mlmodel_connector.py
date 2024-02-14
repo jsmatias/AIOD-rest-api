@@ -41,9 +41,10 @@ def test_request_empty_list():
             json={"error": {"code": "500", "message": "No results"}},
             status=412,
         )
-        datasets = list(connector.run(state, from_identifier=0, limit=None))
+        ml_models = list(connector.run(state, from_identifier=0, limit=None))
 
-        assert "No results" in datasets[0].error, datasets
+        assert len(ml_models) == 1, ml_models
+        assert "No results" in ml_models[0].error.args[0], ml_models
         assert state["offset"] == 2, state
         assert state["last_id"] == 3, state
 
