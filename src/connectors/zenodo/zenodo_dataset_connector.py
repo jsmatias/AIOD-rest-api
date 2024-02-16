@@ -282,17 +282,29 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
         This way, it ensures to retrieve the maximum number of available records before the
         resumption token expires.
         """
-        sickle = Sickle("https://zenodo.org/oai2d")
+        self.is_concluded = False
 
         self._check_harvesting_rate()
         logging.info("Retrieving records from Zenodo...")
-        records_iterator = sickle.ListRecords(
-            **{
-                "metadataPrefix": "oai_datacite",
-                "from": from_incl.isoformat(),
-                "until": to_excl.isoformat(),
-            }
-        )
+        sickle = Sickle("https://zenodo.org/oai2d")
+        try:
+            records_iterator = sickle.ListRecords(
+                **{
+                    "metadataPrefix": "oai_datacite",
+                    "from": from_incl.isoformat(),
+                    "until": to_excl.isoformat(),
+                }
+            )
+        except HTTPError as err:
+            if err.response is not None and (
+                err.response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            ):
+                self.is_concluded = True
+                yield None, RecordError(identifier=None, error=err)
+                return
+            else:
+                raise err
+
         oai_response_dict = xmltodict.parse(records_iterator.oai_response.raw)
         raw_records = oai_response_dict.get("OAI-PMH", {}).get("ListRecords", {}).get("record", [])
         batchsize = len(raw_records)

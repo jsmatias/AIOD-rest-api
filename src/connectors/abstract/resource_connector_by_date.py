@@ -50,8 +50,10 @@ class ResourceConnectorByDate(ResourceConnector, Generic[RESOURCE]):
         if first_run:
             if from_incl is None:
                 raise ValueError("In the first run, from_incl needs to be set")
+            state["last"] = None
         else:
-            from_incl = datetime.fromtimestamp(state["last"] + 0.001)
+            last = state["last"] if state["last"] is not None else state["to_excl"]
+            from_incl = datetime.fromtimestamp(last + 0.001)
 
         while from_incl < to_excl:
             to_excl_current = min(from_incl + time_per_loop, to_excl)
@@ -64,7 +66,7 @@ class ResourceConnectorByDate(ResourceConnector, Generic[RESOURCE]):
                     state["last"] = datetime_.timestamp()
             from_incl = (
                 to_excl_current
-                if self.is_concluded
+                if self.is_concluded or state["last"] is None
                 else datetime.fromtimestamp(state["last"] + 0.001)
             )
 

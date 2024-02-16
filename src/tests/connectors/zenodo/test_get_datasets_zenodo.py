@@ -3,6 +3,7 @@ import datetime
 import pytest
 import responses
 import requests
+from requests.exceptions import HTTPError
 
 from freezegun import freeze_time
 from ratelimit import limits
@@ -88,7 +89,7 @@ def test_fetch_happy_path():
 def test_fetch_expired_token_happy_path():
     """
     Test the scenario when the resumption token expires during fetching.
-    This test ensures that the connector handles expired tokens correctly.
+    This test ensures that the connector stops the calls before that happens avoiding a 422 error.
     As a result only the first batch of records (26) are processed.
 
     Steps:
@@ -214,3 +215,33 @@ def test_resuming_processing_after_timeout():
         assert {error.error for error in errors} == {"Wrong type"}
         assert len(datasets) == 6
         assert len(errors) == 45
+
+
+@freeze_time(fake_now)
+def test_response_with_no_records():
+    """
+    Test the scenario when the fetching the records returns an 422 error in the first call,
+    which means that no record was found for the chosen period.
+
+    Steps:
+    1. Mock responses for list and record requests.
+    2. Initialize the connector and fetch records within a specified time range.
+    3. Validate the fetched datasets and errors and state against expected values.
+    """
+    connector = ZenodoDatasetConnector()
+    state = {}
+    with responses.RequestsMock() as mocked_requests:
+        mock_zenodo.response_with_no_records(mocked_requests)
+
+        from_incl = datetime.datetime(2023, 5, 23, 8, 0, 0)
+        to_excl = datetime.datetime(2023, 5, 23, 9, 0, 0)
+        resources = list(connector.run(state=state, from_incl=from_incl, to_excl=to_excl))
+        datasets = [r for r in resources if not isinstance(r, RecordError)]
+        errors = [r for r in resources if isinstance(r, RecordError)]
+        assert len(datasets) == 0
+        assert len(errors) == 1
+        assert isinstance(errors[0].error, HTTPError), errors
+        assert "422" in errors[0].error.args[0], errors
+        assert state["from_incl"] == from_incl.timestamp()
+        assert state["to_excl"] == to_excl.timestamp()
+        assert state["last"] is None

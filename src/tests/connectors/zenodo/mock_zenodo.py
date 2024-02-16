@@ -63,6 +63,19 @@ def second_list_response_time_out(mocked_requests: responses.RequestsMock):
     )
 
 
+def response_with_no_records(mocked_requests: responses.RequestsMock):
+    mocked_requests.add(
+        responses.GET,
+        "https://zenodo.org/oai2d?"
+        "metadataPrefix=oai_datacite&"
+        "from=2023-05-23T08%3A00%3A00&"
+        "until=2023-05-23T09%3A00%3A00&"
+        "verb=ListRecords",
+        body="422 Client Error: UNPROCESSABLE ENTITY",
+        status=422,
+    )
+
+
 def record_response(mocked_requests: responses.RequestsMock, id_: int):
     with open(path_test_resources() / "connectors" / "zenodo" / f"{id_}.json", "r") as f:
         body = f.read()
