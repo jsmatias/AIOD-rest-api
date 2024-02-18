@@ -232,3 +232,23 @@ services:
     depends_on:
       es_logstash_setup:
         condition: service_completed_successfully
+
+  backup:
+    build: 
+      context: backups/
+      dockerfile: Dockerfile
+    image: aiod_backup
+    container_name: backup
+    volumes:
+      - ./backups:/opt/backups/scripts
+      - ./data/backups/:/opt/backups/data
+      - ./data/connectors/:/opt/data/connectors:ro
+      - ./data/deletion/:/opt/data/deletion:ro
+      - ./data/elasticsearch/:/opt/data/elasticsearch:ro
+      - ./data/keycloak/:/opt/data/keycloak:ro
+      - ./data/mysql/:/opt/data/mysql:ro
+    command: 
+      /bin/bash -c "/opt/backups/scripts/entry.sh"
+    depends_on:
+      app:
+        condition: service_healthy
