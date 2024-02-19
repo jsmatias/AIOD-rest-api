@@ -1,1 +1,1 @@
-* 2 * * 0 bash /opt/backups/scripts/backup_data.sh >> /opt/backups/data/cron.log 2>&1
+* * * * * bash /opt/backups/scripts/backup.sh >> /opt/backups/data/cron.log 2>&1
