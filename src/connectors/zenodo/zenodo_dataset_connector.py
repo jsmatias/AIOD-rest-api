@@ -97,6 +97,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             creators.append(pydantic_class_contact(name=name))
 
         titles_raw = record.get("titles", {}).get("title")
+        # Checking only the str type, as it is expected that each dataset has a single title
         if isinstance(titles_raw, str):
             title = titles_raw
         else:
@@ -336,7 +337,6 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
                     id_ = xml_dict["record"]["header"]["identifier"]
                     if id_.startswith("oai:"):
                         id_ = id_.replace("oai:", "")
-                    # datetime_ = dateutil.parser.parse(xml_dict["record"]["header"]["datestamp"])
                     datetime_ = datetime.fromisoformat(xml_dict["record"]["header"]["datestamp"])
                     if resource_type == "Dataset":
                         resource = xml_dict["record"]["metadata"]["oai_datacite"]["payload"][

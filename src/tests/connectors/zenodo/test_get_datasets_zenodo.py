@@ -3,12 +3,11 @@ import datetime
 import pytest
 import responses
 import requests
-from requests.exceptions import HTTPError
 
 from freezegun import freeze_time
 from ratelimit import limits
 from ratelimit.exception import RateLimitException
-
+from requests.exceptions import HTTPError
 
 from connectors.record_error import RecordError
 from connectors.zenodo import zenodo_dataset_connector
@@ -90,7 +89,8 @@ def test_fetch_expired_token_happy_path():
     """
     Test the scenario when the resumption token expires during fetching.
     This test ensures that the connector stops the calls before that happens avoiding a 422 error.
-    As a result only the first batch of records (26) are processed.
+    Then it resumes the process fetching the next batch of records with a new resumption token.
+    As a result all the records (51) are processed without skipping any from fetching.
 
     Steps:
     1. Mock responses for list and record requests.
