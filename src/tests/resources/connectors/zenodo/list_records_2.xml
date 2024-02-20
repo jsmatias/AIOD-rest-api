@@ -1,0 +1,2456 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?xml-stylesheet type="text/xsl" href="/static/oai2.xsl"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2024-02-08T17:38:01Z</responseDate>
+  <request resumptionToken=".resumption-token-to-page-2" verb="ListRecords">https://zenodo.org/oai2d</request>
+  <ListRecords>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10491380</identifier>
+        <datestamp>2024-02-06T18:35:07Z</datestamp>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.5281/zenodo.10491380</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10491380</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Anandakumar, Harithaa</creatorName>
+                  <givenName>Harithaa</givenName>
+                  <familyName>Anandakumar</familyName>
+                </creator>
+              </creators>
+              <titles>
+                <title>GALT</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2024</publicationYear>
+              <dates>
+                <date dateType="Issued">2024-01-11</date>
+              </dates>
+              <resourceType resourceTypeGeneral="Journal"></resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
+                  10.5281/zenodo.10491379</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10628582</identifier>
+        <datestamp>2024-02-07T08:51:36Z</datestamp>
+        <setSpec>openaire</setSpec>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.5281/zenodo.10628582</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10628582</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Kinkino, Kia Legide</creatorName>
+                  <givenName>Kia Legide</givenName>
+                  <familyName>Kinkino</familyName>
+                  <affiliation>Hawassa University School of Law, Hawassa, Ethiopia.</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>EXPLORING THE CHALLENGES AND LIMITS IN THE COMPLIANCE WITH TRANSITIONAL
+                  JUSTICE NORM IN NON-REGIME TRANSITIONS: THE CASE OF POST-2018 ETHIOPIA</title>
+              </titles>
+              <publisher>AMERICAN SERIAL</publisher>
+              <publicationYear>2024</publicationYear>
+              <subjects>
+                <subject>Transitional justice</subject>
+                <subject>compliance</subject>
+                <subject>challenges</subject>
+                <subject>Ethiopia</subject>
+                <subject>non-regime transition</subject>
+              </subjects>
+              <dates>
+                <date dateType="Issued">2024-02-07</date>
+              </dates>
+              <language>eng</language>
+              <resourceType resourceTypeGeneral="Text"></resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
+                  10.5281/zenodo.10628581</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="ISSN" relationType="IsPartOf"
+                  resourceTypeGeneral="Collection">2837-2107</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">The last decades witnessed the emergence of
+                  transitional justice as a global norm which obliges postconflict transitioning
+                  states to address systematic past human rights violations through purposeful
+                  judicial and non-judicial mechanisms. While its typical architecture focused on
+                  formal transitions, the dynamics of non-regime transitions and compliance is often
+                  neglected in transitional justice literature, and the measures also signify
+                  manifold challenges. This article attempted to assess the beleaguered transitional
+                  justice measures implemented in Ethiopia’s current troubled non-regime transition
+                  which came after the authoritarian and Marxist TPLF/EPRDF regime collapsed in 2018
+                  after violent antigovernment protest. Consequently, under the new hybrid elites’
+                  leadership, host of justice measures were implemented but they unfolded in the
+                  absence of both typical transition and guiding transition roadmap. Through the
+                  lens of compliance and resistance in transitional justice, the article finds that
+                  rather than addressing legacies of atrocious past, the flawed and instrumentalist
+                  implementation of contested justice processes and the mismanagement of the narrow
+                  window of opportunity led to unprecedented societal violence and new political
+                  complexities. The Ethiopian case, therefore, reveals that seeking the retributive
+                  transitional justice measure in the absence of typical regime change and
+                  inter-elites bargain, and in an ethnically polarized political transition
+                  exacerbate inter-elite discord, bolster ethnic-supported resistance from
+                  predecessor elites, and harbor the risk of resurgence of new violence. Hence, it
+                  falls short of achieving the compliance with the transitional justice norm such as
+                  ensuring accountability (fighting impunity), adequately addressing past wrongs
+                  through judicial and non-judicial means and also ensuring non-recurrence of the
+                  same in the future</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10560030</identifier>
+        <datestamp>2024-02-07T08:30:14Z</datestamp>
+        <setSpec>user-imdeaenergy</setSpec>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.1016/j.micromeso.2019.03.012</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10560030</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Gómez-Pozuelo, Gema</creatorName>
+                  <givenName>Gema</givenName>
+                  <familyName>Gómez-Pozuelo</familyName>
+                  <affiliation affiliationIdentifier="https://ror.org/01v5cv687"
+                    affiliationIdentifierScheme="ROR">King Juan Carlos University</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Sanz-Pérez, E.S.</creatorName>
+                  <givenName>E.S.</givenName>
+                  <familyName>Sanz-Pérez</familyName>
+                  <affiliation affiliationIdentifier="https://ror.org/01v5cv687"
+                    affiliationIdentifierScheme="ROR">King Juan Carlos University</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Arencibia, Amaia</creatorName>
+                  <givenName>Amaia</givenName>
+                  <familyName>Arencibia</familyName>
+                  <affiliation affiliationIdentifier="https://ror.org/01v5cv687"
+                    affiliationIdentifierScheme="ROR">King Juan Carlos University</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Pizarro, Patricia</creatorName>
+                  <givenName>Patricia</givenName>
+                  <familyName>Pizarro</familyName>
+                  <affiliation affiliationIdentifier="https://ror.org/01v5cv687"
+                    affiliationIdentifierScheme="ROR">King Juan Carlos University</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Sanz, Raúl</creatorName>
+                  <givenName>Raúl</givenName>
+                  <familyName>Sanz</familyName>
+                  <affiliation affiliationIdentifier="https://ror.org/01v5cv687"
+                    affiliationIdentifierScheme="ROR">King Juan Carlos University</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Serrano, David, P.</creatorName>
+                  <givenName>David, P.</givenName>
+                  <familyName>Serrano</familyName>
+                  <affiliation affiliationIdentifier="https://ror.org/01v5cv687"
+                    affiliationIdentifierScheme="ROR">King Juan Carlos University</affiliation>
+                  <affiliation affiliationIdentifier="https://ror.org/002tzev63"
+                    affiliationIdentifierScheme="ROR">IMDEA Energy Institute</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>CO2 adsorption on amine-functionalized clays</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2019</publicationYear>
+              <subjects>
+                <subject>CO2 capture</subject>
+                <subject>Clays</subject>
+                <subject>Amine groups</subject>
+                <subject>Grafting</subject>
+                <subject>Impregnation</subject>
+              </subjects>
+              <dates>
+                <date dateType="Issued">2019-07-01</date>
+              </dates>
+              <language>eng</language>
+              <resourceType resourceTypeGeneral="JournalArticle"></resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
+                  https://zenodo.org/communities/imdeaenergy</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Carbon capture using amine-modified
+                  porous sorbents is one of the main proposed technologies to reduce the
+                  CO2 atmospheric concentration. In this work, a wide series of inexpensive clays
+                  have been selected to assess their role as supports of amine-containing sorbents
+                  for CO2 capture. Montmorillonite, bentonite,
+                  saponite, sepiolite and palygorskite have been hydrated and functionalized by
+                  three routes: (a) grafting with aminopropyl (AP) and diethylenetriamine (DT)
+                  organosilanes; (b) impregnation with polyethyleneimine (PEI); and (c) double
+                  functionalization by impregnating previously grafted samples. XRD, FTIR and
+                  N2 adsorption-desorption analyses along with nitrogen content and CO2 adsorption
+                  properties (thermogravimetry and fixed bed) have been evaluated for bare and
+                  functionalized clays. Under dry conditions (45 °C, 1 bar), grafted and impregnated
+                  samples yielded CO2 uptakes as high as 61.3 and 67.1 mg CO2/g ads (for Sepi-DT and
+                  Paly-PEI, respectively), with the latter being the best-performing sample in terms
+                  of CO2 uptake. On the contrary, double-functionalized samples displayed poor
+                  CO2 adsorption properties, probably due to pore-blocking problems related to their
+                  high organic loading. The presence of 5% H2O in the feed gas resulted in CO2
+                  uptake increments from 17 to 27%. The adsorption performance of AP, DT and
+                  PEI-containing samples was maintained after three adsorption-desorption cycles.</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10628197</identifier>
+        <datestamp>2024-02-07T06:47:00Z</datestamp>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.5281/zenodo.10628197</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10628197</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Липина, Валерия Евгеньевна</creatorName>
+                  <givenName>Валерия Евгеньевна</givenName>
+                  <familyName>Липина</familyName>
+                  <affiliation>Checkeng School by Valeriia Lipina</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>Геймификация цифрового обучения при изучении английского языка: актуальные
+                  проблемы</title>
+                <title xml:lang="eng" titleType="TranslatedTitle">Gamification of digital learning
+                  in English language study: current issues</title>
+              </titles>
+              <publisher>APNI</publisher>
+              <publicationYear>2023</publicationYear>
+              <subjects>
+                <subject>английский язык</subject>
+                <subject>геймификация</subject>
+                <subject>цифровое обучение</subject>
+                <subject>проблематика</subject>
+                <subject>современное образование</subject>
+              </subjects>
+              <dates>
+                <date dateType="Issued">2023-05-21</date>
+              </dates>
+              <language>rus</language>
+              <resourceType resourceTypeGeneral="JournalArticle"></resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
+                  10.5281/zenodo.10628196</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="ISSN" relationType="IsPartOf"
+                  resourceTypeGeneral="Collection">2713-1513</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Данная статья посвящена актуальным
+                  проблемам, связанным с применением геймификации в контексте преподавания
+                  английского языка. Рассматриваются ключевые аспекты использования игровых
+                  элементов и механик в образовательных процессах, сфокусированные на специфике
+                  изучения английского языка. Выявляются трудности, с которыми сталкиваются
+                  преподаватели английского, обучающиеся и разработчики образовательных технологий в
+                  контексте внедрения геймификации. В статье освещаются вопросы эффективности
+                  геймификации в обучении английскому языку, ее влияния на мотивацию студентов в
+                  изучении иностранного языка. Анализируются аспекты адаптации геймификации к
+                  различным образовательным контекстам, таким как индивидуальные потребности и
+                  уровень языковых навыков учащихся в процессе обучения английскому языку.</description>
+                <description descriptionType="Abstract" xml:lang="eng">This article is devoted to
+                  the current issues related to the application of gamification in the context of
+                  English language teaching. It examines the key aspects of using game elements and
+                  mechanics in educational processes, focused on the specifics of learning English.
+                  The challenges faced by English teachers, students, and developers of educational
+                  technologies in the context of implementing gamification are identified. The
+                  article addresses the effectiveness of gamification in English language learning,
+                  its impact on student motivation in foreign language study. The aspects of
+                  adapting gamification to various educational contexts, such as individual needs
+                  and the level of language skills of students in the process of learning English,
+                  are analyzed.</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:7199024</identifier>
+        <datestamp>2024-02-07T08:53:58Z</datestamp>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.5281/zenodo.7199024</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:7199024</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Obaid, Hadeel</creatorName>
+                  <givenName>Hadeel</givenName>
+                  <familyName>Obaid</familyName>
+                  <nameIdentifier nameIdentifierScheme="ORCID">0000-0003-0859-6315</nameIdentifier>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Tan, Bo</creatorName>
+                  <givenName>Bo</givenName>
+                  <familyName>Tan</familyName>
+                  <nameIdentifier nameIdentifierScheme="ORCID">0000-0002-6855-6270</nameIdentifier>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Morlaas, Christophe</creatorName>
+                  <givenName>Christophe</givenName>
+                  <familyName>Morlaas</familyName>
+                  <nameIdentifier nameIdentifierScheme="ORCID">0000-0003-4533-1711</nameIdentifier>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Lohan, Elena Simona</creatorName>
+                  <givenName>Elena Simona</givenName>
+                  <familyName>Lohan</familyName>
+                  <nameIdentifier nameIdentifierScheme="ORCID">0000-0003-1718-6924</nameIdentifier>
+                </creator>
+              </creators>
+              <titles>
+                <title>I/Q measurements with 5G SRS signals and receiver 4-port 3D Vector Antenna
+                  for positioning studies</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2022</publicationYear>
+              <dates>
+                <date dateType="Issued">2022-10-14</date>
+              </dates>
+              <resourceType resourceTypeGeneral="Dataset"></resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
+                  10.5281/zenodo.7199023</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
+                  https://zenodo.org/communities/tau_wireless</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">This dataset contains the I\Q data of four
+                  received signals from a 4-port 3D Vector Antenna (3D VA) as well as *fig and *png
+                  examples of the angle of arrival (AoA)/azimuth angle estimation using the
+                  MUSIC algorithm based on the raw data. The data was collected from four ports (p5,
+                  p6, p7, p8) of a 3D VA provided by ENAC. A single Yagi antenna has been used as a
+                  transmitter at 2.1GHz carrier frequency and horizontal polarization.</description>
+              </descriptions>
+              <fundingReferences>
+                <fundingReference>
+                  <funderName>European Commission</funderName>
+                  <funderIdentifier funderIdentifierType="ROR">00k4n6c32</funderIdentifier>
+                  <awardNumber>893917</awardNumber>
+                  <awardTitle>Evaluation of 5G Network and mmWave Radar Sensors to Enhance
+                    Surveillance of the Airport Surface</awardTitle>
+                </fundingReference>
+                <fundingReference>
+                  <funderName>Academy of Finland</funderName>
+                  <funderIdentifier funderIdentifierType="ROR">05k73zm37</funderIdentifier>
+                  <awardNumber>328226</awardNumber>
+                  <awardTitle>Ubiquitous Localization, communication, and sensing infrastrucTuRe for
+                    Autonomous systems (ULTRA) / Consortium: ULTRA</awardTitle>
+                </fundingReference>
+              </fundingReferences>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10066669</identifier>
+        <datestamp>2024-02-07T08:49:41Z</datestamp>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.5281/zenodo.10066669</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10066669</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Pratiwiningsih, Theresia</creatorName>
+                  <givenName>Theresia</givenName>
+                  <familyName>Pratiwiningsih</familyName>
+                  <affiliation>Sekolah Tinggi Filsafat Teologi Widya Sasana</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Jatmiko, Nikasius</creatorName>
+                  <givenName>Nikasius</givenName>
+                  <familyName>Jatmiko</familyName>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Tinambunan, Edison R.L.</creatorName>
+                  <givenName>Edison R.L.</givenName>
+                  <familyName>Tinambunan</familyName>
+                </creator>
+              </creators>
+              <titles>
+                <title>Spiritual parenting for broken-home children</title>
+              </titles>
+              <publisher>Mysterium Fidei: Journal of Asian Empirical Theology</publisher>
+              <publicationYear>2023</publicationYear>
+              <subjects>
+                <subject>christian charity; nurturing spirituality; orphanage; resilience in
+                  children</subject>
+              </subjects>
+              <dates>
+                <date dateType="Issued">2023-03-01</date>
+                <date dateType="Accepted">2023-03-01</date>
+              </dates>
+              <language>eng</language>
+              <resourceType resourceTypeGeneral="JournalArticle"></resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
+                  10.5281/zenodo.10066668</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">This study investigated the upbringing of
+                  broken-home children, including those residing in orphanages, and emphasized the
+                  significance of effective parenting for their future. Existing parenting models
+                  were found inadequate in meeting the unique needs of these children, particularly
+                  those raised by Poor Child Jesus (PIJ) sisters. The research focused on the
+                  mentoring approach aligned with spirituality, as taught by Beata Clara Fey, the
+                  founder of the PIJ congregation. A quantitative methodology with a descriptive
+                  design was employed, utilizing questionnaires for data collection. The respondents
+                  consisted of children from PIJ sisters' orphanages, while students from intact
+                  families formed the control group. Descriptive benchmarking analysis was conducted
+                  to analyze the data obtained from broken-home children and the control group. The
+                  research findings demonstrated that the Manete in Me spirituality can serve as a
+                  fundamental framework for models of spiritual accompaniment, nurturing
+                  relationships, and effective communication. These findings shed light on potential
+                  parenting strategies for children from broken homes, highlighting the significance
+                  of integrating the spirituality of Manete in Me to promote emotional well-being
+                  and resilience in these children. This study contributes to understanding the
+                  specific challenges faced by broken-home children and underscores the importance
+                  of effective parenting in their upbringing. By exploring Clara Fey's mentoring
+                  approach and the incorporation of Manete in Me spirituality, this research offered
+                  valuable insights and practical implications for improving the well-being and
+                  development of children who have experienced broken homes. Ultimately, it
+                  emphasized the crucial role of spirituality and meaningful mentorship in providing
+                  support and guidance to these vulnerable children, fostering their emotional
+                  growth, and empowering them to build a promising future.</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10581139</identifier>
+        <datestamp>2024-02-07T08:21:41Z</datestamp>
+        <setSpec>user-imdeaenergy</setSpec>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.1016/j.cattod.2017.08.032</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10581139</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Berenger, Antonio</creatorName>
+                  <givenName>Antonio</givenName>
+                  <familyName>Berenger</familyName>
+                  <affiliation affiliationIdentifier="https://ror.org/002tzev63"
+                    affiliationIdentifierScheme="ROR">IMDEA Energy Institute</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Bennett, James A.</creatorName>
+                  <givenName>James A.</givenName>
+                  <familyName>Bennett</familyName>
+                  <affiliation affiliationIdentifier="https://ror.org/05j0ve876"
+                    affiliationIdentifierScheme="ROR">Aston University</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Hunns, James</creatorName>
+                  <givenName>James</givenName>
+                  <familyName>Hunns</familyName>
+                  <affiliation affiliationIdentifier="https://ror.org/05j0ve876"
+                    affiliationIdentifierScheme="ROR">Aston University</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Moreno, Inés</creatorName>
+                  <givenName>Inés</givenName>
+                  <familyName>Moreno</familyName>
+                  <affiliation affiliationIdentifier="https://ror.org/002tzev63"
+                    affiliationIdentifierScheme="ROR">IMDEA Energy Institute</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Coronado, Juan Manuel</creatorName>
+                  <givenName>Juan Manuel</givenName>
+                  <familyName>Coronado</familyName>
+                  <affiliation affiliationIdentifier="https://ror.org/002tzev63"
+                    affiliationIdentifierScheme="ROR">IMDEA Energy Institute</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Lee, Adam L.</creatorName>
+                  <givenName>Adam L.</givenName>
+                  <familyName>Lee</familyName>
+                  <affiliation affiliationIdentifier="https://ror.org/05j0ve876"
+                    affiliationIdentifierScheme="ROR">Aston University</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Pizarro, Patricia</creatorName>
+                  <givenName>Patricia</givenName>
+                  <familyName>Pizarro</familyName>
+                  <affiliation affiliationIdentifier="https://ror.org/002tzev63"
+                    affiliationIdentifierScheme="ROR">IMDEA Energy Institute</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Wilson, Karen</creatorName>
+                  <givenName>Karen</givenName>
+                  <familyName>Wilson</familyName>
+                  <affiliation affiliationIdentifier="https://ror.org/05j0ve876"
+                    affiliationIdentifierScheme="ROR">Aston University</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Serrano, David P.</creatorName>
+                  <givenName>David P.</givenName>
+                  <familyName>Serrano</familyName>
+                  <affiliation affiliationIdentifier="https://ror.org/002tzev63"
+                    affiliationIdentifierScheme="ROR">IMDEA Energy Institute</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>Catalytic hydrodeoxygenation of m-cresol over Ni2P/hierarchical ZSM-5</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2018</publicationYear>
+              <dates>
+                <date dateType="Issued">2018-04-15</date>
+              </dates>
+              <resourceType resourceTypeGeneral="JournalArticle"></resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
+                  https://zenodo.org/communities/imdeaenergy</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Bifunctional catalysts comprising Ni2P
+                  supported over a hierarchical ZSM-5 zeolite (h-ZSM-5) were synthesized and applied
+                  to the hydrodeoxygenation (HDO) of m-cresol, a model pyrolysis bio-oil compound.
+                  Surface and bulk characterization of Ni2P/h-ZSM-5 catalysts by XRD, TEM, DRIFTS,
+                  TPR, porosimetry and propylamine temperature-programmed desorption reveal that
+                  Ni2P incorporation modifies the zeolite textural properties through pore blockage
+                  of the mesopores by phosphide nanoparticles, but has negligible impact of the
+                  micropore network. Ni2P nanoparticles introduce new, strong Lewis acid sites,
+                  whose density is proportional to the Ni2P loading, accompanied by new Brönsted
+                  acid sites attributed to the presence of POH moieties. Ni2P/h-ZSM-5 is
+                  ultraselective (&gt;97%) for m-cresol HDO to methylcyclohexane, significantly
+                  outperforming a reference Ni2P/SiO2 catalyst and highlighting the synergy between
+                  metal phosphide and solid acid support. m-Cresol conversion was proportional to
+                  Ni2P loading reaching 80 and 91% for 5 and 10 wt% Ni respectively. Turnover
+                  frequencies for m-cresol HDO are a strong function of Ni2P dispersion, evidencing
+                  a structure sensitivity, with optimum activity observed for 4 nm particles.</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10071759</identifier>
+        <datestamp>2024-02-07T08:53:37Z</datestamp>
+        <setSpec>user-jaeth</setSpec>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.5281/zenodo.10071759</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10071759</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Firmanto, Antonius Denny</creatorName>
+                  <givenName>Antonius Denny</givenName>
+                  <familyName>Firmanto</familyName>
+                  <nameIdentifier nameIdentifierScheme="ORCID">0000-0001-7590-5654</nameIdentifier>
+                  <affiliation>Sekolah Tinggi Filsafat Teologi Widya Sasana</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Wiwin, Wiwin</creatorName>
+                  <givenName>Wiwin</givenName>
+                  <familyName>Wiwin</familyName>
+                </creator>
+              </creators>
+              <titles>
+                <title>Unveiling the Javanese spiritual legacy: Exploring its impact on leadership
+                  among catholic priests</title>
+              </titles>
+              <publisher>Mysterium Fidei: Journal of Asian Empirical Theology</publisher>
+              <publicationYear>2023</publicationYear>
+              <subjects>
+                <subject>javanese ethics; ministerial priesthood; religion; spirituality</subject>
+              </subjects>
+              <dates>
+                <date dateType="Issued">2023-03-01</date>
+                <date dateType="Accepted">2023-03-01</date>
+              </dates>
+              <language>eng</language>
+              <resourceType resourceTypeGeneral="JournalArticle"></resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
+                  10.5281/zenodo.7882426</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
+                  https://zenodo.org/communities/jaeth</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">The objective of this study was to examine
+                  the types of local knowledge associated with priestly leadership behaviors in the
+                  context of Indonesian experiences. Specifically, the research explored the
+                  significance of spiritual life among Catholic priests with a Javanese cultural
+                  background in the diocese of Malang, and whether Javanese values influenced their
+                  spiritual and priestly lives. A qualitative approach was utilized, and a
+                  questionnaire was administered to collect research data from actively ministering
+                  priests in the deanery of Malang. The collected data was analyzed using
+                  descriptive analysis methods. The findings of the study revealed that Catholic
+                  Javanese priests embodied six indicators of Javanese spirituality, including
+                  Javanese manners (tata krama or unggah-ungguh), selflessness (sepi ing pamrih),
+                  role model (panutan), tolerance (tepa selira), celibacy, and meditation. The
+                  implications of the study were thoroughly reviewed and discussed. The study
+                  highlighted the influence of Javanese cultural values on the spiritual and
+                  priestly lives of Catholic priests in the diocese of Malang. The findings shed
+                  light on the importance of understanding and appreciating the local knowledge and
+                  cultural context in shaping effective priestly leadership behaviors.  This
+                  research contributes to the field of intercultural studies within the Catholic
+                  Church and provides insights for pastoral training and formation programs that aim
+                  to develop culturally sensitive priests who can effectively serve diverse
+                  communities.</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10628595</identifier>
+        <datestamp>2024-02-07T08:46:17Z</datestamp>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.5281/zenodo.10628595</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10628595</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Martínez-Montañés, Fernando</creatorName>
+                  <givenName>Fernando</givenName>
+                  <familyName>Martínez-Montañés</familyName>
+                  <nameIdentifier nameIdentifierScheme="ORCID">0000-0001-9290-5170</nameIdentifier>
+                  <affiliation>Universidad Europea de Valencia</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>Yeast integral membrane proteins Apq12, Brl1, and Brr6 form a complex
+                  important for regulation of membrane homeostasis and nuclear pore complex
+                  biogenesis</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2015</publicationYear>
+              <dates>
+                <date dateType="Issued">2015-11-30</date>
+              </dates>
+              <resourceType resourceTypeGeneral="Text"></resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
+                  10.5281/zenodo.10628594</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10628436</identifier>
+        <datestamp>2024-02-07T08:00:57Z</datestamp>
+        <setSpec>user-gutta-project</setSpec>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.3390/su14095287</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10628436</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Mannarini, Gianandrea</creatorName>
+                  <givenName>Gianandrea</givenName>
+                  <familyName>Mannarini</familyName>
+                  <nameIdentifier nameIdentifierScheme="ORCID">0000-0001-9205-7765</nameIdentifier>
+                  <affiliation>Centro Euro-Mediterraneo sui Cambiamenti Climatici</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Salinas, Mario Leonardo</creatorName>
+                  <givenName>Mario Leonardo</givenName>
+                  <familyName>Salinas</familyName>
+                  <nameIdentifier nameIdentifierScheme="ORCID">0000-0002-4045-4790</nameIdentifier>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">CARELLI, Lorenzo</creatorName>
+                  <givenName>Lorenzo</givenName>
+                  <familyName>CARELLI</familyName>
+                  <nameIdentifier nameIdentifierScheme="ORCID">0000-0003-4259-3505</nameIdentifier>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">FASSO', Alessandro</creatorName>
+                  <givenName>Alessandro</givenName>
+                  <familyName>FASSO'</familyName>
+                  <nameIdentifier nameIdentifierScheme="ORCID">0000-0001-5132-9488</nameIdentifier>
+                </creator>
+              </creators>
+              <titles>
+                <title>How COVID-19 Affected GHG Emissions of Ferries in Europe</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2024</publicationYear>
+              <dates>
+                <date dateType="Issued">2024-02-07</date>
+              </dates>
+              <resourceType resourceTypeGeneral="JournalArticle"></resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
+                  https://zenodo.org/communities/gutta-project</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="ISSN" relationType="IsPartOf"
+                  resourceTypeGeneral="Collection">2071-1050</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Unprecedented socioeconomic conditions
+                  during the COVID-19 pandemic impacted shipping. We combined ferry CO2 emissions in
+                  Europe (from the EU-MRV) with port call data and vessel parameters, and analysed
+                  them using mixed-effects linear models with interactions. We found a generalized
+                  reduction in unitary emissions in 2020, confirming its causal relation with
+                  COVID-19. Furthermore, for larger ferries, additional and COVID-19-related
+                  reductions between 14% and 31% occurred, with the larger reductions for those
+                  built before 1999. Ferries operating in the Baltic and Mediterranean Seas
+                  experienced comparable reductions in their unitary emissions, but in the North Sea
+                  per-ship emissions decreased by an additional 18%. Per-ship emissions at berth,
+                  while showing increases or decreases depending on ferry type, did not
+                  significantly change at the fleet level. We believe that our methodology may help
+                  assess the progress of shipping toward decarbonisation in the presence of external
+                  shocks.</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10628702</identifier>
+        <datestamp>2024-02-07T09:03:42Z</datestamp>
+        <setSpec>software</setSpec>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.5281/zenodo.10628702</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10628702</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Scheirlinck, Clément</creatorName>
+                  <givenName>Clément</givenName>
+                  <familyName>Scheirlinck</familyName>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Chaput, Rémy</creatorName>
+                  <givenName>Rémy</givenName>
+                  <familyName>Chaput</familyName>
+                  <nameIdentifier nameIdentifierScheme="ORCID">0000-0002-2233-7566</nameIdentifier>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Hassas, Salima</creatorName>
+                  <givenName>Salima</givenName>
+                  <familyName>Hassas</familyName>
+                </creator>
+              </creators>
+              <titles>
+                <title>Ethical Smart Grid: a Gym environment for learning ethical behaviours</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2024</publicationYear>
+              <dates>
+                <date dateType="Issued">2024-02-07</date>
+              </dates>
+              <resourceType resourceTypeGeneral="Software"></resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsSupplementTo"
+                  resourceTypeGeneral="Software">
+                  https://github.com/ethicsai/ethical-smart-grid/tree/v1.2.0</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
+                  10.5281/zenodo.8239410</relatedIdentifier>
+              </relatedIdentifiers>
+              <version>v1.2.0</version>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">What's Changed
+
+                  🆕 New features
+
+
+                  Add argumentation-based reward functions with AJAR library
+                  (https://github.com/ethicsai/ethical-smart-grid/pull/7)
+
+
+                  🐛 Bugfixes
+
+
+                  Fixed setting the random seed to ensure reproducibility and added tests for random
+                  seeds (https://github.com/ethicsai/ethical-smart-grid/pull/4)
+
+
+                  Various improvements
+
+
+                  Build multiple versions of the documentation
+                  (https://github.com/ethicsai/ethical-smart-grid/pull/6)
+
+                  Add support and testing for Python 3.12
+                  (https://github.com/ethicsai/ethical-smart-grid/pull/8)
+
+
+                  Full Changelog:
+                  https://github.com/ethicsai/ethical-smart-grid/compare/v1.1.0...v1.2.0</description>
+                <description descriptionType="Other">If you use this software, please cite our
+                  article in the Journal of Open Source Software.</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10629279</identifier>
+        <datestamp>2024-02-07T10:45:52Z</datestamp>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.3897/pharmacia.71.e114120</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10629279</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Mateev, Emilio</creatorName>
+                  <givenName>Emilio</givenName>
+                  <familyName>Mateev</familyName>
+                  <affiliation>Medical University-Sofia, Sofia, Bulgaria</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Irfan, Ali</creatorName>
+                  <givenName>Ali</givenName>
+                  <familyName>Irfan</familyName>
+                  <affiliation>Government College University Faisalabad, Faisalabad, Pakistan</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Mateeva, Alexandrina</creatorName>
+                  <givenName>Alexandrina</givenName>
+                  <familyName>Mateeva</familyName>
+                  <affiliation>Medical University-Sofia, Sofia, Bulgaria</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Kondeva-Burdina, Magdalena</creatorName>
+                  <givenName>Magdalena</givenName>
+                  <familyName>Kondeva-Burdina</familyName>
+                  <affiliation>Medical University-Sofia, Sofia, Bulgaria</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Georgieva, Maya</creatorName>
+                  <givenName>Maya</givenName>
+                  <familyName>Georgieva</familyName>
+                  <affiliation>Medical University-Sofia, Sofia, Bulgaria</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Zlatkov, Alexander</creatorName>
+                  <givenName>Alexander</givenName>
+                  <familyName>Zlatkov</familyName>
+                  <affiliation>Medical University-Sofia, Sofia, Bulgaria</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>In silico and in vitro screening of pyrrole-based Hydrazide-Hydrazones as
+                  novel acetylcholinesterase inhibitors</title>
+              </titles>
+              <publisher>Bulgarian Pharmaceutical Scientific Society</publisher>
+              <publicationYear>2024</publicationYear>
+              <subjects>
+                <subject>Acetylcholinesterase inhibitor</subject>
+                <subject>pyrrole-hydrazide-hydrazones</subject>
+                <subject>consensus docking</subject>
+                <subject>MM/GBSA</subject>
+                <subject>biological evaluation</subject>
+                <subject>ADME</subject>
+              </subjects>
+              <dates>
+                <date dateType="Issued">2024-02-05</date>
+              </dates>
+              <resourceType resourceTypeGeneral="JournalArticle"></resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="HasPart"
+                  resourceTypeGeneral="Image">10.3897/pharmacia.71.e114120.figure1</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="HasPart"
+                  resourceTypeGeneral="Image">10.3897/pharmacia.71.e114120.figure2</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="HasPart"
+                  resourceTypeGeneral="Image">10.3897/pharmacia.71.e114120.figure5</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="HasPart"
+                  resourceTypeGeneral="Image">10.3897/pharmacia.71.e114120.figure4</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="HasPart"
+                  resourceTypeGeneral="Image">10.3897/pharmacia.71.e114120.figure3</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="HasPart"
+                  resourceTypeGeneral="Other">10.3897/pharmacia.71.e114120.suppl1</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.2174/157018010791306588</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1073/pnas.0308206100</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1016/j.bioorg.2016.05.002</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1002/wcms.1320</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1021/jf300589c</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1002/ardp.202100242</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1021/ci300399w</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1186/1423-0127-18-8</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1016/j.neuropharm.2020.108352</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.31925/farmacia.2022.2.21</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.18433/jpps32417</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.33263/BRIAC132.159</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.2478/cipms-2021-0005</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1016/j.jmgm.2021.107981</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1142/S0217984921300027</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1016/j.jphotobiol.2016.05.028</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1016/j.ejmech.2009.12.025</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1038/s41598-022-18224-6</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1007/s13596-019-00407-8</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1021/acs.jcim.8b00329</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1007/s10822-021-00389-3</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1016/0024-3205(78)90011-5</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1016/j.chemphys.2015.06.005</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1039/C4CP03179B</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1016/S0197-4580(00)00100-7</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.1080/17460441.2021.1942836</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.2478/acph-2020-0026</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites"
+                  resourceTypeGeneral="Text">10.3389/fnmol.2012.00040</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Virtual screening is emerging as a highly
+                  applied technique and gained prominence as widely used method for the search and
+                  identification of potential hits, significantly reducing the time needed to
+                  discover novel and effective compounds compared to high-throughput screening.
+                  Recently, the superiority of simulations with multiple programs compared to a
+                  single software docking has been discussed. The aim of this work was to apply
+                  consensus docking, molecular mechanics/generalized Born surface area (MM/GBSA)
+                  free binding energy recalculations, and in vitro evaluations on an in-house
+                  dataset of recently synthesized pyrrole-based hydrazide-hydrazones in the search
+                  for novel acetylcholinesterase (AChE) inhibitors. Two licensed softwares – GOLD
+                  5.3 and Glide, were employed for the virtual screenings, and several
+                  chemotherapeutic potential hits were identified. Furthermore, MM/GBSA free binding
+                  energy recalculations were provided to enhance the robustness of the in silico
+                  results. The MM/GBSA scores of the top ten pyrrole-based hydrazide-hydrazones were
+                  ranging from -60.44 to -70.93 Kcal/mol. Subsequent, in vitro evaluations of the
+                  top ranked compounds revealed that 12d exhibited the highest AChE inhibitory
+                  activity, with a 55% inhibition rate at a concentration of 10 μM. Moreover, this
+                  prominent pyrrole-based AChE inhibitor formed stable complex with the active site
+                  of the enzyme. Interactions with the active amino residues Tyr72 and Tyr286
+                  indicated that 12d was located near the peripheral anionic site of the enzyme.
+                  Additionally, in silico ADME investigations using QikProp demonstrated that 12d
+                  possesses optimal pharmacokinetic properties. In conclusion, this study identified
+                  a novel pyrrole-based AChE inhibitor 12d through a combination of computational
+                  and experimental findings.</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10629282</identifier>
+        <datestamp>2024-02-07T10:46:04Z</datestamp>
+        <setSpec>user-biosyslit</setSpec>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.3897/BDJ.12.e116619.figure1</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10629282</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Kostova, Rumyana</creatorName>
+                  <givenName>Rumyana</givenName>
+                  <familyName>Kostova</familyName>
+                  <affiliation>Sofia University, Faculty of Biology, Sofia, Bulgaria</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Borissov, Simeon</creatorName>
+                  <givenName>Simeon</givenName>
+                  <familyName>Borissov</familyName>
+                  <affiliation>Institute of Biodiversity and Ecosystem Research, Bulgarian Academy
+                    of Sciences, Sofia, Bulgaria</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Bobeva, Aneliya</creatorName>
+                  <givenName>Aneliya</givenName>
+                  <familyName>Bobeva</familyName>
+                  <affiliation>Institute of Biodiversity and Ecosystem Research, Bulgarian Academy
+                    of Sciences, Sofia, Bulgaria</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Bekchiev, Rostislav</creatorName>
+                  <givenName>Rostislav</givenName>
+                  <familyName>Bekchiev</familyName>
+                  <affiliation>National Museum of Natural History, Bulgarian Academy of Sciences,
+                    Sofia, Bulgaria</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>Figure 1 from: Kostova R, Borissov S, Bobeva A, Bekchiev R (2024) At a
+                  crossroads: Genetic lineages and dispersal routes of Morimus asper (Sulzer, 1776)
+                  s.l. (Coleoptera, Cerambycidae) in Bulgaria. Biodiversity Data Journal 12:
+                  e116619. https://doi.org/10.3897/BDJ.12.e116619</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2024</publicationYear>
+              <subjects>
+                <subject>Biota</subject>
+                <subject>Animalia</subject>
+                <subject>Arthropoda</subject>
+                <subject>Insecta</subject>
+                <subject>Coleoptera</subject>
+                <subject>Chrysomeloidea</subject>
+                <subject>Cerambycidae</subject>
+                <subject>Lamiinae</subject>
+                <subject>Lamiini</subject>
+                <subject>Morimus</subject>
+                <subject>Morimus asper</subject>
+                <subject>Morimus asper funereus</subject>
+                <subject>Morimus verecundus</subject>
+                <subject>Morimus verecundus bulgaricus</subject>
+                <subject>Morimus orientalis</subject>
+                <subject>longhorned beetles</subject>
+                <subject>Lamiinae</subject>
+                <subject>COI</subject>
+                <subject>ITS2</subject>
+                <subject>genetic diversity</subject>
+                <subject>Balkans</subject>
+              </subjects>
+              <dates>
+                <date dateType="Issued">2024-02-05</date>
+              </dates>
+              <resourceType resourceTypeGeneral="Image">Figure</resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">10.3897/BDJ.12.e116619</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629259</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
+                  https://zenodo.org/communities/biosyslit</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Figure 1 Habitus of the representatives of
+                  genus Morimus in Bulgaria.
+                  a) M. asper funereus (Vitosha Mts., Bosnek vill.); b) M. verecundus bulgaricus
+                  (Balchik, Botanical Garden, © O. Sivilov); and c) M. orientalis (Strandzha Mts.,
+                  Kosti vill.)</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10629295</identifier>
+        <datestamp>2024-02-07T10:46:20Z</datestamp>
+        <setSpec>user-biosyslit</setSpec>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.3897/BDJ.12.e113698.figure1</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10629295</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Gómez-Vázquez, Elvia</creatorName>
+                  <givenName>Elvia</givenName>
+                  <familyName>Gómez-Vázquez</familyName>
+                  <affiliation>Universidad de Ciencias y Artes de Chiapas, Tuxtla Gutiérrez, Mexico</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Sánchez Roque, Yazmin</creatorName>
+                  <givenName>Yazmin</givenName>
+                  <familyName>Sánchez Roque</familyName>
+                  <affiliation>Universidad Politécnica de Chiapas, Suchiapa, Mexico</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Ibáñez-Duharte, Guillermo</creatorName>
+                  <givenName>Guillermo</givenName>
+                  <familyName>Ibáñez-Duharte</familyName>
+                  <affiliation>Universidad de Ciencias y Artes de Chiapas, Tuxtla Gutiérrez, Mexico</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Canseco-Pérez, Miguel</creatorName>
+                  <givenName>Miguel</givenName>
+                  <familyName>Canseco-Pérez</familyName>
+                  <affiliation>Universidad Politécnica de Chiapas, Suchiapa, Mexico</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Zenteno-Carballo, Ana</creatorName>
+                  <givenName>Ana</givenName>
+                  <familyName>Zenteno-Carballo</familyName>
+                  <affiliation>Universidad de Ciencias y Artes de Chiapas, Tuxtla Gutiérrez, Mexico</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Berrones-Hernández, Roberto</creatorName>
+                  <givenName>Roberto</givenName>
+                  <familyName>Berrones-Hernández</familyName>
+                  <affiliation>Universidad Politécnica de Chiapas, Suchiapa, Mexico</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Pérez-Luna, Yolanda</creatorName>
+                  <givenName>Yolanda</givenName>
+                  <familyName>Pérez-Luna</familyName>
+                  <affiliation>Universidad Politécnica de Chiapas, Suchiapa, Mexico</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>Figure 1 from: Gómez-Vázquez EG, Sánchez Roque Y, Ibáñez-Duharte GR,
+                  Canseco-Pérez MA, Zenteno-Carballo AG, Berrones-Hernández R, Pérez-Luna YC (2024)
+                  Molecular identification and lipolytic potential of filamentous fungi isolated
+                  from residual cooking oil. Biodiversity Data Journal 12: e113698.
+                  https://doi.org/10.3897/BDJ.12.e113698</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2024</publicationYear>
+              <subjects>
+                <subject>isolation</subject>
+                <subject>morphology</subject>
+                <subject>taxonomy</subject>
+                <subject>homology</subject>
+                <subject>phylogenetics</subject>
+                <subject>filamentous fungi</subject>
+              </subjects>
+              <dates>
+                <date dateType="Issued">2024-02-05</date>
+              </dates>
+              <resourceType resourceTypeGeneral="Image">Figure</resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">10.3897/BDJ.12.e113698</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629263</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
+                  https://zenodo.org/communities/biosyslit</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Figure 1 Microorganisms isolated from used
+                  cooking oil.</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10629345</identifier>
+        <datestamp>2024-02-07T10:47:45Z</datestamp>
+        <setSpec>user-biosyslit</setSpec>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.3897/mycokeys.102.116096.figure2</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10629345</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Shen, Hong-Wei</creatorName>
+                  <givenName>Hong-Wei</givenName>
+                  <familyName>Shen</familyName>
+                  <affiliation>Dali University, Dali, China|Mae Fah Luang University, Chiang Rai,
+                    Thailand</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Bao, Dan-Feng</creatorName>
+                  <givenName>Dan-Feng</givenName>
+                  <familyName>Bao</familyName>
+                  <affiliation>Dali University, Dali, China</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Boonmee, Saranyaphat</creatorName>
+                  <givenName>Saranyaphat</givenName>
+                  <familyName>Boonmee</familyName>
+                  <affiliation>Mae Fah Luang University, Chiang Rai, Thailand</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Lu, Yong-Zhong</creatorName>
+                  <givenName>Yong-Zhong</givenName>
+                  <familyName>Lu</familyName>
+                  <affiliation>School of Food and Pharmaceutical Engineering, Guizhou Institute of
+                    Technology, Guiyang, China</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Su, Xi-Jun</creatorName>
+                  <givenName>Xi-Jun</givenName>
+                  <familyName>Su</familyName>
+                  <affiliation>Dali University, Dali, China</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Li, Yun-Xia</creatorName>
+                  <givenName>Yun-Xia</givenName>
+                  <familyName>Li</familyName>
+                  <affiliation>Dali University, Dali, China</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Luo, Zong-Long</creatorName>
+                  <givenName>Zong-Long</givenName>
+                  <familyName>Luo</familyName>
+                  <affiliation>Dali University, Dali, China</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>Figure 2 from: Shen H-W, Bao D-F, Boonmee S, Lu Y-Z, Su X-J, Li Y-X, Luo Z-L
+                  (2024) Diversity of Distoseptispora (Distoseptisporaceae) taxa on submerged
+                  decaying wood from the Red River in Yunnan, China. MycoKeys 102: 1-28.
+                  https://doi.org/10.3897/mycokeys.102.116096</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2024</publicationYear>
+              <subjects>
+                <subject>Biota</subject>
+                <subject>Fungi</subject>
+                <subject>Ascomycota</subject>
+                <subject>Sordariomycetes</subject>
+                <subject>Distoseptisporales</subject>
+                <subject>Distoseptisporaceae</subject>
+                <subject>Distoseptispora</subject>
+                <subject>Distoseptispora bambusae</subject>
+                <subject>2 new taxa</subject>
+                <subject>lignicolous freshwater fungi</subject>
+                <subject>phylogeny</subject>
+                <subject>Sordariomycetes</subject>
+                <subject>taxonomy</subject>
+              </subjects>
+              <dates>
+                <date dateType="Issued">2024-02-05</date>
+              </dates>
+              <resourceType resourceTypeGeneral="Image">Figure</resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">10.3897/mycokeys.102.116096</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629273</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
+                  https://zenodo.org/communities/biosyslit</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Figure 2 Distoseptispora bambusae (HKAS
+                  125826) a, b colonies on woody substrates c–e conidiophores f, g conidiogenous
+                  cells h–m conidia n germinated conidium o culture on PDA. Scale bars: 50 μm (c–e);
+                  10 μm (f, g); 20 μm (h–n).</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10629353</identifier>
+        <datestamp>2024-02-07T10:48:02Z</datestamp>
+        <setSpec>user-biosyslit</setSpec>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.3897/mycokeys.102.116096.figure6</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10629353</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Shen, Hong-Wei</creatorName>
+                  <givenName>Hong-Wei</givenName>
+                  <familyName>Shen</familyName>
+                  <affiliation>Dali University, Dali, China|Mae Fah Luang University, Chiang Rai,
+                    Thailand</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Bao, Dan-Feng</creatorName>
+                  <givenName>Dan-Feng</givenName>
+                  <familyName>Bao</familyName>
+                  <affiliation>Dali University, Dali, China</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Boonmee, Saranyaphat</creatorName>
+                  <givenName>Saranyaphat</givenName>
+                  <familyName>Boonmee</familyName>
+                  <affiliation>Mae Fah Luang University, Chiang Rai, Thailand</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Lu, Yong-Zhong</creatorName>
+                  <givenName>Yong-Zhong</givenName>
+                  <familyName>Lu</familyName>
+                  <affiliation>School of Food and Pharmaceutical Engineering, Guizhou Institute of
+                    Technology, Guiyang, China</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Su, Xi-Jun</creatorName>
+                  <givenName>Xi-Jun</givenName>
+                  <familyName>Su</familyName>
+                  <affiliation>Dali University, Dali, China</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Li, Yun-Xia</creatorName>
+                  <givenName>Yun-Xia</givenName>
+                  <familyName>Li</familyName>
+                  <affiliation>Dali University, Dali, China</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Luo, Zong-Long</creatorName>
+                  <givenName>Zong-Long</givenName>
+                  <familyName>Luo</familyName>
+                  <affiliation>Dali University, Dali, China</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>Figure 6 from: Shen H-W, Bao D-F, Boonmee S, Lu Y-Z, Su X-J, Li Y-X, Luo Z-L
+                  (2024) Diversity of Distoseptispora (Distoseptisporaceae) taxa on submerged
+                  decaying wood from the Red River in Yunnan, China. MycoKeys 102: 1-28.
+                  https://doi.org/10.3897/mycokeys.102.116096</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2024</publicationYear>
+              <subjects>
+                <subject>Biota</subject>
+                <subject>Fungi</subject>
+                <subject>Ascomycota</subject>
+                <subject>Sordariomycetes</subject>
+                <subject>Distoseptisporales</subject>
+                <subject>Distoseptisporaceae</subject>
+                <subject>Distoseptispora</subject>
+                <subject>2 new taxa</subject>
+                <subject>lignicolous freshwater fungi</subject>
+                <subject>phylogeny</subject>
+                <subject>Sordariomycetes</subject>
+                <subject>taxonomy</subject>
+              </subjects>
+              <dates>
+                <date dateType="Issued">2024-02-05</date>
+              </dates>
+              <resourceType resourceTypeGeneral="Image">Figure</resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">10.3897/mycokeys.102.116096</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629273</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
+                  https://zenodo.org/communities/biosyslit</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Figure 6 Distoseptispora suae (HKAS 125819,
+                  holotype) a, b colonies on woody substrates c–e conidiophores and conidiogenous
+                  cells f–k conidia l germinated conidium m culture on PDA. Scale bars: 10 μm (c–l).</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10629367</identifier>
+        <datestamp>2024-02-07T10:48:27Z</datestamp>
+        <setSpec>user-biosyslit</setSpec>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.3897/jor.33.115670.figure5</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10629367</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Cadena-Castañeda, Oscar J.</creatorName>
+                  <givenName>Oscar J.</givenName>
+                  <familyName>Cadena-Castañeda</familyName>
+                  <affiliation>Universidad Distrital Francisco José de Caldas, Bogotá, Colombia</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Hemp, Claudia</creatorName>
+                  <givenName>Claudia</givenName>
+                  <familyName>Hemp</familyName>
+                  <affiliation>University of Bayreuth, Bayreuth, Germany|Senckenberg Biodiversity
+                    and Climate Research Centre, Frankfurt, Germany</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>Figure 5 from: Cadena-Castañeda OJ, Hemp C (2024) Studies on chevron
+                  crickets: Tryposoma gen. nov. (Orthoptera, Anostostomatidae), a new genus from
+                  Tanzania. Journal of Orthoptera Research 33(1): 59-66.
+                  https://doi.org/10.3897/jor.33.115670</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2024</publicationYear>
+              <subjects>
+                <subject>anostostomatids</subject>
+                <subject>Libanasa</subject>
+                <subject>megacephalization</subject>
+                <subject>phallic complex</subject>
+              </subjects>
+              <dates>
+                <date dateType="Issued">2024-02-05</date>
+              </dates>
+              <resourceType resourceTypeGeneral="Image">Figure</resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">10.3897/jor.33.115670</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629277</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
+                  https://zenodo.org/communities/biosyslit</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Figure 5 Tryposoma kilomeni comb. nov. A.
+                  Face; B. Detail of male body; C–E. Terminalia in axial, lateral, and ventral
+                  views, respectively; F. Ovipositor in lateral view; G. Subgenital plate of female.</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10628415</identifier>
+        <datestamp>2024-02-07T08:07:41Z</datestamp>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.5281/zenodo.10628415</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10628415</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">KUMAR, PUSHPENDRA</creatorName>
+                  <givenName>PUSHPENDRA</givenName>
+                  <familyName>KUMAR</familyName>
+                  <nameIdentifier nameIdentifierScheme="ORCID">0000-0002-4055-0424</nameIdentifier>
+                  <affiliation>shri khushal das University</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>Ramp Type Demand and three-parameter Weibull distribution deterioration
+                  Inventory system</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2022</publicationYear>
+              <dates>
+                <date dateType="Issued">2022-11</date>
+              </dates>
+              <resourceType resourceTypeGeneral="JournalArticle"></resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
+                  10.5281/zenodo.10628414</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="ISSN" relationType="IsPartOf"
+                  resourceTypeGeneral="Collection">2319 1775</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10629347</identifier>
+        <datestamp>2024-02-07T10:47:50Z</datestamp>
+        <setSpec>user-biosyslit</setSpec>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.3897/mycokeys.102.116096.figure3</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10629347</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Shen, Hong-Wei</creatorName>
+                  <givenName>Hong-Wei</givenName>
+                  <familyName>Shen</familyName>
+                  <affiliation>Dali University, Dali, China|Mae Fah Luang University, Chiang Rai,
+                    Thailand</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Bao, Dan-Feng</creatorName>
+                  <givenName>Dan-Feng</givenName>
+                  <familyName>Bao</familyName>
+                  <affiliation>Dali University, Dali, China</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Boonmee, Saranyaphat</creatorName>
+                  <givenName>Saranyaphat</givenName>
+                  <familyName>Boonmee</familyName>
+                  <affiliation>Mae Fah Luang University, Chiang Rai, Thailand</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Lu, Yong-Zhong</creatorName>
+                  <givenName>Yong-Zhong</givenName>
+                  <familyName>Lu</familyName>
+                  <affiliation>School of Food and Pharmaceutical Engineering, Guizhou Institute of
+                    Technology, Guiyang, China</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Su, Xi-Jun</creatorName>
+                  <givenName>Xi-Jun</givenName>
+                  <familyName>Su</familyName>
+                  <affiliation>Dali University, Dali, China</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Li, Yun-Xia</creatorName>
+                  <givenName>Yun-Xia</givenName>
+                  <familyName>Li</familyName>
+                  <affiliation>Dali University, Dali, China</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Luo, Zong-Long</creatorName>
+                  <givenName>Zong-Long</givenName>
+                  <familyName>Luo</familyName>
+                  <affiliation>Dali University, Dali, China</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>Figure 3 from: Shen H-W, Bao D-F, Boonmee S, Lu Y-Z, Su X-J, Li Y-X, Luo Z-L
+                  (2024) Diversity of Distoseptispora (Distoseptisporaceae) taxa on submerged
+                  decaying wood from the Red River in Yunnan, China. MycoKeys 102: 1-28.
+                  https://doi.org/10.3897/mycokeys.102.116096</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2024</publicationYear>
+              <subjects>
+                <subject>Biota</subject>
+                <subject>Fungi</subject>
+                <subject>Ascomycota</subject>
+                <subject>Sordariomycetes</subject>
+                <subject>Distoseptisporales</subject>
+                <subject>Distoseptisporaceae</subject>
+                <subject>Distoseptispora</subject>
+                <subject>Distoseptispora euseptata</subject>
+                <subject>2 new taxa</subject>
+                <subject>lignicolous freshwater fungi</subject>
+                <subject>phylogeny</subject>
+                <subject>Sordariomycetes</subject>
+                <subject>taxonomy</subject>
+              </subjects>
+              <dates>
+                <date dateType="Issued">2024-02-05</date>
+              </dates>
+              <resourceType resourceTypeGeneral="Image">Figure</resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">10.3897/mycokeys.102.116096</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629273</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
+                  https://zenodo.org/communities/biosyslit</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Figure 3 Distoseptispora euseptata (HKAS
+                  125822) a colony on woody substrates b–e conidiophores f, g conidiogenous cells
+                  h–m conidia n germinated conidium o culture on PDA. Scale bars: 20 μm (b–e, h–n);
+                  10 μm (f, g).</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10629349</identifier>
+        <datestamp>2024-02-07T10:47:54Z</datestamp>
+        <setSpec>user-biosyslit</setSpec>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.3897/mycokeys.102.116096.figure4</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10629349</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Shen, Hong-Wei</creatorName>
+                  <givenName>Hong-Wei</givenName>
+                  <familyName>Shen</familyName>
+                  <affiliation>Dali University, Dali, China|Mae Fah Luang University, Chiang Rai,
+                    Thailand</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Bao, Dan-Feng</creatorName>
+                  <givenName>Dan-Feng</givenName>
+                  <familyName>Bao</familyName>
+                  <affiliation>Dali University, Dali, China</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Boonmee, Saranyaphat</creatorName>
+                  <givenName>Saranyaphat</givenName>
+                  <familyName>Boonmee</familyName>
+                  <affiliation>Mae Fah Luang University, Chiang Rai, Thailand</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Lu, Yong-Zhong</creatorName>
+                  <givenName>Yong-Zhong</givenName>
+                  <familyName>Lu</familyName>
+                  <affiliation>School of Food and Pharmaceutical Engineering, Guizhou Institute of
+                    Technology, Guiyang, China</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Su, Xi-Jun</creatorName>
+                  <givenName>Xi-Jun</givenName>
+                  <familyName>Su</familyName>
+                  <affiliation>Dali University, Dali, China</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Li, Yun-Xia</creatorName>
+                  <givenName>Yun-Xia</givenName>
+                  <familyName>Li</familyName>
+                  <affiliation>Dali University, Dali, China</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Luo, Zong-Long</creatorName>
+                  <givenName>Zong-Long</givenName>
+                  <familyName>Luo</familyName>
+                  <affiliation>Dali University, Dali, China</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>Figure 4 from: Shen H-W, Bao D-F, Boonmee S, Lu Y-Z, Su X-J, Li Y-X, Luo Z-L
+                  (2024) Diversity of Distoseptispora (Distoseptisporaceae) taxa on submerged
+                  decaying wood from the Red River in Yunnan, China. MycoKeys 102: 1-28.
+                  https://doi.org/10.3897/mycokeys.102.116096</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2024</publicationYear>
+              <subjects>
+                <subject>Biota</subject>
+                <subject>Fungi</subject>
+                <subject>Ascomycota</subject>
+                <subject>Sordariomycetes</subject>
+                <subject>Distoseptisporales</subject>
+                <subject>Distoseptisporaceae</subject>
+                <subject>Distoseptispora</subject>
+                <subject>Distoseptispora obpyriformis</subject>
+                <subject>2 new taxa</subject>
+                <subject>lignicolous freshwater fungi</subject>
+                <subject>phylogeny</subject>
+                <subject>Sordariomycetes</subject>
+                <subject>taxonomy</subject>
+              </subjects>
+              <dates>
+                <date dateType="Issued">2024-02-05</date>
+              </dates>
+              <resourceType resourceTypeGeneral="Image">Figure</resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">10.3897/mycokeys.102.116096</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629273</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
+                  https://zenodo.org/communities/biosyslit</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Figure 4 Distoseptispora obpyriformis (HKAS
+                  125823) a, b colonies on woody substrates c conidiophores d, e conidiophores with
+                  conidia f conidiogenous cell g–j conidia k germinating conidium l culture on PDA.
+                  Scale bars: 30 μm (c–e, g–k); 20 μm (j).</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10629379</identifier>
+        <datestamp>2024-02-07T10:48:44Z</datestamp>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.3897/pharmacia.71.e114120.figure4</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10629379</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Mateev, Emilio</creatorName>
+                  <givenName>Emilio</givenName>
+                  <familyName>Mateev</familyName>
+                  <affiliation>Medical University-Sofia, Sofia, Bulgaria</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Irfan, Ali</creatorName>
+                  <givenName>Ali</givenName>
+                  <familyName>Irfan</familyName>
+                  <affiliation>Government College University Faisalabad, Faisalabad, Pakistan</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Mateeva, Alexandrina</creatorName>
+                  <givenName>Alexandrina</givenName>
+                  <familyName>Mateeva</familyName>
+                  <affiliation>Medical University-Sofia, Sofia, Bulgaria</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Kondeva-Burdina, Magdalena</creatorName>
+                  <givenName>Magdalena</givenName>
+                  <familyName>Kondeva-Burdina</familyName>
+                  <affiliation>Medical University-Sofia, Sofia, Bulgaria</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Georgieva, Maya</creatorName>
+                  <givenName>Maya</givenName>
+                  <familyName>Georgieva</familyName>
+                  <affiliation>Medical University-Sofia, Sofia, Bulgaria</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Zlatkov, Alexander</creatorName>
+                  <givenName>Alexander</givenName>
+                  <familyName>Zlatkov</familyName>
+                  <affiliation>Medical University-Sofia, Sofia, Bulgaria</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>Figure 4 from: Mateev E, Irfan A, Mateeva A, Kondeva-Burdina M, Georgieva M,
+                  Zlatkov A (2024) In silico and in vitro screening of pyrrole-based
+                  Hydrazide-Hydrazones as novel acetylcholinesterase inhibitors. Pharmacia 71: 1-7.
+                  https://doi.org/10.3897/pharmacia.71.e114120</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2024</publicationYear>
+              <subjects>
+                <subject>Acetylcholinesterase inhibitor</subject>
+                <subject>pyrrole-hydrazide-hydrazones</subject>
+                <subject>consensus docking</subject>
+                <subject>MM/GBSA</subject>
+                <subject>biological evaluation</subject>
+                <subject>ADME</subject>
+              </subjects>
+              <dates>
+                <date dateType="Issued">2024-02-05</date>
+              </dates>
+              <resourceType resourceTypeGeneral="Image">Figure</resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">10.3897/pharmacia.71.e114120</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629279</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Figure 4 Inhibitory activity of the top
+                  ranked ligands against AChE (10 μM concentrations). * P &lt; 0.1; *** P &lt; 0.001
+                  vs control (pure eeAChE). Data are presented as means from three independent
+                  experiments ± SD.</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10629381</identifier>
+        <datestamp>2024-02-07T10:48:46Z</datestamp>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.3897/pharmacia.71.e114120.figure5</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10629381</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Mateev, Emilio</creatorName>
+                  <givenName>Emilio</givenName>
+                  <familyName>Mateev</familyName>
+                  <affiliation>Medical University-Sofia, Sofia, Bulgaria</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Irfan, Ali</creatorName>
+                  <givenName>Ali</givenName>
+                  <familyName>Irfan</familyName>
+                  <affiliation>Government College University Faisalabad, Faisalabad, Pakistan</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Mateeva, Alexandrina</creatorName>
+                  <givenName>Alexandrina</givenName>
+                  <familyName>Mateeva</familyName>
+                  <affiliation>Medical University-Sofia, Sofia, Bulgaria</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Kondeva-Burdina, Magdalena</creatorName>
+                  <givenName>Magdalena</givenName>
+                  <familyName>Kondeva-Burdina</familyName>
+                  <affiliation>Medical University-Sofia, Sofia, Bulgaria</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Georgieva, Maya</creatorName>
+                  <givenName>Maya</givenName>
+                  <familyName>Georgieva</familyName>
+                  <affiliation>Medical University-Sofia, Sofia, Bulgaria</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Zlatkov, Alexander</creatorName>
+                  <givenName>Alexander</givenName>
+                  <familyName>Zlatkov</familyName>
+                  <affiliation>Medical University-Sofia, Sofia, Bulgaria</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>Figure 5 from: Mateev E, Irfan A, Mateeva A, Kondeva-Burdina M, Georgieva M,
+                  Zlatkov A (2024) In silico and in vitro screening of pyrrole-based
+                  Hydrazide-Hydrazones as novel acetylcholinesterase inhibitors. Pharmacia 71: 1-7.
+                  https://doi.org/10.3897/pharmacia.71.e114120</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2024</publicationYear>
+              <subjects>
+                <subject>Acetylcholinesterase inhibitor</subject>
+                <subject>pyrrole-hydrazide-hydrazones</subject>
+                <subject>consensus docking</subject>
+                <subject>MM/GBSA</subject>
+                <subject>biological evaluation</subject>
+                <subject>ADME</subject>
+              </subjects>
+              <dates>
+                <date dateType="Issued">2024-02-05</date>
+              </dates>
+              <resourceType resourceTypeGeneral="Image">Figure</resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">10.3897/pharmacia.71.e114120</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
+                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629279</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Figure 5 Major intermolecular interactions
+                  between 12d and the active site of AChE (PDB: 1Q84). The interactions are provided
+                  in 2D (A) and 3D (B) forms. The AChE enzyme is depicted in grey while the active
+                  inhibitor – 12d, is presented as green sticks with its electrostatic potential.</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10628632</identifier>
+        <datestamp>2024-02-07T08:52:19Z</datestamp>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.5281/zenodo.10628632</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10628632</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Natarajan, Mr. Saranraj</creatorName>
+                  <givenName>Mr. Saranraj</givenName>
+                  <familyName>Natarajan</familyName>
+                </creator>
+              </creators>
+              <titles>
+                <title>Assessing the Financial Literacy Levels of Undergraduate Students</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2023</publicationYear>
+              <dates>
+                <date dateType="Issued">2023-12-20</date>
+              </dates>
+              <resourceType resourceTypeGeneral="BookChapter"></resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
+                  10.5281/zenodo.10628631</relatedIdentifier>
+              </relatedIdentifiers>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Abstract:Purpose: This study focuses on
+                  evaluating the financial literacy of Degree College students in Mumbai, delving
+                  into their attitudes and perceptions regarding financial planning, goal-setting,
+                  and long-term financial security. The research aims to pinpoint barriers to
+                  financial literacy and recommends strategies to enhance the financial knowledge of
+                  undergraduate students.Design/Methodology/Approach: This research employs a
+                  mixed-methods approach, incorporating both quantitative and qualitative data
+                  gathered through a questionnaire, with a sample size of 50 chosen through
+                  convenience sampling. Utilizing descriptive and inferential statistics, the study
+                  analyses diverse aspects of financial literacy among undergraduate students,
+                  encompassing attitudes, behaviours, and encountered challenges.</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10629243</identifier>
+        <datestamp>2024-02-07T10:49:45Z</datestamp>
+        <setSpec>software</setSpec>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.5281/zenodo.10629243</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10629243</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Araya Day, Isidora</creatorName>
+                  <givenName>Isidora</givenName>
+                  <familyName>Araya Day</familyName>
+                  <nameIdentifier nameIdentifierScheme="ORCID">0000-0002-2948-4198</nameIdentifier>
+                  <affiliation>TU Delft</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Miles, Sebastian</creatorName>
+                  <givenName>Sebastian</givenName>
+                  <familyName>Miles</familyName>
+                  <affiliation>TU Delft</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Varjas, Daniel</creatorName>
+                  <givenName>Daniel</givenName>
+                  <familyName>Varjas</familyName>
+                  <nameIdentifier nameIdentifierScheme="ORCID">0000-0002-3283-6182</nameIdentifier>
+                  <affiliation>Max Planck Dresden, PKS</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Akhmerov, Anton R.</creatorName>
+                  <givenName>Anton R.</givenName>
+                  <familyName>Akhmerov</familyName>
+                  <nameIdentifier nameIdentifierScheme="ORCID">0000-0001-8031-1340</nameIdentifier>
+                  <affiliation>TU Delft</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>Pymablock</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2024</publicationYear>
+              <dates>
+                <date dateType="Issued">2024-02-03</date>
+              </dates>
+              <language>eng</language>
+              <resourceType resourceTypeGeneral="Software"></resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
+                  10.5281/zenodo.7995683</relatedIdentifier>
+              </relatedIdentifiers>
+              <version>2.0</version>
+              <rightsList>
+                <rights rightsURI="https://opensource.org/licenses/BSD-2-Clause"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="bsd-2-clause">BSD 2-Clause
+                  "Simplified" License</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Pymablock: quasi-degenerate perturbation
+                  theory in Python
+
+
+                  Pymablock (Python matrix block-diagonalization) is a Python package that
+                  constructs
+                  effective models using quasi-degenerate perturbation theory.
+                  It handles both numerical and symbolic inputs, and it efficiently
+                  block-diagonalizes Hamiltonians with multivariate perturbations to arbitrary
+                  order.
+
+
+                  Building an effective model using Pymablock is a three step process:
+
+
+                  Define a Hamiltonian
+
+                  Call pymablock.block_diagonalize
+
+                  Request the desired order of the effective Hamiltonian
+
+
+                   
+
+
+                  from pymablock import block_diagonalize
+
+                  # Define perturbation theory
+                  H_tilde, *_ = block_diagonalize([h_0, h_p], subspace_eigenvectors=[vecs_A,
+                  vecs_B])
+
+                  # Request correction to the effective Hamiltonian
+                  H_AA_4 = H_tilde[0, 0, 4]
+
+
+                   
+
+
+                  Here is why you should use Pymablock:
+
+
+                  Do not reinvent the wheel
+
+
+                    Pymablock provides a tested reference implementation
+
+
+                  Apply to any problem
+
+
+                    Pymablock supports `numpy` arrays, `scipy` sparse arrays, `sympy` matrices and
+                    quantum operators
+
+
+                  Speed up your code
+
+
+                    Due to several optimizations, Pymablock can reliably handle both higher orders
+                    and large Hamiltonians
+
+
+                  For more details see the Pymablock documentation.</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:10628953</identifier>
+        <datestamp>2024-02-07T09:57:00Z</datestamp>
+        <setSpec>software</setSpec>
+      </header>
+      <metadata>
+        <oai_datacite xmlns="http://schema.datacite.org/oai/oai-1.1/"
+          xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+          <schemaVersion>4.3</schemaVersion>
+          <datacentreSymbol></datacentreSymbol>
+          <payload>
+            <resource xmlns="http://datacite.org/schema/kernel-4"
+              xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.3/metadata.xsd">
+              <identifier identifierType="DOI">10.5281/zenodo.10628953</identifier>
+              <alternateIdentifiers>
+                <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:10628953</alternateIdentifier>
+              </alternateIdentifiers>
+              <creators>
+                <creator>
+                  <creatorName nameType="Personal">Joel Dahne</creatorName>
+                  <familyName>Joel Dahne</familyName>
+                  <affiliation>Uppsala University</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Sascha Timme</creatorName>
+                  <familyName>Sascha Timme</familyName>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Marek Kaluba</creatorName>
+                  <familyName>Marek Kaluba</familyName>
+                  <affiliation>KIT</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">nanleij</creatorName>
+                  <familyName>nanleij</familyName>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Gabriel Wu</creatorName>
+                  <familyName>Gabriel Wu</familyName>
+                  <affiliation>@NVIDIA</affiliation>
+                </creator>
+                <creator>
+                  <creatorName nameType="Personal">Katayoun Timme</creatorName>
+                  <familyName>Katayoun Timme</familyName>
+                  <affiliation>Scout24</affiliation>
+                </creator>
+              </creators>
+              <titles>
+                <title>kalmarek/Arblib.jl: v1.1.0</title>
+              </titles>
+              <publisher>Zenodo</publisher>
+              <publicationYear>2024</publicationYear>
+              <dates>
+                <date dateType="Issued">2024-02-07</date>
+              </dates>
+              <resourceType resourceTypeGeneral="Software"></resourceType>
+              <relatedIdentifiers>
+                <relatedIdentifier relatedIdentifierType="URL" relationType="IsSupplementTo"
+                  resourceTypeGeneral="Software">https://github.com/kalmarek/Arblib.jl/tree/v1.1.0</relatedIdentifier>
+                <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
+                  10.5281/zenodo.10081694</relatedIdentifier>
+              </relatedIdentifiers>
+              <version>v1.1.0</version>
+              <rightsList>
+                <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  rightsIdentifierScheme="spdx" rightsIdentifier="cc-by-4.0">Creative Commons
+                  Attribution 4.0 International</rights>
+              </rightsList>
+              <descriptions>
+                <description descriptionType="Abstract">Arblib v1.1.0
+
+                  Diff since v1.0.0
+
+                  This is a minor release with a few new features:
+
+
+                  Add typemin and typemax for Mag, Arf and Arb.
+
+                  Add frexp and ldexp for Arf and Arb.
+
+                  Add support for T == Float64 in radius. This doesn't allocate and can be useful
+                  for example when heuristically choosing algorithm based on the radius. Since
+                  Float64 has a bounded exponent this will overflow (rounding up) for extremely
+                  small or large radius.
+
+                  Add support for T == Arf in getball.
+
+                  Add log2 and log10 for Arb and Acb.
+
+                  Improve conversion to Int and BigInt. The conversion to Int would previously crash
+                  on overflow.
+
+                  Add load_string, non-inplace version of load_string!.
+
+
+                  It also improves the handling of rounding arguments when converting to other float
+                  types. In particular it handles rounding arguments for conversion to BigFloat,
+                  Float64, Float32 and Float16. For Arb the conversion is done for the midpoint and
+                  the radius does therefore not play a role in the rounding. In the future it is
+                  possible that rounding for Arb will consider the full ball.
+
+                  Merged pull requests:
+
+
+                  add badges: doi, ci, coverage (#176) (@kalmarek)
+
+                  Float interface improvements - and some other things (#179) (@Joel-Dahne)
+
+
+                  Closed issues:
+
+
+                  Arblib.setprecision broken for AcbRefMatrix (#177)</description>
+              </descriptions>
+            </resource>
+          </payload>
+        </oai_datacite>
+      </metadata>
+    </record>
+  </ListRecords>
+</OAI-PMH>
