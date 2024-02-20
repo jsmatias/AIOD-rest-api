@@ -337,6 +337,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
                     id_ = xml_dict["record"]["header"]["identifier"]
                     if id_.startswith("oai:"):
                         id_ = id_.replace("oai:", "")
+
                     datetime_ = datetime.fromisoformat(xml_dict["record"]["header"]["datestamp"])
                     if resource_type == "Dataset":
                         resource = xml_dict["record"]["metadata"]["oai_datacite"]["payload"][
