@@ -1,6 +1,7 @@
 import abc
 import logging
 from typing import Generic, Iterator
+from requests.exceptions import HTTPError
 
 from connectors.abstract.resource_connector import ResourceConnector, RESOURCE
 from connectors.record_error import RecordError
@@ -53,6 +54,9 @@ class ResourceConnectorById(ResourceConnector, Generic[RESOURCE]):
         while not finished:
             i = 0
             for item in self.fetch(offset=state["offset"], from_identifier=state["from_id"]):
+                if isinstance(item, RecordError) and isinstance(item.error, HTTPError):
+                    yield item
+                    return
                 i += 1
                 if isinstance(item, ResourceWithRelations):
                     id_ = item.resource.platform_resource_identifier
