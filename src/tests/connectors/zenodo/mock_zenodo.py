@@ -36,7 +36,7 @@ def second_list_response(mocked_requests: responses.RequestsMock):
     )
 
 
-def second_list_response_after_time_out(mocked_requests: responses.RequestsMock):
+def second_list_response_after_interruption(mocked_requests: responses.RequestsMock):
     mocked_requests.add(
         responses.GET,
         "https://zenodo.org/oai2d?"

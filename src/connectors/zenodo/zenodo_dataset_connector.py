@@ -1,9 +1,8 @@
-import dateutil.parser
 import logging
 import requests
 import xmltodict
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from ratelimit import limits, sleep_and_retry
 from requests.exceptions import HTTPError
 from sickle import Sickle
@@ -239,11 +238,11 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
         """
         resumption_token = records_iterator.resumption_token
         if resumption_token and resumption_token.expiration_date:
-            expiration_date = datetime.fromisoformat(
-                resumption_token.expiration_date.replace("Z", "")
-            ) - timedelta(seconds=10)
+            expiration_date = datetime.fromisoformat(resumption_token.expiration_date) - timedelta(
+                seconds=10
+            )
         else:
-            current_date_time = datetime.utcnow()
+            current_date_time = datetime.utcnow().replace(tzinfo=timezone.utc)
             expiration_date = current_date_time + timedelta(seconds=110)
 
         records_list = []
@@ -253,7 +252,7 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
                 i += 1
                 records_list.append(record)
                 if batchsize and (i % batchsize) == 0:
-                    now = datetime.utcnow()
+                    now = datetime.utcnow().replace(tzinfo=timezone.utc)
                     if now >= expiration_date:
                         logging.info(f"Resumption token expired at {expiration_date}!")
                         break
@@ -291,8 +290,8 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
             records_iterator = sickle.ListRecords(
                 **{
                     "metadataPrefix": "oai_datacite",
-                    "from": from_incl.isoformat(),
-                    "until": to_excl.isoformat(),
+                    "from": from_incl.replace(tzinfo=None).isoformat(),
+                    "until": to_excl.replace(tzinfo=None).isoformat(),
                 }
             )
         except HTTPError as err:
@@ -337,7 +336,8 @@ class ZenodoDatasetConnector(ResourceConnectorByDate[Dataset]):
                     id_ = xml_dict["record"]["header"]["identifier"]
                     if id_.startswith("oai:"):
                         id_ = id_.replace("oai:", "")
-                    datetime_ = dateutil.parser.parse(xml_dict["record"]["header"]["datestamp"])
+                    # datetime_ = dateutil.parser.parse(xml_dict["record"]["header"]["datestamp"])
+                    datetime_ = datetime.fromisoformat(xml_dict["record"]["header"]["datestamp"])
                     if resource_type == "Dataset":
                         resource = xml_dict["record"]["metadata"]["oai_datacite"]["payload"][
                             "resource"
