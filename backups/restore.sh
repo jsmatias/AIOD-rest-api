@@ -1,17 +1,25 @@
 #!/bin/bash
 
-BACKUPS_DIR=/opt/backups/data
-DESTINATION_DIR=/opt/data
-BACKUPS_DIR=../data/backups
-DESTINATION_DIR=../data/backups/data
-DESTINATION_DIR=../data
+# requires tar (GNU tar)
+
+cd ../
+
+env_file=".env"
+if [ -f "$env_file" ]; then
+  export BACKUPS_PATH=$(grep -m 1 '^BACKUPS_PATH=' "$env_file" | cut -d '=' -f2)
+  export DESTINATION_PATH=$(grep -m 1 '^DATA_PATH=' "$env_file" | cut -d '=' -f2)
+fi
+if [ -z "$BACKUPS_PATH" ] || [ -z "$DESTINATION_PATH" ]; then
+  echo "Required environment variables are not set. Check your .env file."
+  exit 1
+fi
 
 data_to_restore=""
 backup_cycle=""
 level=""
 
 if [ $# -ne 3 ]; then
-  echo "Usage: $0 <data_to_restore> <backup_cycle> <sub-level>"
+  echo "Usage: $0 <data_to_restore> <backup_cycle> <backup_level>"
   exit 1
 fi
 
@@ -28,14 +36,14 @@ if ! [[ "$level" =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
-backup_dir="${BACKUPS_DIR}/${data_to_restore}/${data_to_restore}_${backup_cycle}"
+backup_dir="${BACKUPS_PATH}/${data_to_restore}/${data_to_restore}_${backup_cycle}"
 if [ ! -d "$backup_dir" ]; then
     echo "Error: Directory does not exist: $backup_dir"
     echo "Operation aborted!"
     exit 1
 fi
-if [ ! -d "$DESTINATION_DIR" ]; then
-    echo "Error: Directory does not exist: $DESTINATION_DIR"
+if [ ! -d "$DESTINATION_PATH" ]; then
+    echo "Error: Directory does not exist: $DESTINATION_PATH"
     echo "Operation aborted!"
     exit 1
 fi
@@ -44,7 +52,7 @@ echo ""
 echo "Are you sure you want to proceed? (y/n)"
 echo "This overwrites all files and deletes the ones in the destination directory which are not in the archive!"
 echo ""
-echo "$backup_dir -------> $DESTINATION_DIR/$data_to_restore"
+echo "$backup_dir -------> $DESTINATION_PATH/$data_to_restore"
 
 read -r response
 
@@ -64,7 +72,7 @@ case "$response" in
         for ((i = 0; i <= level; i++)); do
             echo "Iteration: $i"
             backup_file="${backup_dir}/${data_to_restore}${i}.tar.gz"
-            tar --directory="$DESTINATION_DIR" --extract --file="$backup_file" --listed-incremental=/dev/null
+            tar --directory="$DESTINATION_PATH" --extract --file="$backup_file" --listed-incremental=/dev/null
         done
         ;;
     *)
