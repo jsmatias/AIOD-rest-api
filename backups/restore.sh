@@ -1,78 +1,82 @@
 #!/bin/bash
 
-# requires tar (GNU tar)
-
-cd ../
-
-env_file=".env"
-if [ -f "$env_file" ]; then
-  export BACKUPS_PATH=$(grep -m 1 '^BACKUPS_PATH=' "$env_file" | cut -d '=' -f2)
-  export DESTINATION_PATH=$(grep -m 1 '^DATA_PATH=' "$env_file" | cut -d '=' -f2)
-fi
-if [ -z "$BACKUPS_PATH" ] || [ -z "$DESTINATION_PATH" ]; then
-  echo "Required environment variables are not set. Check your .env file."
+usage() {
+  echo "Usage: $0 backup/path/ <cycle> destination/path/ [--cycle-level <level>]"
   exit 1
+}
+
+check_file_or_dir () {
+    path=$1
+    if [ ! -d "$path" ] && [ ! -f "$path" ]; then
+        echo "Error: Path does not exist: $path"
+        echo "Operation aborted!"
+        exit 1
+    fi
+}
+
+if [ $# -lt 3 ]; then
+  usage
 fi
 
-data_to_restore=""
-backup_cycle=""
-level=""
+backup_dir=$(realpath "$1")
+cycle="$2"
+destination_dir=$(realpath "$3")
 
-if [ $# -ne 3 ]; then
-  echo "Usage: $0 <data_to_restore> <backup_cycle> <backup_level>"
-  exit 1
-fi
+shift 3 
+level=-2
 
-data_to_restore="$1"
-backup_cycle="$2"
-level="$3"
+while [ $# -gt 0 ]; do
+  case $1 in
+    --cycle-level|-cl)
+        if [ -n $2 ] && [[ $2 =~ ^[0-9]+$ ]] && [ $2 -ge 0 ]; then
+            level="$2"
+            shift 2
+        else
+            echo "Error: --cycle-level|-cl must be followed by a non-negative integer."
+            exit 1
+        fi
+        ;;
+    *)
+      usage
+      ;;
+  esac
+done
 
-if ! [[ "$backup_cycle" =~ ^[0-9]+$ ]]; then
-    echo "Error: Level must be a non-negative integer: $backup_cycle"
-    exit 1
-fi
-if ! [[ "$level" =~ ^[0-9]+$ ]]; then
-    echo "Error: Backup level must be a non-negative integer: $level"
-    exit 1
-fi
+data_to_restore=$(basename "$backup_dir")
+backup_dir="${backup_dir}/${data_to_restore}_${cycle}"
 
-backup_dir="${BACKUPS_PATH}/${data_to_restore}/${data_to_restore}_${backup_cycle}"
-if [ ! -d "$backup_dir" ]; then
-    echo "Error: Directory does not exist: $backup_dir"
-    echo "Operation aborted!"
-    exit 1
-fi
-if [ ! -d "$DESTINATION_PATH" ]; then
-    echo "Error: Directory does not exist: $DESTINATION_PATH"
-    echo "Operation aborted!"
-    exit 1
-fi
+check_file_or_dir $backup_dir
+check_file_or_dir $destination_dir
 
 echo ""
 echo "Are you sure you want to proceed? (y/n)"
-echo "This overwrites all files and deletes the ones in the destination directory which are not in the archive!"
+echo "This overwrites all files in the destination directory and deletes the ones which are not in the archive!"
 echo ""
-echo "$backup_dir -------> $DESTINATION_PATH/$data_to_restore"
+echo "$backup_dir -------> $destination_dir/$data_to_restore"
 
 read -r response
-
 case "$response" in
     [yY][eE][sS]|[yY])
         echo "Proceeding..."
-
-        for ((i = 0; i <= level; i++)); do
+        concluded=false
+        i=0
+        while [ "$concluded" = false ]; do
             backup_file="${backup_dir}/${data_to_restore}${i}.tar.gz"
-            if [ ! -f "$backup_file" ]; then
-                echo "Error: File does not exist: $backup_file"
-                echo "Operation aborted!"
-                exit 1
+            if [ $i -le $level ] || [ $i -eq 0 ]; then
+                check_file_or_dir "$backup_file"
             fi
+            if [ $i -eq $((level + 1)) ] || [ ! -f "$backup_file" ]; then
+                concluded=true
+                level=$((i - 1))
+            fi
+            i=$((i + 1))
         done
-        
+    
         for ((i = 0; i <= level; i++)); do
-            echo "Iteration: $i"
-            backup_file="${backup_dir}/${data_to_restore}${i}.tar.gz"
-            tar --directory="$DESTINATION_PATH" --extract --file="$backup_file" --listed-incremental=/dev/null
+            backup_file="${data_to_restore}${i}.tar.gz"
+            backup_file_path="${backup_dir}/${backup_file}"
+            echo "Restoring: $backup_file"
+            tar --directory="$destination_dir" --extract --file="$backup_file_path" --listed-incremental=/dev/null
         done
         ;;
     *)
