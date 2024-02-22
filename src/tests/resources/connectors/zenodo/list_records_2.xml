@@ -38,7 +38,7 @@
               <dates>
                 <date dateType="Issued">2024-01-11</date>
               </dates>
-              <resourceType resourceTypeGeneral="Journal"></resourceType>
+              <resourceType resourceTypeGeneral="Image"></resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
                   10.5281/zenodo.10491379</relatedIdentifier>
@@ -220,7 +220,7 @@
                 <date dateType="Issued">2019-07-01</date>
               </dates>
               <language>eng</language>
-              <resourceType resourceTypeGeneral="JournalArticle"></resourceType>
+              <resourceType resourceTypeGeneral="Collection"></resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
                   https://zenodo.org/communities/imdeaenergy</relatedIdentifier>
@@ -300,7 +300,7 @@
                 <date dateType="Issued">2023-05-21</date>
               </dates>
               <language>rus</language>
-              <resourceType resourceTypeGeneral="JournalArticle"></resourceType>
+              <resourceType resourceTypeGeneral="Collection"></resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
                   10.5281/zenodo.10628196</relatedIdentifier>
@@ -483,7 +483,7 @@
                 <date dateType="Accepted">2023-03-01</date>
               </dates>
               <language>eng</language>
-              <resourceType resourceTypeGeneral="JournalArticle"></resourceType>
+              <resourceType resourceTypeGeneral="Collection"></resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
                   10.5281/zenodo.10066668</relatedIdentifier>
@@ -616,7 +616,7 @@
               <dates>
                 <date dateType="Issued">2018-04-15</date>
               </dates>
-              <resourceType resourceTypeGeneral="JournalArticle"></resourceType>
+              <resourceType resourceTypeGeneral="Collection"></resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
                   https://zenodo.org/communities/imdeaenergy</relatedIdentifier>
@@ -695,7 +695,7 @@
                 <date dateType="Accepted">2023-03-01</date>
               </dates>
               <language>eng</language>
-              <resourceType resourceTypeGeneral="JournalArticle"></resourceType>
+              <resourceType resourceTypeGeneral="Collection"></resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
                   10.5281/zenodo.7882426</relatedIdentifier>
@@ -839,7 +839,7 @@
               <dates>
                 <date dateType="Issued">2024-02-07</date>
               </dates>
-              <resourceType resourceTypeGeneral="JournalArticle"></resourceType>
+              <resourceType resourceTypeGeneral="Collection"></resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
                   https://zenodo.org/communities/gutta-project</relatedIdentifier>
@@ -1039,7 +1039,7 @@
               <dates>
                 <date dateType="Issued">2024-02-05</date>
               </dates>
-              <resourceType resourceTypeGeneral="JournalArticle"></resourceType>
+              <resourceType resourceTypeGeneral="Collection"></resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="DOI" relationType="HasPart"
                   resourceTypeGeneral="Image">10.3897/pharmacia.71.e114120.figure1</relatedIdentifier>
@@ -1230,9 +1230,9 @@
               <resourceType resourceTypeGeneral="Image">Figure</resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">10.3897/BDJ.12.e116619</relatedIdentifier>
+                  resourceTypeGeneral="Collection">10.3897/BDJ.12.e116619</relatedIdentifier>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629259</relatedIdentifier>
+                  resourceTypeGeneral="Collection">https://zenodo.org/record/10629259</relatedIdentifier>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
                   https://zenodo.org/communities/biosyslit</relatedIdentifier>
               </relatedIdentifiers>
@@ -1338,9 +1338,9 @@
               <resourceType resourceTypeGeneral="Image">Figure</resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">10.3897/BDJ.12.e113698</relatedIdentifier>
+                  resourceTypeGeneral="Collection">10.3897/BDJ.12.e113698</relatedIdentifier>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629263</relatedIdentifier>
+                  resourceTypeGeneral="Collection">https://zenodo.org/record/10629263</relatedIdentifier>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
                   https://zenodo.org/communities/biosyslit</relatedIdentifier>
               </relatedIdentifiers>
@@ -1451,9 +1451,9 @@
               <resourceType resourceTypeGeneral="Image">Figure</resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">10.3897/mycokeys.102.116096</relatedIdentifier>
+                  resourceTypeGeneral="Collection">10.3897/mycokeys.102.116096</relatedIdentifier>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629273</relatedIdentifier>
+                  resourceTypeGeneral="Collection">https://zenodo.org/record/10629273</relatedIdentifier>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
                   https://zenodo.org/communities/biosyslit</relatedIdentifier>
               </relatedIdentifiers>
@@ -1565,9 +1565,9 @@
               <resourceType resourceTypeGeneral="Image">Figure</resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">10.3897/mycokeys.102.116096</relatedIdentifier>
+                  resourceTypeGeneral="Collection">10.3897/mycokeys.102.116096</relatedIdentifier>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629273</relatedIdentifier>
+                  resourceTypeGeneral="Collection">https://zenodo.org/record/10629273</relatedIdentifier>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
                   https://zenodo.org/communities/biosyslit</relatedIdentifier>
               </relatedIdentifiers>
@@ -1639,9 +1639,9 @@
               <resourceType resourceTypeGeneral="Image">Figure</resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">10.3897/jor.33.115670</relatedIdentifier>
+                  resourceTypeGeneral="Collection">10.3897/jor.33.115670</relatedIdentifier>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629277</relatedIdentifier>
+                  resourceTypeGeneral="Collection">https://zenodo.org/record/10629277</relatedIdentifier>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
                   https://zenodo.org/communities/biosyslit</relatedIdentifier>
               </relatedIdentifiers>
@@ -1695,7 +1695,7 @@
               <dates>
                 <date dateType="Issued">2022-11</date>
               </dates>
-              <resourceType resourceTypeGeneral="JournalArticle"></resourceType>
+              <resourceType resourceTypeGeneral="Collection"></resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
                   10.5281/zenodo.10628414</relatedIdentifier>
@@ -1805,9 +1805,9 @@
               <resourceType resourceTypeGeneral="Image">Figure</resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">10.3897/mycokeys.102.116096</relatedIdentifier>
+                  resourceTypeGeneral="Collection">10.3897/mycokeys.102.116096</relatedIdentifier>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629273</relatedIdentifier>
+                  resourceTypeGeneral="Collection">https://zenodo.org/record/10629273</relatedIdentifier>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
                   https://zenodo.org/communities/biosyslit</relatedIdentifier>
               </relatedIdentifiers>
@@ -1920,9 +1920,9 @@
               <resourceType resourceTypeGeneral="Image">Figure</resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">10.3897/mycokeys.102.116096</relatedIdentifier>
+                  resourceTypeGeneral="Collection">10.3897/mycokeys.102.116096</relatedIdentifier>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629273</relatedIdentifier>
+                  resourceTypeGeneral="Collection">https://zenodo.org/record/10629273</relatedIdentifier>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">
                   https://zenodo.org/communities/biosyslit</relatedIdentifier>
               </relatedIdentifiers>
@@ -2019,9 +2019,9 @@
               <resourceType resourceTypeGeneral="Image">Figure</resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">10.3897/pharmacia.71.e114120</relatedIdentifier>
+                  resourceTypeGeneral="Collection">10.3897/pharmacia.71.e114120</relatedIdentifier>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629279</relatedIdentifier>
+                  resourceTypeGeneral="Collection">https://zenodo.org/record/10629279</relatedIdentifier>
               </relatedIdentifiers>
               <rightsList>
                 <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
@@ -2116,9 +2116,9 @@
               <resourceType resourceTypeGeneral="Image">Figure</resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">10.3897/pharmacia.71.e114120</relatedIdentifier>
+                  resourceTypeGeneral="Collection">10.3897/pharmacia.71.e114120</relatedIdentifier>
                 <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf"
-                  resourceTypeGeneral="JournalArticle">https://zenodo.org/record/10629279</relatedIdentifier>
+                  resourceTypeGeneral="Collection">https://zenodo.org/record/10629279</relatedIdentifier>
               </relatedIdentifiers>
               <rightsList>
                 <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode"
@@ -2168,7 +2168,7 @@
               <dates>
                 <date dateType="Issued">2023-12-20</date>
               </dates>
-              <resourceType resourceTypeGeneral="BookChapter"></resourceType>
+              <resourceType resourceTypeGeneral="Event"></resourceType>
               <relatedIdentifiers>
                 <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">
                   10.5281/zenodo.10628631</relatedIdentifier>
