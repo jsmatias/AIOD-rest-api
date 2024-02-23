@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -ne 3 ]; then
-  echo "Usage: $0 <path/to/data> <path/to/backup/dir> <cycle length:int>"
+  echo "Usage: $0 path/to/data path/to/backup/dir <cycle length:int>"
   exit 1
 fi
 
@@ -10,13 +10,17 @@ data_to_backup=$(basename "$data_path")
 backups_path=$(realpath "$2")
 backup_cycle=$3
 
-# another_instance()
-# {
-#     echo $(date -u) "This script is already running in a different thread."
-#     exit 1
-# }
-# exec 9< "$0"
-# flock -n -x 9 || another_instance
+another_instance()
+{
+    echo $(date -u) "This script is already running in a different thread."
+    exit 1
+}
+if [ -n "$RUNNING_UNDER_TEST" ]; then
+    echo "Skipping flock in test environment."
+else
+    exec 9< "$0"
+    flock -n -x 9 || another_instance
+fi
 
 check_file_or_dir () {
     path=$1

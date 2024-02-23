@@ -1,7 +1,7 @@
 #!/bin/bash
 
 usage() {
-  echo "Usage: $0 backup/path/ <cycle> destination/path/ [--cycle-level <level>]"
+  echo "Usage: $0 backup/path/ <cycle:int> destination/path/ [--cycle-level|-cl <level:int>]"
   exit 1
 }
 
