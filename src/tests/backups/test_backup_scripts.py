@@ -1,10 +1,27 @@
 import os
+import pytest
 import subprocess
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 SCRIPTS_PATH = Path("./backups").absolute()
+
+
+def is_gnu_tar_installed():
+    """
+    The backup logic requires gnu tar installed.
+    """
+    try:
+        res = subprocess.run(["tar", "--version"], check=True, stdout=subprocess.PIPE)
+        return "tar (GNU tar)" in str(res.stdout)
+    except subprocess.CalledProcessError:
+        return False
+
+
+pytestmark = pytest.mark.skipif(
+    not is_gnu_tar_installed(), reason="It requires GNU tar to run. Skipping all tests."
+)
 
 
 def create_test_files(directory: Path, filenames: list):
