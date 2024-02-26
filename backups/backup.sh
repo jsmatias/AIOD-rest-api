@@ -2,6 +2,12 @@
 
 if [ $# -ne 3 ]; then
   echo "Usage: $0 path/to/data path/to/backup/dir <cycle length:int>"
+  echo ""
+  echo "Perform incremental backups based on a cycle length."
+  echo "A full backup (level 0) is created initially, followed by incremental backups (level 1, 2, ...)."
+  echo "These incremental backups contain only the changed files since the last backup."
+  echo "The cycle length determines the maximum number of incremental backups before starting a new cycle with a fresh level 0 backup."
+  echo "For more details on incremental backups, visit: https://www.gnu.org/software/tar/manual/html_section/Incremental-Dumps.html"
   exit 1
 fi
 

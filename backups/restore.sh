@@ -1,9 +1,17 @@
 #!/bin/bash
 
 usage() {
-  echo "Usage: $0 backup/path/ <cycle:int> destination/path/ [--cycle-level|-cl <level:int>]"
+  echo "Usage: $0 backup/path/ <cycle-lable:int> destination/path/ [--cycle-level|-cl <level:int>]"
+  echo ""
+  echo "Restores data from incremental backups."
+  echo "You must specify the backup path, the cycle lable, and the destination path."
+  echo "The cycle lable corresponds to the label of the backup directory within the backup/path."
+  echo "Optionally, you can define a cycle level to restore from a specific incremental backup level within a cycle."
+  echo "If the level (-cl) is omitted, all the available levels within the cycle will be restored."
+  echo "For more details on the structure and restoration process of incremental backups, visit: https://www.gnu.org/software/tar/manual/html_section/Incremental-Dumps.html"
   exit 1
 }
+
 
 check_file_or_dir () {
     path=$1
