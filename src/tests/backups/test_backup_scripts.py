@@ -62,7 +62,7 @@ def test_backup_happy_path():
             call_backup_command(backup_command)
 
         for backup_file in files_in_cycle_1 + files_in_cycle_0:
-            assert os.path.exists(backup_file)
+            assert backup_file.exists()
 
 
 def test_restore_happy_path():
@@ -106,15 +106,15 @@ def test_restore_happy_path():
         call_backup_command(backup_command)
 
         call_restore_command(restore_command)
-        assert not os.path.exists(restored_file1_path), f"{restored_file1_path} shouldn't be here."
-        assert os.path.exists(restored_file2_path), f"{restored_file2_path} should be here."
+        assert not restored_file1_path.exists(), f"{restored_file1_path} shouldn't be here."
+        assert restored_file2_path.exists(), f"{restored_file2_path} should be here."
         with open(restored_file2_path, "r") as f:
             file_content = f.read()
         assert "Content of new file\n" in file_content
 
         call_restore_command(restore_command + ["--cycle-level", "0"])
-        assert os.path.exists(restored_file1_path), f"{restored_file1_path} should be here."
-        assert os.path.exists(restored_file2_path), f"{restored_file2_path} should be here."
+        assert restored_file1_path.exists(), f"{restored_file1_path} should be here."
+        assert restored_file2_path.exists(), f"{restored_file2_path} should be here."
 
         call_restore_command(restore_command + ["-cl", "1"])
-        assert not os.path.exists(restored_file1_path), f"{restored_file1_path} shouldn't be here."
+        assert not restored_file1_path.exists(), f"{restored_file1_path} shouldn't be here."
