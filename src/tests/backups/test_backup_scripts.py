@@ -86,7 +86,8 @@ def test_restore_happy_path():
     """
     Test if the restore.sh script restores the files properly.
     Usage:
-    `bash restore.sh backup/path/ <cycle:int> destination/path/ [--cycle-level|-cl <level:int>]`
+    `bash restore.sh \
+        backup/path/ <cycle-label:int> destination/path/ [--cycle-level|-cl <level:int>]`
     """
     with TemporaryDirectory() as tmpdir:
         original_dir = tmpdir / Path("original")
@@ -125,9 +126,6 @@ def test_restore_happy_path():
         call_restore_command(restore_command)
         assert not restored_file1_path.exists(), f"{restored_file1_path} shouldn't be here."
         assert restored_file2_path.exists(), f"{restored_file2_path} should be here."
-        with open(restored_file2_path, "r") as f:
-            file_content = f.read()
-        assert "Content of new file\n" in file_content
 
         call_restore_command(restore_command + ["--cycle-level", "0"])
         assert restored_file1_path.exists(), f"{restored_file1_path} should be here."
@@ -135,3 +133,7 @@ def test_restore_happy_path():
 
         call_restore_command(restore_command + ["-cl", "1"])
         assert not restored_file1_path.exists(), f"{restored_file1_path} shouldn't be here."
+        assert restored_file2_path.exists(), f"{restored_file2_path} should be here."
+        with open(restored_file2_path, "r") as f:
+            file_content = f.read()
+        assert "Content of new file\n" in file_content
