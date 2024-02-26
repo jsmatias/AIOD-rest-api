@@ -247,8 +247,7 @@ services:
       - ./data/elasticsearch/:/opt/data/elasticsearch:ro
       - ./data/keycloak/:/opt/data/keycloak:ro
       - ./data/mysql/:/opt/data/mysql:ro
-    command: 
-      /bin/bash -c "/opt/backups/scripts/entry.sh"
+    command: /usr/sbin/cron -f
     depends_on:
       app:
         condition: service_healthy
