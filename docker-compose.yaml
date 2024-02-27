@@ -234,6 +234,7 @@ services:
         condition: service_completed_successfully
 
   backup:
+    profiles: ["backup-service"]
     build: 
       context: backups/
       dockerfile: Dockerfile
@@ -242,12 +243,15 @@ services:
     volumes:
       - ./backups:/opt/backups/scripts
       - ./data/backups:/opt/backups/data
-      - ./data/connectors/:/opt/data/connectors:ro
-      - ./data/deletion/:/opt/data/deletion:ro
-      - ./data/elasticsearch/:/opt/data/elasticsearch:ro
-      - ./data/keycloak/:/opt/data/keycloak:ro
-      - ./data/mysql/:/opt/data/mysql:ro
-    command: /usr/sbin/cron -f
+      - ./data/connectors/:/opt/data/connectors
+      - ./data/deletion/:/opt/data/deletion
+      - ./data/elasticsearch/:/opt/data/elasticsearch
+      - ./data/keycloak/:/opt/data/keycloak
+      - ./data/mysql/:/opt/data/mysql
+    command: >  
+      /bin/bash -c "/opt/backups/scripts/entry.sh"
+    # Replace the above command to call the entry_restore.sh script to initiate restoration of a volume.
+    # e.g /bin/bash -c "/opt/backups/scripts/entry_restore.sh deletion 4 0"
     depends_on:
       app:
         condition: service_healthy
