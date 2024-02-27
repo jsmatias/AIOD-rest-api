@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -ne 3 ]; then
-  echo "Usage: $0 path/to/data path/to/backup/dir <cycle length:int>"
+  echo "Usage: $0 path/to/original/ path/to/backup/dir <cycle length:int>"
   echo ""
   echo "Perform incremental backups based on a cycle length."
   echo "A full backup (level 0) is created initially, followed by incremental backups (level 1, 2, ...)."
@@ -14,7 +14,7 @@ fi
 data_path=$(realpath "$1")
 data_to_backup=$(basename "$data_path")
 backups_path=$(realpath "$2")
-backup_cycle=$3
+cycle_length=$3
 
 another_instance()
 {
@@ -31,8 +31,8 @@ fi
 check_file_or_dir () {
     path=$1
     if [ ! -d "$path" ] && [ ! -f "$path" ]; then
-        echo "Error: Path does not exist: $path"
-        echo "Operation aborted!"
+        echo $(date -u) "Error: Path does not exist: $path"
+        echo $(date -u) "Operation aborted!"
         exit 1
     fi
 }
@@ -41,7 +41,7 @@ check_file_or_dir $backups_path
 
 echo $(date -u) "Backup routine to ${data_to_backup} starting..."
 
-cd "$data_path"
+cd "${data_path}"
 cd "../"
 
 path_to_backup="./${data_to_backup}"
@@ -56,10 +56,10 @@ else
     level=$(ls "$backup_dir" | grep -c "${data_to_backup}")
     level=$((level - 1))
     if [ $level -le 0 ]; then
-        echo "Level 0 might be corrupted! Backing up from level 0."
+        echo $(date -u) "-> Level 0 might be corrupted! Backing up from level 0."
         level=0
-    elif [ "$level" -ge "$backup_cycle" ]; then
-        echo "Backup cycle completed, starting a new one."
+    elif [ "$level" -ge "$cycle_length" ]; then
+        echo $(date -u) "-> Backup cycle completed, starting a new one."
         last_backup_label="${backup_dir##*_}"
         backup_dir="${parent_dir}/${data_to_backup}_$((last_backup_label + 1))"
         mkdir "$backup_dir"
@@ -70,10 +70,9 @@ fi
 backup_file="${backup_dir}/${data_to_backup}${level}.tar.gz"
 snapshot_file="${backup_dir}/${data_to_backup}.snar"
 
-echo $backup_file
-echo $snapshot_file
-
 tar -czf "$backup_file" --listed-incremental="$snapshot_file" "$path_to_backup"
 
-echo $(date -u) "$data_to_backup done!"
+echo $(date -u) "-> Files from ${data_to_backup} backed up."
+echo $(date -u) "   ${data_path} -----> ${path_to_backup}"
+echo $(date -u) "Done!"
 
