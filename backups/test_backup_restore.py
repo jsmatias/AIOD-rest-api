@@ -1,27 +1,10 @@
 import os
-import pytest
 import subprocess
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-SCRIPTS_PATH = Path("./backups").absolute()
-
-
-def is_gnu_tar_installed():
-    """
-    The backup logic requires gnu tar installed.
-    """
-    try:
-        res = subprocess.run(["tar", "--version"], check=True, stdout=subprocess.PIPE)
-        return "tar (GNU tar)" in str(res.stdout)
-    except subprocess.CalledProcessError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not is_gnu_tar_installed(), reason="It requires GNU tar to run. Skipping all tests."
-)
+SCRIPTS_PATH = Path("./").absolute()
 
 
 def create_test_files(directory: Path, filenames: list):
@@ -79,8 +62,7 @@ def test_backup_happy_path():
             call_backup_command(backup_command)
 
         for backup_file in files_in_cycle_1 + files_in_cycle_0:
-            # assert backup_file.exists()
-            assert os.path.exists(backup_file)
+            assert backup_file.exists()
 
 
 def test_restore_happy_path():
@@ -125,21 +107,15 @@ def test_restore_happy_path():
         call_backup_command(backup_command)
 
         call_restore_command(restore_command)
-        # assert not restored_file1_path.exists(), f"{restored_file1_path} shouldn't be here."
-        # assert restored_file2_path.exists(), f"{restored_file2_path} should be here."
-
-        assert not os.path.exists(restored_file1_path), f"{restored_file1_path} shouldn't be here."
-        assert os.path.exists(restored_file2_path), f"{restored_file2_path} should be here."
+        assert not restored_file1_path.exists(), f"{restored_file1_path} shouldn't be here."
+        assert restored_file2_path.exists(), f"{restored_file2_path} should be here."
         with open(restored_file2_path, "r") as f:
             file_content = f.read()
         assert "Content of new file\n" in file_content
 
-        call_restore_command(restore_command + ["--cycle-level", "0"])
-        assert os.path.exists(restored_file1_path), f"{restored_file1_path} should be here."
-        assert os.path.exists(restored_file2_path), f"{restored_file2_path} should be here."
-        # assert restored_file1_path.exists(), f"{restored_file1_path} should be here."
-        # assert restored_file2_path.exists(), f"{restored_file2_path} should be here."
+        call_restore_command(restore_command + ["--level", "0"])
+        assert restored_file1_path.exists(), f"{restored_file1_path} should be here."
+        assert restored_file2_path.exists(), f"{restored_file2_path} should be here."
 
-        call_restore_command(restore_command + ["-cl", "1"])
-        # assert not restored_file1_path.exists(), f"{restored_file1_path} shouldn't be here."
-        assert not os.path.exists(restored_file1_path), f"{restored_file1_path} shouldn't be here."
+        call_restore_command(restore_command + ["-l", "1"])
+        assert not restored_file1_path.exists(), f"{restored_file1_path} shouldn't be here."
