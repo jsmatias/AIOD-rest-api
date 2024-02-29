@@ -1,5 +1,0 @@
-0 2 * * * bash /opt/backups/scripts/backup.sh /opt/data/connectors /opt/backups/data 7 >> /opt/backups/data/cron.log 2>&1
-5 2 * * * bash /opt/backups/scripts/backup.sh /opt/data/deletion /opt/backups/data 7 >> /opt/backups/data/cron.log 2>&1
-10 2 * * * bash /opt/backups/scripts/backup.sh /opt/data/elasticsearch /opt/backups/data 7 >> /opt/backups/data/cron.log 2>&1
-15 2 * * * bash /opt/backups/scripts/backup.sh /opt/data/keycloak /opt/backups/data 7 >> /opt/backups/data/cron.log 2>&1
-20 2 * * * bash /opt/backups/scripts/backup.sh /opt/data/mysql /opt/backups/data 7 >> /opt/backups/data/cron.log 2>&1
