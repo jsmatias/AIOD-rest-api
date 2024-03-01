@@ -34,18 +34,18 @@ check_file_or_dir () {
         exit 1
     fi
 }
-check_file_or_dir $DATA_PATH
-check_file_or_dir $BACKUP_PATH
+check_file_or_dir "${DATA_PATH}/${data_to_backup}"
+check_file_or_dir "$BACKUP_PATH"
 
 echo $(date -u) "Backup routine to ${data_to_backup} starting..."
 
 cd "${DATA_PATH}"
-
 path_to_data="./${data_to_backup}"
 parent_dir="${BACKUP_PATH}/${data_to_backup}"
 
 if [ -z "$(ls -A $parent_dir)" ]; then
     backup_dir="${parent_dir}/${data_to_backup}_0"
+    echo $(date -u) "-> Creating backup directory..."
     mkdir -p "$backup_dir"
     level=0
 else
