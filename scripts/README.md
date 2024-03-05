@@ -1,6 +1,7 @@
 # Scripts README.md
 
 This directory contains a collection of scripts designed to manage backups, restorations, and database interactions for the service. Below is a detailed description of each script and its intended usage.
+Unless noted otherwise, all scripts should be run without arguments while the AIoD docker containers are running (i.e., `docker compose up`).
 
 ## Script Descriptions
 
