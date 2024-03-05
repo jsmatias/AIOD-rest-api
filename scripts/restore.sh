@@ -82,6 +82,8 @@ fi
 echo "Proceeding..."
 concluded=false
 i=0
+# Checks that all partial files exist whether level is set or not. 
+# If it not set, it determines the level as the highest label of the available incremental files.   
 while [ "$concluded" = false ]; do
     backup_file="${backup_dir}/${data_to_restore}${i}.tar.gz"
     if [ $i -le $level ] || [ $i -eq 0 ]; then
