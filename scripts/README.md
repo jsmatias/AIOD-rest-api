@@ -7,7 +7,8 @@ Unless noted otherwise, all scripts should be run without arguments while the AI
 
 ### `clean.sh`
 
-**Warning!** - This deletes all the content in the data/ directory!
+> [!WARNING]
+> This deletes all the content in the data/ directory!
 - **Purpose**: This convenience script reverts the development environment back to a clean state, including resetting the database.
 
 
