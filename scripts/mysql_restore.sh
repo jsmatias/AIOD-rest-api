@@ -12,6 +12,6 @@ echo $(date -u) "Copying backup.sql to container..."
 docker cp "${DATA_PATH}/mysql_dump/backup.sql" sqlserver:/tmp/backup.sql
 
 echo $(date -u) "Restoring database..."
-docker exec -i /bin/bash -c "mysql -uroot -p${MYSQL_ROOT_PASSWORD} aiod < /tmp/backup.sql"
+docker exec -i sqlserver /bin/bash -c "mysql -uroot -p${MYSQL_ROOT_PASSWORD} aiod < /tmp/backup.sql"
 echo $(date -u) "Done!"
 
