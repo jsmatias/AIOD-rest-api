@@ -5,7 +5,7 @@ if [ "$ENV_MODE" != "testing" ]; then
     SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 
     cd $SCRIPT_DIR/..
-source .env
+    source .env
 fi
 
 DESTINATION_PATH=$(realpath "$DATA_PATH")
