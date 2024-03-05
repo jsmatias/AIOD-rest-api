@@ -4,10 +4,26 @@ prior to the execution of the backup.sh and restore.sh scripts.
 """
 
 import os
+import pytest
 import subprocess
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
+
+
+def is_gnu_tar_installed():
+    try:
+        result = subprocess.run(
+            ["tar", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        )
+        return "GNU tar" in result.stdout
+    except Exception:
+        return False
+
+
+pytestmark = pytest.mark.skipif(
+    not is_gnu_tar_installed(), reason="backup.sh and restore.sh require GNU tar to be installed."
+)
 
 SCRIPTS_PATH = Path(__file__).resolve().parent.parent.parent.parent / "scripts"
 
