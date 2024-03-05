@@ -16,3 +16,4 @@ if [ ! -d "$LOCAL_BACKUP_PATH" ]; then
 fi
 
 docker cp keycloak:/tmp/aiod.json "$LOCAL_BACKUP_PATH"/aiod.json
+docker exec -i keycloak /bin/bash -c "rm /tmp/aiod.json"
