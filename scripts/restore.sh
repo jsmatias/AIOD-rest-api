@@ -61,7 +61,6 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-
 echo "Restoring process initiated..."
 
 echo "-> Verifying paths..."
@@ -75,9 +74,12 @@ echo ""
 echo "$backup_dir -------> $destination_dir/$data_to_restore"
 
 read -r response
-case "$response" in
-    [yY][eE][sS]|[yY])
-        echo "Proceeding..."
+if ! [[ $response =~ ^[yY]([eE][sS])?$ ]]; then
+    echo "Operation aborted."
+    exit 1
+fi
+
+echo "Proceeding..."
 concluded=false
 i=0
 while [ "$concluded" = false ]; do
@@ -99,12 +101,6 @@ for ((i = 0; i <= level; i++)); do
     echo "   Restoring: ${backup_file}"
     tar --directory="$destination_dir" --extract --file="$backup_file_path" --listed-incremental=/dev/null
 done
-;;
-    *)
-        echo "Operation aborted."
-        exit 1
-        ;;
-esac
 
 echo "-> Data from ${data_to_restore} backup restored."
 echo "   ${backup_dir} -------> ${destination_dir}/${data_to_restore}"
