@@ -49,7 +49,8 @@ if [ -z "$(ls -A $parent_dir)" ]; then
     mkdir -p "$backup_dir"
     level=0
 else
-    backup_dir=$(find "$parent_dir" -type d -name "${data_to_backup}*" | sort | tail -n 1)
+    label=$(find "$parent_dir" -type d -name "${data_to_backup}_*" | sed "s:$parent_dir/${data_to_backup}_::" | sort -n | tail -n 1)
+    backup_dir="${parent_dir}/${data_to_backup}_${label}"
     level=$(ls "$backup_dir" | grep -c "${data_to_backup}")
     level=$((level - 1))
     if [ $level -le 0 ]; then
