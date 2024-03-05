@@ -13,8 +13,7 @@ This directory contains a collection of scripts designed to manage backups, rest
 
 ### `database-connect.sql`
 
-- **Purpose**: Connects to the SQL server. This SQL script should be run after executing `docker-compose up`, ensuring that the SQL server is already running.
-- **Usage**: Execute this SQL script against your SQL server instance to establish a connection.
+- **Purpose**: Start an interactive MySQL client that connects to the AIoD SQL server. 
 
 ### `mysql_dump.sh`
 
