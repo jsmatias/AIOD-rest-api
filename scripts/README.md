@@ -11,7 +11,7 @@ Unless noted otherwise, all scripts should be run without arguments while the AI
 - **Purpose**: This convenience script reverts the development environment back to a clean state, including resetting the database.
 
 
-### `database-connect.sql`
+### `database-connect.sh`
 
 - **Purpose**: Start an interactive MySQL client that connects to the AIoD SQL server. 
 
