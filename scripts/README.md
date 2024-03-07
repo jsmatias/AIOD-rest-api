@@ -64,7 +64,7 @@ Incremental backups can be scheduled with `cron` to execute `backup.sh` periodic
 To schedule weekly (cycle length: 7) backups to run everyday at 2 am of the MySQL DB, set a cron file as follows: 
 
 ```cron
-0 2 * * * bash path/to/scripts/mysql_bump.sh >> cron.log 2>&1
+0 2 * * * bash path/to/scripts/mysql_dump.sh >> cron.log 2>&1
 15 2 * * * bash path/to/scripts/backup.sh mysql_dump 7 >> cron.log 2>&1
 ```
 
