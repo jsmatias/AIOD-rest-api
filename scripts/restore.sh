@@ -68,10 +68,10 @@ check_file_or_dir $backup_dir
 check_file_or_dir $destination_dir
 
 echo ""
-echo "Are you sure you want to proceed? (y/n)"
-echo "This overwrites all files in the destination directory and deletes the ones which are not in the archive!"
-echo ""
 echo "$backup_dir -------> $destination_dir/$data_to_restore"
+echo ""
+echo "This overwrites all files in the destination directory and deletes the ones which are not in the archive!"
+echo "Are you sure you want to proceed? (y/n)"
 
 read -r response
 if ! [[ $response =~ ^[yY]([eE][sS])?$ ]]; then
