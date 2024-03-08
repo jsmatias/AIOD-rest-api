@@ -39,7 +39,7 @@ services:
       - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
     volumes:
       - ./src:/app:ro
-      - ./data/connectors:/opt/connectors/data
+      - ${DATA_PATH}/connectors:/opt/connectors/data
       - ./connectors:/opt/connectors/script:ro
     command: >
       /bin/bash -c "/opt/connectors/script/fill-examples.sh"
@@ -56,7 +56,7 @@ services:
     env_file: .env
     volumes:
       - ./src:/app
-      - ./data/deletion:/opt/deletion/data
+      - ${DATA_PATH}/deletion:/opt/deletion/data
     command: >
       /bin/bash -c "/opt/deletion/script/entry.sh"
     depends_on:
@@ -72,7 +72,7 @@ services:
       - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
     volumes:
       - ./src:/app:ro
-      - ./data/connectors:/opt/connectors/data
+      - ${DATA_PATH}/connectors:/opt/connectors/data
       - ./connectors/huggingface/:/opt/connectors/script:ro
     command: >
       /bin/bash -c "/opt/connectors/script/datasets.sh"
@@ -92,7 +92,7 @@ services:
       - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
     volumes:
       - ./src:/app:ro
-      - ./data/connectors:/opt/connectors/data
+      - ${DATA_PATH}/connectors:/opt/connectors/data
       - ./connectors/openml/:/opt/connectors/script:ro
     command: >
       /bin/bash -c "/opt/connectors/script/entry.sh"
@@ -112,7 +112,7 @@ services:
       - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
     volumes:
       - ./src:/app
-      - ./data/connectors:/opt/connectors/data
+      - ${DATA_PATH}/connectors:/opt/connectors/data
       - ./connectors/zenodo/:/opt/connectors/script
     command: >
       /bin/bash -c "/opt/connectors/script/entry.sh"
@@ -127,7 +127,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     volumes:
-      - ./data/mysql:/var/lib/mysql
+      - ${DATA_PATH}/mysql:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "-uroot", "-p$MYSQL_ROOT_PASSWORD", "ping", "-h", "localhost", "--protocol","tcp"]
       start_interval: 1s
@@ -146,7 +146,7 @@ services:
     ports:
       - 8080:8080
     volumes:
-     - ./data/keycloak:/opt/keycloak/data
+     - ${DATA_PATH}/keycloak:/opt/keycloak/data
     command: >
       start
       --hostname-url http://${HOSTNAME}/aiod-auth
@@ -185,7 +185,7 @@ services:
         source: ./es/elasticsearch.yml
         target: /usr/share/elasticsearch/config/elasticsearch.yml
         read_only: true
-      - ./data/elasticsearch:/usr/share/elasticsearch/data
+      - ${DATA_PATH}/elasticsearch:/usr/share/elasticsearch/data
     healthcheck:
       test: ["CMD-SHELL", "curl -u $ES_USER:$ES_PASSWORD --silent --fail localhost:9200/_cluster/health || exit 1"]
       interval: 5s
