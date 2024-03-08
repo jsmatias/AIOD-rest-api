@@ -1,5 +1,13 @@
 #!/bin/bash
 
+if ! tar --version | grep "GNU tar" >/dev/null 2>&1; then
+    echo "   This script requires GNU tar for incremental backups."
+    echo "   Please install it before proceeding."
+    echo "   Installed tar version:"
+    tar --version
+    exit 1
+fi
+
 if [ "$ENV_MODE" != "testing" ]; then
     SCRIPT_PATH="$(readlink -f "$0")"
     SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
@@ -44,7 +52,8 @@ path_to_data="./${data_to_backup}"
 parent_dir="${BACKUP_PATH}/${data_to_backup}"
 
 if [ -z "$(ls -A $parent_dir)" ]; then
-    backup_dir="${parent_dir}/${data_to_backup}_0"
+    label=0
+    backup_dir="${parent_dir}/${data_to_backup}_${label}"
     echo $(date -u) "-> Creating backup directory..."
     mkdir -p "$backup_dir"
     level=0
@@ -59,12 +68,14 @@ else
     elif [ "$level" -ge "$cycle_length" ]; then
         echo $(date -u) "-> Backup cycle completed, starting a new one."
         last_backup_label="${backup_dir##*_}"
-        backup_dir="${parent_dir}/${data_to_backup}_$((last_backup_label + 1))"
+        label="$((last_backup_label + 1))"
+        backup_dir="${parent_dir}/${data_to_backup}_${label}"
         mkdir "$backup_dir"
         level=0
     fi
 fi
 
+echo $(date -u) "-> The files are being backed up at level ${level} of cycle ${label}."
 backup_file="${backup_dir}/${data_to_backup}${level}.tar.gz"
 snapshot_file="${backup_dir}/${data_to_backup}.snar"
 

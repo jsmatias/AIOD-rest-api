@@ -1,5 +1,13 @@
 #!/bin/bash
 
+if ! tar --version | grep "GNU tar" >/dev/null 2>&1; then
+    echo "   This script requires GNU tar for incremental backups."
+    echo "   Please install it before proceeding."
+    echo "   Installed tar version:"
+    tar --version
+    exit 1
+fi
+
 if [ "$ENV_MODE" != "testing" ]; then
     SCRIPT_PATH="$(readlink -f "$0")"
     SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
