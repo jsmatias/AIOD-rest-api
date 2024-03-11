@@ -3,7 +3,6 @@ import importlib
 import json
 import logging
 import pathlib
-import shutil
 import sys
 from datetime import datetime
 from typing import Optional
@@ -121,11 +120,6 @@ def save_to_database(
 def main():
     args = _parse_args()
 
-    working_dir = pathlib.Path(args.working_dir)
-    if args.remove_state and working_dir.exists():
-        shutil.rmtree(working_dir)
-    working_dir.mkdir(parents=True, exist_ok=True)
-
     setup_logger()
     sys.excepthook = exception_handler
 
@@ -134,9 +128,15 @@ def main():
     module = importlib.import_module(module_path)
     connector: ResourceConnector = getattr(module, connector_cls_name)()
 
-    working_dir.mkdir(parents=True, exist_ok=True)
+    working_dir = pathlib.Path(args.working_dir)
     error_path = working_dir / RELATIVE_PATH_ERROR_CSV
     state_path = working_dir / RELATIVE_PATH_STATE_JSON
+    if args.remove_state and working_dir.exists():
+        state_path.unlink(missing_ok=True)
+        error_path.unlink(missing_ok=True)
+
+    working_dir.mkdir(parents=True, exist_ok=True)
+
     first_run = not state_path.exists()
 
     with DbSession() as session:

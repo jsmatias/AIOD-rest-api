@@ -230,6 +230,10 @@ The structure is based on the
 
 See [src/README.md](src/README.md).
 
+## Backups and Restoration
+
+We provide several scripts to facilitate the scheduling of backups and the manual restoration of files. For details on these scripts and others, please see [scripts/README.md](scripts/README.md).
+
 ## Releases
 
 ### Breaking changes

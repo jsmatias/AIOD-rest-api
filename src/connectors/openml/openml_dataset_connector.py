@@ -2,11 +2,14 @@
 This module knows how to load an OpenML object based on its AIoD implementation,
 and how to convert the OpenML response to some agreed AIoD format.
 """
-from typing import Iterator
 
 import dateutil.parser
+import logging
 import requests
+
+from requests.exceptions import HTTPError
 from sqlmodel import SQLModel
+from typing import Iterator
 
 from connectors.abstract.resource_connector_by_id import ResourceConnectorById
 from connectors.record_error import RecordError
@@ -104,11 +107,12 @@ class OpenMlDatasetConnector(ResourceConnectorById[Dataset]):
         )
         response = requests.get(url_data)
         if not response.ok:
+            status_code = response.status_code
             msg = response.json()["error"]["message"]
-            yield RecordError(
-                identifier=None,
-                error=f"Error while fetching {url_data} from OpenML: '{msg}'.",
-            )
+            err_msg = f"Error while fetching {url_data} from OpenML: ({status_code}) {msg}"
+            logging.error(err_msg)
+            err = HTTPError(err_msg)
+            yield RecordError(identifier=None, error=err)
             return
 
         try:
