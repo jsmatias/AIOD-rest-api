@@ -77,7 +77,7 @@ Information on how to install Docker is found in [their documentation](https://d
 docker compose --profile examples up -d
 ```
 
-starts the MYSQL Server, the REST API, Keycloak for Identy and access management and Nginx for reverse proxing. \
+starts the MYSQL Server, the REST API, Keycloak for Identity and access management and Nginx for reverse proxying. \
 Once started, you should be able to visit the REST API server at: http://localhost and Keycloak at http://localhost/aiod-auth \
 To authenticate to the REST API swagger interface the predefined user is: user, and password: password \
 To authenticate as admin to Keycloak the predefined user is: admin and password: password \
