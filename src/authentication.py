@@ -17,6 +17,7 @@ should therefore request a new token every X minutes. This is not needed when th
 performs a separate authorization request. The only downside is the overhead of the additional
 keycloak requests - if that becomes prohibitive in the future, we should reevaluate this design.
 """
+
 import logging
 import os
 
@@ -87,6 +88,39 @@ async def get_current_user(token=Security(oidc)) -> User:
         if not userinfo.get("active", False):
             logging.error("Invalid userinfo or inactive user.")
             raise RuntimeError("Invalid userinfo or inactive user.")  # caught below
+        return User(
+            name=userinfo["username"], roles=set(userinfo.get("realm_access", {}).get("roles", []))
+        )
+    except Exception as e:
+        logging.error(f"Error while checking the access token: '{e}'")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+async def get_current_user_without_exception(token=Security(oidc)) -> User | None:
+
+    if not client_secret:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="This instance is not configured correctly. You'll need to set the env var "
+            "KEYCLOAK_CLIENT_SECRET (e.g. in src/.env). You need to obtain this secret "
+            "from a Keycloak Administrator of AIoD.",
+        )
+    if not token:
+        return None
+    try:
+        token = token.replace("Bearer ", "")
+
+        # query the authorization server to determine the active state of this token and to
+        # determine meta-information.
+        userinfo = keycloak_openid.introspect(token)
+
+        if not userinfo.get("active", False):
+            logging.error("Invalid userinfo or inactive user.")
+            return None
         return User(
             name=userinfo["username"], roles=set(userinfo.get("realm_access", {}).get("roles", []))
         )

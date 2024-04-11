@@ -14,7 +14,7 @@ from sqlalchemy.sql.operators import is_
 from sqlmodel import SQLModel, Session, select, Field
 from starlette.responses import JSONResponse
 
-from authentication import get_current_user, User
+from authentication import get_current_user, User, get_current_user_without_exception
 from config import KEYCLOAK_CONFIG
 from converters.schema_converters.schema_converter import SchemaConverter
 from database.model.ai_resource.resource import AbstractAIResource
@@ -204,7 +204,13 @@ class ResourceRouter(abc.ABC):
             )
         return router
 
-    def get_resources(self, schema: str, pagination: Pagination, platform: str | None = None):
+    def get_resources(
+        self,
+        schema: str,
+        pagination: Pagination,
+        user: User | None = None,
+        platform: str | None = None,
+    ):
         """Fetch all resources of this platform in given schema, using pagination"""
         _raise_error_on_invalid_schema(self._possible_schemas, schema)
         with DbSession() as session:
@@ -214,24 +220,14 @@ class ResourceRouter(abc.ABC):
                     if schema != "aiod"
                     else self.resource_class_read.from_orm
                 )
-                where_clause = and_(
-                    is_(self.resource_class.date_deleted, None),
-                    (self.resource_class.platform == platform) if platform is not None else True,
-                )
-                query = (
-                    select(self.resource_class)
-                    .where(where_clause)
-                    .offset(pagination.offset)
-                    .limit(pagination.limit)
-                )
-
-                return self._wrap_with_headers(
-                    [convert_schema(resource) for resource in session.scalars(query).all()]
-                )
+                resources = self._retrieve_resources(session, pagination, user, platform)
+                return self._wrap_with_headers([convert_schema(resource) for resource in resources])
             except Exception as e:
                 raise as_http_exception(e)
 
-    def get_resource(self, identifier: str, schema: str, platform: str | None = None):
+    def get_resource(
+        self, identifier: str, schema: str, user: User | None = None, platform: str | None = None
+    ):
         """
         Get the resource identified by AIoD identifier (if platform is None) or by platform AND
         platform-identifier (if platform is not None), return in given schema.
@@ -256,8 +252,11 @@ class ResourceRouter(abc.ABC):
         def get_resources(
             pagination: Pagination = Depends(),
             schema: self._possible_schemas_type = "aiod",  # type:ignore
+            user: User | None = Depends(get_current_user_without_exception),
         ):
-            resources = self.get_resources(pagination=pagination, schema=schema, platform=None)
+            resources = self.get_resources(
+                pagination=pagination, schema=schema, user=user, platform=None
+            )
             return resources
 
         return get_resources
@@ -334,8 +333,11 @@ class ResourceRouter(abc.ABC):
         def get_resource(
             identifier: str,
             schema: self._possible_schemas_type = "aiod",  # type: ignore
+            user: User | None = Depends(get_current_user_without_exception),
         ):
-            resource = self.get_resource(identifier=identifier, schema=schema, platform=None)
+            resource = self.get_resource(
+                identifier=identifier, schema=schema, user=user, platform=None
+            )
             return self._wrap_with_headers(resource)
 
         return get_resource
@@ -524,6 +526,20 @@ class ResourceRouter(abc.ABC):
             )
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{name} {msg}")
         return resource
+
+    def _retrieve_resources(self, session, pagination, user=None, platform=None):
+        where_clause = and_(
+            is_(self.resource_class.date_deleted, None),
+            (self.resource_class.platform == platform) if platform is not None else True,
+        )
+        query = (
+            select(self.resource_class)
+            .where(where_clause)
+            .offset(pagination.offset)
+            .limit(pagination.limit)
+        )
+        resources = session.scalars(query).all()
+        return resources
 
     @property
     def _possible_schemas(self) -> list[str]:
