@@ -53,7 +53,7 @@ class ContactRouter(ResourceRouter):
             if not email:
                 email = Email(name=email_mask)
                 session.add(email)
-            contact.email = [email] * len(contact.email)
+            contact.email = [email]
         return contact
 
     def _retrieve_resource(

@@ -4,6 +4,36 @@ from unittest.mock import Mock
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
+from database.model.agent.contact import Contact
+from database.model.agent.email import Email
+from database.session import DbSession
+
+
+def test_email_privacy(
+    client: TestClient,
+    mocked_privileged_token: Mock,
+    contact: Contact,
+):
+    keycloak_openid.introspect = mocked_privileged_token
+
+    with DbSession() as session:
+        email = Email(name="fake@email.com")
+        another_email = Email(name="fake2@email.com")
+        contact.email = [email, another_email]
+        session.add(contact)
+        session.commit()
+
+    guest_response = client.get("/contacts/v1/")
+    assert guest_response.status_code == 200, guest_response.json()
+    guest_response_json = guest_response.json()
+    assert len(guest_response_json) == 1
+    assert guest_response_json[0]["email"] == ["******"]
+
+    response = client.get("/contacts/v1/", headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
+    response_json = response.json()
+    assert len(response_json) == 1
+    assert response_json[0]["email"] == ["fake@email.com", "fake2@email.com"]
 
 
 def test_happy_path(client: TestClient, mocked_privileged_token: Mock, body_asset: dict):
