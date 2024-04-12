@@ -235,7 +235,7 @@ class ResourceRouter(abc.ABC):
         _raise_error_on_invalid_schema(self._possible_schemas, schema)
         try:
             with DbSession() as session:
-                resource = self._retrieve_resource(session, identifier, platform=platform)
+                resource = self._retrieve_resource(session, identifier, user, platform=platform)
                 if schema != "aiod":
                     return self.schema_converters[schema].convert(session, resource)
                 return self._wrap_with_headers(self.resource_class_read.from_orm(resource))
@@ -497,7 +497,7 @@ class ResourceRouter(abc.ABC):
 
         return delete_resource
 
-    def _retrieve_resource(self, session, identifier, platform=None):
+    def _retrieve_resource(self, session, identifier, user=None, platform=None):
         if platform is None:
             query = select(self.resource_class).where(self.resource_class.identifier == identifier)
         else:
