@@ -1,4 +1,5 @@
-"""Unittests for the behaviour of get_current_user()."""
+"""Unittests for the behaviour of get_current_user_or_raise_exception()."""
+
 import inspect
 from unittest.mock import Mock
 
@@ -8,14 +9,14 @@ from keycloak import KeycloakError
 from starlette import status
 
 
-from authentication import get_current_user, keycloak_openid, User
+from authentication import get_current_user_or_raise_exception, keycloak_openid, User
 from tests.testutils.mock_keycloak import MockedKeycloak, TestUserType
 
 
 @pytest.mark.asyncio
 async def test_happy_path():
     with MockedKeycloak() as _:
-        user = await get_current_user(token="Bearer mocked")
+        user = await get_current_user_or_raise_exception(token="Bearer mocked")
     assert user.name == "user"
     assert set(user.roles) == {"offline_access", "uma_authorization", "default-roles-aiod"}
 
@@ -23,7 +24,7 @@ async def test_happy_path():
 @pytest.mark.asyncio
 async def test_happy_path_privileged():
     with MockedKeycloak(type_=TestUserType.privileged) as _:
-        user = await get_current_user(token="Bearer mocked")
+        user = await get_current_user_or_raise_exception(token="Bearer mocked")
     assert user.name == "user"
     assert set(user.roles) == {
         "offline_access",
@@ -40,7 +41,7 @@ def test_get_current_user_leaks_no_information():
     our application if it is not necessary. Moreover, the User class is returned by the
     authorization_test endpoint.
     """
-    assert inspect.signature(get_current_user).return_annotation == User
+    assert inspect.signature(get_current_user_or_raise_exception).return_annotation == User
     assert set(inspect.get_annotations(User)) == {"name", "roles"}
 
 
@@ -48,7 +49,7 @@ def test_get_current_user_leaks_no_information():
 async def test_inactive_user():
     with MockedKeycloak(type_=TestUserType.inactive) as _:
         with pytest.raises(HTTPException) as exception_info:
-            await get_current_user(token="Bearer mocked")
+            await get_current_user_or_raise_exception(token="Bearer mocked")
 
         assert exception_info.value.status_code == status.HTTP_401_UNAUTHORIZED
         assert exception_info.value.detail == "Invalid authentication token"
@@ -57,7 +58,7 @@ async def test_inactive_user():
 @pytest.mark.asyncio
 async def test_unauthenticated():
     with pytest.raises(HTTPException) as exception_info:
-        await get_current_user(token=None)
+        await get_current_user_or_raise_exception(token=None)
     assert exception_info.value.status_code == status.HTTP_401_UNAUTHORIZED
     assert (
         exception_info.value.detail
@@ -79,6 +80,6 @@ async def test_keycloak_error():
         )
     )
     with pytest.raises(HTTPException) as exception_info:
-        await get_current_user(token="Bearer mocked")
+        await get_current_user_or_raise_exception(token="Bearer mocked")
     assert exception_info.value.status_code == status.HTTP_401_UNAUTHORIZED
     assert exception_info.value.detail == "Invalid authentication token"

@@ -14,7 +14,7 @@ from sqlalchemy.sql.operators import is_
 from sqlmodel import SQLModel, Session, select, Field
 from starlette.responses import JSONResponse
 
-from authentication import get_current_user, User, get_current_user_without_exception
+from authentication import get_current_user_or_raise_exception, User, get_current_user
 from config import KEYCLOAK_CONFIG
 from converters.schema_converters.schema_converter import SchemaConverter
 from database.model.ai_resource.resource import AbstractAIResource
@@ -252,7 +252,7 @@ class ResourceRouter(abc.ABC):
         def get_resources(
             pagination: Pagination = Depends(),
             schema: self._possible_schemas_type = "aiod",  # type:ignore
-            user: User | None = Depends(get_current_user_without_exception),
+            user: User | None = Depends(get_current_user),
         ):
             resources = self.get_resources(
                 pagination=pagination, schema=schema, user=user, platform=None
@@ -333,7 +333,7 @@ class ResourceRouter(abc.ABC):
         def get_resource(
             identifier: str,
             schema: self._possible_schemas_type = "aiod",  # type: ignore
-            user: User | None = Depends(get_current_user_without_exception),
+            user: User | None = Depends(get_current_user),
         ):
             resource = self.get_resource(
                 identifier=identifier, schema=schema, user=user, platform=None
@@ -379,7 +379,7 @@ class ResourceRouter(abc.ABC):
 
         def register_resource(
             resource_create: clz_create,  # type: ignore
-            user: User = Depends(get_current_user),
+            user: User = Depends(get_current_user_or_raise_exception),
         ):
             if not user.has_any_role(
                 KEYCLOAK_CONFIG.get("role"),
@@ -423,7 +423,7 @@ class ResourceRouter(abc.ABC):
         def put_resource(
             identifier: int,
             resource_create_instance: clz_create,  # type: ignore
-            user: User = Depends(get_current_user),
+            user: User = Depends(get_current_user_or_raise_exception),
         ):
             if not user.has_any_role(
                 KEYCLOAK_CONFIG.get("role"),
@@ -467,7 +467,7 @@ class ResourceRouter(abc.ABC):
 
         def delete_resource(
             identifier: str,
-            user: User = Depends(get_current_user),
+            user: User = Depends(get_current_user_or_raise_exception),
         ):
             with DbSession() as session:
                 if not user.has_any_role(

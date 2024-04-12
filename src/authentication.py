@@ -56,7 +56,7 @@ class User(BaseModel):
         return bool(set(roles) & self.roles)
 
 
-async def get_current_user(token=Security(oidc)) -> User:
+async def get_current_user_or_raise_exception(token=Security(oidc)) -> User:
     """
     Use this function in Depends() to force authentication. Check the roles of the user for
     authorization.
@@ -100,8 +100,16 @@ async def get_current_user(token=Security(oidc)) -> User:
         )
 
 
-async def get_current_user_without_exception(token=Security(oidc)) -> User | None:
+async def get_current_user(token=Security(oidc)) -> User | None:
+    """
+    Use this function in Depends() to ask for authentication.
+    Check whether the user is authenticated or not.
 
+    Raises:
+        HTTPException with status 401 on any problem with the token
+        (we don't want to leak information),
+        and status 500 on any request if Keycloak is configured incorrectly.
+    """
     if not client_secret:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -113,7 +121,6 @@ async def get_current_user_without_exception(token=Security(oidc)) -> User | Non
         return None
     try:
         token = token.replace("Bearer ", "")
-
         # query the authorization server to determine the active state of this token and to
         # determine meta-information.
         userinfo = keycloak_openid.introspect(token)
