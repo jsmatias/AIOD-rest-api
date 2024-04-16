@@ -50,7 +50,8 @@ class Organisation(OrganisationBase, Agent, table=True):  # type: ignore [call-a
 
     class RelationshipConfig(Agent.RelationshipConfig):
         contact_details: int | None = OneToOne(
-            description="The contact details by which this organisation can be reached",
+            description="The identifier of the contact details by which this organisation "
+            "can be reached.",
             deserializer=FindByIdentifierDeserializer(Contact),
             _serializer=AttributeSerializer("identifier"),
         )
