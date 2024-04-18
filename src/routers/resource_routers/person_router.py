@@ -36,24 +36,26 @@ class PersonRouter(ResourceRouter):
             person.surname = "******"
         return person
 
-    def _retrieve_resource(
+    def _retrieve_resource_and_check_roles(
         self,
         session: Session,
         identifier: int | str,
         user: User | None = None,
         platform: str | None = None,
     ) -> type[Person]:
-        person: type[Person] = super()._retrieve_resource(session, identifier, user, platform)
+        person: type[Person] = super()._retrieve_resource_and_check_roles(
+            session, identifier, user, platform
+        )
         return self._verify_user_roles(person, user)
 
-    def _retrieve_resources(
+    def _retrieve_resources_and_check_roles(
         self,
         session: Session,
         pagination: Pagination,
         user: User | None = None,
         platform: str | None = None,
     ) -> Sequence[type[Person]]:
-        persons: Sequence[type[Person]] = super()._retrieve_resources(
+        persons: Sequence[type[Person]] = super()._retrieve_resources_and_check_roles(
             session, pagination, user, platform
         )
         persons = [self._verify_user_roles(person, user) for person in persons]

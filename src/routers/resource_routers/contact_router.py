@@ -61,24 +61,26 @@ class ContactRouter(ResourceRouter):
             return contact
         return contact
 
-    def _retrieve_resource(
+    def _retrieve_resource_and_check_roles(
         self,
         session: Session,
         identifier: int | str,
         user: User | None = None,
         platform: str | None = None,
     ) -> type[Contact]:
-        contact: type[Contact] = super()._retrieve_resource(session, identifier, user, platform)
+        contact: type[Contact] = super()._retrieve_resource_and_check_roles(
+            session, identifier, user, platform
+        )
         return self._verify_user_roles(session, contact, user)
 
-    def _retrieve_resources(
+    def _retrieve_resources_and_check_roles(
         self,
         session: Session,
         pagination: Pagination,
         user: User | None = None,
         platform: str | None = None,
     ) -> Sequence[type[Contact]]:
-        contacts: Sequence[type[Contact]] = super()._retrieve_resources(
+        contacts: Sequence[type[Contact]] = super()._retrieve_resources_and_check_roles(
             session, pagination, user, platform
         )
         contacts = [self._verify_user_roles(session, contact, user) for contact in contacts]
