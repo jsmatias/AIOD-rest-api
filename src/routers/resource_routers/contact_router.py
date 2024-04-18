@@ -44,8 +44,12 @@ class ContactRouter(ResourceRouter):
     ) -> type[Contact]:
         """
         Only authenticated users can see the contact email.
+        For the old drupal platform, only users with "full_view_drupal_resources" role
+        can view the contact emails.
         """
-        if not user:
+        if not user or (
+            (contact.platform == "drupal") and not user.has_role("full_view_drupal_resources")
+        ):
             email_mask = "******"
             # This ensures that the API doesn't break in case the email mask exists in
             # in the DB
@@ -54,6 +58,7 @@ class ContactRouter(ResourceRouter):
                 email = Email(name=email_mask)
                 session.add(email)
             contact.email = [email]
+            return contact
         return contact
 
     def _retrieve_resource(

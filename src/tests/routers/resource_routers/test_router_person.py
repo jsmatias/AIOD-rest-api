@@ -10,56 +10,6 @@ from database.model.platform.platform import Platform
 from database.session import DbSession
 
 
-def test_drupal_privacy(
-    client: TestClient,
-    mocked_privileged_token: Mock,
-    mocked_drupal_token: Mock,
-    platform: Platform,
-    person: Person,
-    contact: Contact,
-):
-    """Test to ensure that only authenticated users with "full_view_drupal_resources" role
-    can visualise fields such as name, given_name and surname of a person migrated from
-    the old drupal platform.
-    """
-
-    with DbSession() as session:
-        platform.name = "drupal"
-        session.add(platform)
-        person.platform = "drupal"
-        person.platform_resource_identifier = "2"
-        person.name = "Joe Doe"
-        person.given_name = "Joe"
-        person.surname = "Doe"
-        session.add(person)
-        session.add(contact)
-        session.commit()
-
-        keycloak_openid.introspect = mocked_privileged_token
-
-        response = client.get("/persons/v1/")
-        assert response.status_code == 200, response.json()
-
-        response_json = response.json()
-
-        assert len(response_json) == 1
-        assert response_json[0]["name"] == "******"
-        assert response_json[0]["given_name"] == "******"
-        assert response_json[0]["surname"] == "******"
-
-        keycloak_openid.introspect = mocked_drupal_token
-
-        response = client.get("/persons/v1/", headers={"Authorization": "Fake token"})
-        assert response.status_code == 200, response.json()
-
-        response_json = response.json()
-
-        assert len(response_json) == 1
-        assert response_json[0]["name"] == "Joe Doe"
-        assert response_json[0]["given_name"] == "Joe"
-        assert response_json[0]["surname"] == "Doe"
-
-
 def test_happy_path(
     client: TestClient,
     mocked_privileged_token: Mock,
@@ -99,3 +49,49 @@ def test_happy_path(
     assert response_json["price_per_hour_euro"] == 10.50
     assert response_json["wants_to_be_contacted"]
     assert response_json["contact_details"] == 1
+
+
+def test_privacy_for_drupal(
+    client: TestClient,
+    mocked_privileged_token: Mock,
+    mocked_drupal_token: Mock,
+    platform: Platform,
+    person: Person,
+    contact: Contact,
+):
+    """Test to ensure that only authenticated users with "full_view_drupal_resources" role
+    can visualise fields such as name, given_name and surname of a person migrated from
+    the old drupal platform.
+    """
+
+    with DbSession() as session:
+        platform.name = "drupal"
+        session.add(platform)
+        person.platform = "drupal"
+        person.platform_resource_identifier = "2"
+        person.name = "Joe Doe"
+        person.given_name = "Joe"
+        person.surname = "Doe"
+        session.add(person)
+        session.add(contact)
+        session.commit()
+
+        keycloak_openid.introspect = mocked_privileged_token
+
+        response = client.get("/persons/v1/1")
+        assert response.status_code == 200, response.json()
+
+        response_json = response.json()
+        assert response_json["name"] == "******"
+        assert response_json["given_name"] == "******"
+        assert response_json["surname"] == "******"
+
+        keycloak_openid.introspect = mocked_drupal_token
+
+        response = client.get("/persons/v1/1", headers={"Authorization": "Fake token"})
+        assert response.status_code == 200, response.json()
+
+        response_json = response.json()
+        assert response_json["name"] == "Joe Doe"
+        assert response_json["given_name"] == "Joe"
+        assert response_json["surname"] == "Doe"

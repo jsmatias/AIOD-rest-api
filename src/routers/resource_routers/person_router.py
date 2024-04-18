@@ -25,8 +25,8 @@ class PersonRouter(ResourceRouter):
     @staticmethod
     def _verify_user_roles(person: type[Person], user: User | None) -> type[Person]:
         """
-        Only users with role 'full_view_drupal_resources' can see sensitive
-        of a person from the old drupal platform.
+        For the old drupal platform, only users with "full_view_drupal_resources" role can
+        see the person's sensitive information.
         """
         if (person.platform == "drupal") and not (
             user and user.has_role("full_view_drupal_resources")

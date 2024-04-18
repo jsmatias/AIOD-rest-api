@@ -6,34 +6,8 @@ from starlette.testclient import TestClient
 from authentication import keycloak_openid
 from database.model.agent.contact import Contact
 from database.model.agent.email import Email
+from database.model.platform.platform import Platform
 from database.session import DbSession
-
-
-def test_email_privacy(
-    client: TestClient,
-    mocked_privileged_token: Mock,
-    contact: Contact,
-):
-    keycloak_openid.introspect = mocked_privileged_token
-
-    with DbSession() as session:
-        email = Email(name="fake@email.com")
-        another_email = Email(name="fake2@email.com")
-        contact.email = [email, another_email]
-        session.add(contact)
-        session.commit()
-
-    guest_response = client.get("/contacts/v1/")
-    assert guest_response.status_code == 200, guest_response.json()
-    guest_response_json = guest_response.json()
-    assert len(guest_response_json) == 1
-    assert guest_response_json[0]["email"] == ["******"]
-
-    response = client.get("/contacts/v1/", headers={"Authorization": "Fake token"})
-    assert response.status_code == 200, response.json()
-    response_json = response.json()
-    assert len(response_json) == 1
-    assert response_json[0]["email"] == ["fake@email.com", "fake2@email.com"]
 
 
 def test_happy_path(client: TestClient, mocked_privileged_token: Mock, body_asset: dict):
@@ -108,3 +82,61 @@ def test_person_and_organisation_both_specified(client: TestClient, mocked_privi
     response = client.post("/contacts/v1", json=body, headers=headers)
     assert response.status_code == 400, response.json()
     assert response.json()["detail"] == "Person and organisation cannot be both filled."
+
+
+def test_email_privacy(
+    client: TestClient,
+    mocked_privileged_token: Mock,
+    contact: Contact,
+):
+    keycloak_openid.introspect = mocked_privileged_token
+
+    with DbSession() as session:
+        email = Email(name="fake@email.com")
+        another_email = Email(name="fake2@email.com")
+        contact.email = [email, another_email]
+        session.add(contact)
+        session.commit()
+
+    guest_response = client.get("/contacts/v1/1")
+    assert guest_response.status_code == 200, guest_response.json()
+    guest_response_json = guest_response.json()
+    assert guest_response_json["email"] == ["******"]
+
+    response = client.get("/contacts/v1/1", headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
+    response_json = response.json()
+    assert response_json["email"] == ["fake@email.com", "fake2@email.com"]
+
+
+def test_email_privacy_for_drupal(
+    client: TestClient,
+    mocked_privileged_token: Mock,
+    mocked_drupal_token: Mock,
+    contact: Contact,
+    platform: Platform,
+):
+
+    with DbSession() as session:
+        platform.name = "drupal"
+        session.add(platform)
+        contact.platform = "drupal"
+        email = Email(name="fake@email.com")
+        another_email = Email(name="fake2@email.com")
+        contact.email = [email, another_email]
+        session.add(contact)
+        session.commit()
+
+    keycloak_openid.introspect = mocked_privileged_token
+
+    response = client.get("/contacts/v1/1", headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
+    response_json = response.json()
+    assert response_json["email"] == ["******"]
+
+    keycloak_openid.introspect = mocked_drupal_token
+
+    response = client.get("/contacts/v1/1", headers={"Authorization": "Fake token"})
+    assert response.status_code == 200, response.json()
+    response_json = response.json()
+    assert response_json["email"] == ["fake@email.com", "fake2@email.com"]
