@@ -204,35 +204,6 @@ class ResourceRouter(abc.ABC):
             )
         return router
 
-    def create_resource(self, session: Session, resource_create_instance: SQLModel):
-        """Store a resource in the database"""
-        resource = self.resource_class.from_orm(resource_create_instance)
-        deserialize_resource_relationships(
-            session, self.resource_class, resource, resource_create_instance
-        )
-        session.add(resource)
-        session.commit()
-        return resource
-
-    def get_resource(
-        self, identifier: str, schema: str, user: User | None = None, platform: str | None = None
-    ):
-        """
-        Get the resource identified by AIoD identifier (if platform is None) or by platform AND
-        platform-identifier (if platform is not None), return in given schema.
-        """
-        _raise_error_on_invalid_schema(self._possible_schemas, schema)
-        try:
-            with DbSession() as session:
-                resource: Any = self._retrieve_resource_and_check_roles(
-                    session, identifier, user, platform=platform
-                )
-                if schema != "aiod":
-                    return self.schema_converters[schema].convert(session, resource)
-                return self._wrap_with_headers(self.resource_class_read.from_orm(resource))
-        except Exception as e:
-            raise as_http_exception(e)
-
     def get_resources(
         self,
         schema: str,
@@ -256,24 +227,24 @@ class ResourceRouter(abc.ABC):
             except Exception as e:
                 raise as_http_exception(e)
 
-    def get_resource_func(self):
+    def get_resource(
+        self, identifier: str, schema: str, user: User | None = None, platform: str | None = None
+    ):
         """
-        Return a function that can be used to retrieve a single resource.
-        This function returns a function (instead of being that function directly) because the
-        docstring and the variables are dynamic, and used in Swagger.
+        Get the resource identified by AIoD identifier (if platform is None) or by platform AND
+        platform-identifier (if platform is not None), return in given schema.
         """
-
-        def get_resource(
-            identifier: str,
-            schema: self._possible_schemas_type = "aiod",  # type: ignore
-            user: User | None = Depends(get_current_user),
-        ):
-            resource = self.get_resource(
-                identifier=identifier, schema=schema, user=user, platform=None
-            )
-            return self._wrap_with_headers(resource)
-
-        return get_resource
+        _raise_error_on_invalid_schema(self._possible_schemas, schema)
+        try:
+            with DbSession() as session:
+                resource: Any = self._retrieve_resource_and_check_roles(
+                    session, identifier, user, platform=platform
+                )
+                if schema != "aiod":
+                    return self.schema_converters[schema].convert(session, resource)
+                return self._wrap_with_headers(self.resource_class_read.from_orm(resource))
+        except Exception as e:
+            raise as_http_exception(e)
 
     def get_resources_func(self):
         """
@@ -333,6 +304,48 @@ class ResourceRouter(abc.ABC):
 
         return get_resource_count
 
+    def get_platform_resources_func(self):
+        """
+        Return a function that can be used to retrieve a list of resources for a platform.
+        This function returns a function (instead of being that function directly) because the
+        docstring and the variables are dynamic, and used in Swagger.
+        """
+
+        def get_resources(
+            platform: Annotated[
+                str,
+                Path(
+                    description="Return resources of this platform",
+                    example="huggingface",
+                ),
+            ],
+            pagination: Annotated[Pagination, Depends(Pagination)],
+            schema: self._possible_schemas_type = "aiod",  # type:ignore
+        ):
+            resources = self.get_resources(pagination=pagination, schema=schema, platform=platform)
+            return resources
+
+        return get_resources
+
+    def get_resource_func(self):
+        """
+        Return a function that can be used to retrieve a single resource.
+        This function returns a function (instead of being that function directly) because the
+        docstring and the variables are dynamic, and used in Swagger.
+        """
+
+        def get_resource(
+            identifier: str,
+            schema: self._possible_schemas_type = "aiod",  # type: ignore
+            user: User | None = Depends(get_current_user),
+        ):
+            resource = self.get_resource(
+                identifier=identifier, schema=schema, user=user, platform=None
+            )
+            return self._wrap_with_headers(resource)
+
+        return get_resource
+
     def get_platform_resource_func(self):
         """
         Return a function that can be used to retrieve a single resource of a platform.
@@ -359,29 +372,6 @@ class ResourceRouter(abc.ABC):
             return self.get_resource(identifier=identifier, schema=schema, platform=platform)
 
         return get_resource
-
-    def get_platform_resources_func(self):
-        """
-        Return a function that can be used to retrieve a list of resources for a platform.
-        This function returns a function (instead of being that function directly) because the
-        docstring and the variables are dynamic, and used in Swagger.
-        """
-
-        def get_resources(
-            platform: Annotated[
-                str,
-                Path(
-                    description="Return resources of this platform",
-                    example="huggingface",
-                ),
-            ],
-            pagination: Annotated[Pagination, Depends(Pagination)],
-            schema: self._possible_schemas_type = "aiod",  # type:ignore
-        ):
-            resources = self.get_resources(pagination=pagination, schema=schema, platform=platform)
-            return resources
-
-        return get_resources
 
     def register_resource_func(self):
         """
@@ -415,6 +405,16 @@ class ResourceRouter(abc.ABC):
                 raise as_http_exception(e)
 
         return register_resource
+
+    def create_resource(self, session: Session, resource_create_instance: SQLModel):
+        """Store a resource in the database"""
+        resource = self.resource_class.from_orm(resource_create_instance)
+        deserialize_resource_relationships(
+            session, self.resource_class, resource, resource_create_instance
+        )
+        session.add(resource)
+        session.commit()
+        return resource
 
     def put_resource_func(self):
         """
