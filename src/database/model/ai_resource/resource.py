@@ -180,14 +180,15 @@ class AbstractAIResource(AIResourceBase, AIoDConcept, metaclass=abc.ABCMeta):
         )
         # TODO(jos): documentedIn - KnowledgeAsset. This should probably be defined on ResourceTable
         contact: list[int] = ManyToMany(
-            description="Contact information of persons/organisations that can be contacted about "
-            "this resource.",
+            description="The identifiers of the contact information of the persons and/or "
+            "organisations that can be contacted about this resource.",
             _serializer=AttributeSerializer("identifier"),
             deserializer=FindByIdentifierDeserializerList(Contact),
             default_factory_pydantic=list,
         )
         creator: list[int] = ManyToMany(
-            description="Contact information of persons/organisations that created this resource.",
+            description="The identifiers of the contact information of the persons and/or "
+            "organisations that created this resource.",
             _serializer=AttributeSerializer("identifier"),
             deserializer=FindByIdentifierDeserializerList(Contact),
             default_factory_pydantic=list,
