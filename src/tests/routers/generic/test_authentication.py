@@ -124,7 +124,7 @@ def test_post_unauthenticated(client_test_resource: TestClient):
     assert response.status_code == 401, response.json()
     response_json = response.json()
     assert (
-        response_json["detail"] == "This endpoint requires authorization. You need to be logged in."
+        response_json["detail"] == "No token found - This endpoint requires authorization. You need to be logged in."
     )
 
 
@@ -173,5 +173,5 @@ def test_put_unauthenticated(client_test_resource: TestClient):
     assert response.status_code == 401, response.json()
     response_json = response.json()
     assert (
-        response_json["detail"] == "This endpoint requires authorization. You need to be logged in."
+        response_json["detail"] == "No token found - This endpoint requires authorization. You need to be logged in."
     )

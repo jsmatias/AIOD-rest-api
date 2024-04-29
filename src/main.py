@@ -13,7 +13,7 @@ from fastapi import Depends, FastAPI
 from fastapi.responses import HTMLResponse
 from sqlmodel import select
 
-from authentication import get_current_user_or_raise_exception, User
+from authentication import get_user_or_raise, User
 from config import KEYCLOAK_CONFIG
 from database.deletion.triggers import add_delete_triggers
 from database.model.concept.concept import AIoDConcept
@@ -63,7 +63,7 @@ def add_routes(app: FastAPI, url_prefix=""):
         """
 
     @app.get(url_prefix + "/authorization_test")
-    def test_authorization(user: User = Depends(get_current_user_or_raise_exception)) -> User:
+    def test_authorization(user: User = Depends(get_user_or_raise)) -> User:
         """
         Returns the user, if authenticated correctly.
         """
