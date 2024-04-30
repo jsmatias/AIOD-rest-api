@@ -4,7 +4,7 @@ from database.model.agent.contact import Contact
 from database.model.agent.email import Email
 from database.model.agent.organisation import Organisation
 from database.model.agent.person import Person
-from routers.resource_router import Pagination, ResourceRouter
+from routers.resource_router import ResourceRouter
 
 from sqlmodel import Session, select
 
@@ -37,51 +37,26 @@ class ContactRouter(ResourceRouter):
         return Contact
 
     @staticmethod
-    def _verify_user_roles(
-        session: Session,
-        contact: type[Contact],
-        user: User | None,
-    ) -> type[Contact]:
+    def _post_process(
+        resources: Sequence[type[Contact]], session: Session, user: User | None
+    ) -> Sequence[type[Contact]]:
         """
         Only authenticated users can see the contact email.
         For the old drupal platform, only users with "full_view_drupal_resources" role
         can view the contact emails.
         """
-        if not user or (
-            (contact.platform == "drupal") and not user.has_role("full_view_drupal_resources")
-        ):
-            email_mask = "******"
-            # This ensures that the API doesn't break in case the email mask exists in
-            # in the DB
-            email = session.exec(select(Email).where(Email.name == email_mask)).first()
-            if not email:
-                email = Email(name=email_mask)
-                session.add(email)
-            contact.email = [email]
-            return contact
-        return contact
-
-    def _retrieve_resource_and_check_roles(
-        self,
-        session: Session,
-        identifier: int | str,
-        user: User | None = None,
-        platform: str | None = None,
-    ) -> type[Contact]:
-        contact: type[Contact] = super()._retrieve_resource_and_check_roles(
-            session, identifier, user, platform
-        )
-        return self._verify_user_roles(session, contact, user)
-
-    def _retrieve_resources_and_check_roles(
-        self,
-        session: Session,
-        pagination: Pagination,
-        user: User | None = None,
-        platform: str | None = None,
-    ) -> Sequence[type[Contact]]:
-        contacts: Sequence[type[Contact]] = super()._retrieve_resources_and_check_roles(
-            session, pagination, user, platform
-        )
-        contacts = [self._verify_user_roles(session, contact, user) for contact in contacts]
+        contacts = []
+        for contact in resources:
+            if not user or (
+                (contact.platform == "drupal") and not user.has_role("full_view_drupal_resources")
+            ):
+                email_mask = "******"
+                # This ensures that the API doesn't break in case the email mask exists in
+                # in the DB
+                email = session.exec(select(Email).where(Email.name == email_mask)).first()
+                if not email:
+                    email = Email(name=email_mask)
+                    session.add(email)
+                contact.email = [email]
+            contacts.append(contact)
         return contacts

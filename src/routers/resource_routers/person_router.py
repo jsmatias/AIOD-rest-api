@@ -23,20 +23,6 @@ class PersonRouter(ResourceRouter):
         return Person
 
     @staticmethod
-    def _verify_user_roles(person: type[Person], user: User | None) -> type[Person]:
-        """
-        For the old drupal platform, only users with "full_view_drupal_resources" role can
-        see the person's sensitive information.
-        """
-        if (person.platform == "drupal") and not (
-            user and user.has_role("full_view_drupal_resources")
-        ):
-            person.name = "******"
-            person.given_name = "******"
-            person.surname = "******"
-        return person
-
-    @staticmethod
     def _post_process(
         resources: Sequence[type[Person]], session: Session, user: User | None
     ) -> Sequence[type[Person]]:
