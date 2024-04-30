@@ -29,6 +29,8 @@ jobs:
           file: ./Dockerfile
           tags: aiod/metadata_catalogue:latest
           outputs: type=docker,dest=/tmp/aiod_mc_image.tar
+          cache-from: type=gha
+          cache-to: type=gha,mode=min
       # We store the image as an artifact so it can be used by the `test` step,
       # and inspected manually if needed (download it through Github Actions UI)
       - name: Store Image
@@ -91,4 +93,13 @@ jobs:
           tags: |
             aiod/metadata_catalogue:latest
             aiod/metadata_catalogue:${{ github.sha }}
-      # peter-evans/dockerhub-description@v3
+          cache-from: type=gha
+          cache-to: type=gha,mode=min
+      - name: Update repository description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.AIOD_DOCKER_PAT }}
+          repository: aiod/metadata_catalogue
+          readme-filepath: ./docker-description.md
+          short-description: "Metadata catalogue REST API for AI on Demand."
