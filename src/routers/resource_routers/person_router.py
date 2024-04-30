@@ -30,7 +30,6 @@ class PersonRouter(ResourceRouter):
         For the old drupal platform, only users with "full_view_drupal_resources" role can
         see the person's sensitive information.
         """
-        persons = []
         for person in resources:
             if (person.platform == "drupal") and not (
                 user and user.has_role("full_view_drupal_resources")
@@ -38,5 +37,4 @@ class PersonRouter(ResourceRouter):
                 person.name = "******"
                 person.given_name = "******"
                 person.surname = "******"
-            persons.append(person)
-        return persons
+        return resources

@@ -6,7 +6,7 @@ from database.model.agent.organisation import Organisation
 from database.model.agent.person import Person
 from routers.resource_router import ResourceRouter
 
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 
 class ContactRouter(ResourceRouter):
@@ -45,18 +45,9 @@ class ContactRouter(ResourceRouter):
         For the old drupal platform, only users with "full_view_drupal_resources" role
         can view the contact emails.
         """
-        contacts = []
         for contact in resources:
             if not user or (
                 (contact.platform == "drupal") and not user.has_role("full_view_drupal_resources")
             ):
-                email_mask = "******"
-                # This ensures that the API doesn't break in case the email mask exists in
-                # in the DB
-                email = session.exec(select(Email).where(Email.name == email_mask)).first()
-                if not email:
-                    email = Email(name=email_mask)
-                    session.add(email)
-                contact.email = [email]
-            contacts.append(contact)
-        return contacts
+                contact.email = [Email(name="******")]
+        return resources
