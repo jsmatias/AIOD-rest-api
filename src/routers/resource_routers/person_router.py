@@ -1,7 +1,7 @@
 from typing import Sequence
 from sqlmodel import Session
 from database.model.agent.person import Person
-from routers.resource_router import Pagination, ResourceRouter
+from routers.resource_router import ResourceRouter
 from authentication import User
 
 
@@ -36,27 +36,21 @@ class PersonRouter(ResourceRouter):
             person.surname = "******"
         return person
 
-    def _retrieve_resource_and_check_roles(
-        self,
-        session: Session,
-        identifier: int | str,
-        user: User | None = None,
-        platform: str | None = None,
-    ) -> type[Person]:
-        person: type[Person] = super()._retrieve_resource_and_check_roles(
-            session, identifier, user, platform
-        )
-        return self._verify_user_roles(person, user)
-
-    def _retrieve_resources_and_check_roles(
-        self,
-        session: Session,
-        pagination: Pagination,
-        user: User | None = None,
-        platform: str | None = None,
+    @staticmethod
+    def _post_process(
+        resources: Sequence[type[Person]], session: Session, user: User | None
     ) -> Sequence[type[Person]]:
-        persons: Sequence[type[Person]] = super()._retrieve_resources_and_check_roles(
-            session, pagination, user, platform
-        )
-        persons = [self._verify_user_roles(person, user) for person in persons]
+        """
+        For the old drupal platform, only users with "full_view_drupal_resources" role can
+        see the person's sensitive information.
+        """
+        persons = []
+        for person in resources:
+            if (person.platform == "drupal") and not (
+                user and user.has_role("full_view_drupal_resources")
+            ):
+                person.name = "******"
+                person.given_name = "******"
+                person.surname = "******"
+            persons.append(person)
         return persons

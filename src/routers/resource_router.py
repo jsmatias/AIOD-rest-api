@@ -575,7 +575,9 @@ class ResourceRouter(abc.ABC):
         and platform (if applicable). The user parameter can be used by subclasses to
         implement further verification on user access to the resource.
         """
-        return self._retrieve_resource(session, identifier, platform)
+        resource: type[RESOURCE_MODEL] = self._retrieve_resource(session, identifier, platform)
+        [processed_resource] = self._post_process([resource], session, user)
+        return processed_resource
 
     def _retrieve_resources_and_check_roles(
         self,
@@ -589,7 +591,20 @@ class ResourceRouter(abc.ABC):
         and platform (if applicable). The user parameter can be used by subclasses to
         implement further verification on user access to the resource.
         """
-        return self._retrieve_resources(session, pagination, platform)
+        resources: Sequence[type[RESOURCE_MODEL]] = self._retrieve_resources(
+            session, pagination, platform
+        )
+        return self._post_process(resources, session, user)
+
+    @staticmethod
+    def _post_process(
+        resources: Sequence[type[RESOURCE_MODEL]], session: Session, user: User | None
+    ) -> Sequence[type[RESOURCE_MODEL]]:
+        """
+        Can be implemented in children to post process resources based on user roles
+        or something else.
+        """
+        return resources
 
     @property
     def _possible_schemas(self) -> list[str]:
