@@ -23,7 +23,7 @@ class PersonRouter(ResourceRouter):
         return Person
 
     @staticmethod
-    def _post_process(
+    def _mask_or_filter(
         resources: Sequence[type[Person]], session: Session, user: User | None
     ) -> Sequence[type[Person]]:
         """

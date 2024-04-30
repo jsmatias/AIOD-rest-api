@@ -37,7 +37,7 @@ class ContactRouter(ResourceRouter):
         return Contact
 
     @staticmethod
-    def _post_process(
+    def _mask_or_filter(
         resources: Sequence[type[Contact]], session: Session, user: User | None
     ) -> Sequence[type[Contact]]:
         """

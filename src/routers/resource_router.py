@@ -576,7 +576,7 @@ class ResourceRouter(abc.ABC):
         implement further verification on user access to the resource.
         """
         resource: type[RESOURCE_MODEL] = self._retrieve_resource(session, identifier, platform)
-        [processed_resource] = self._post_process([resource], session, user)
+        [processed_resource] = self._mask_or_filter([resource], session, user)
         return processed_resource
 
     def _retrieve_resources_and_check_roles(
@@ -594,10 +594,10 @@ class ResourceRouter(abc.ABC):
         resources: Sequence[type[RESOURCE_MODEL]] = self._retrieve_resources(
             session, pagination, platform
         )
-        return self._post_process(resources, session, user)
+        return self._mask_or_filter(resources, session, user)
 
     @staticmethod
-    def _post_process(
+    def _mask_or_filter(
         resources: Sequence[type[RESOURCE_MODEL]], session: Session, user: User | None
     ) -> Sequence[type[RESOURCE_MODEL]]:
         """
