@@ -1,6 +1,6 @@
 name: Docker - build, test, push
 
-# This workflow will built docker image and run tests inside the container.
+# This workflow will build docker image and run tests inside the container.
 # This workflow is only executed if there is pull request with change in pyproject.toml dependencies, 
 # or in Dockerfile, or in docker workflow. 
 
@@ -10,9 +10,32 @@ on:
       - '.github/workflows/docker-image.yml'
       - 'pyproject.toml'
       - 'Dockerfile'
+
+  push:
+    branches:
+      - 'develop'
+
+  release:
+    types: [published]
       
   # allows to manually start a workflow run from the GitHub UI or using the GitHub API.    
   workflow_dispatch:
+    inputs:
+      push-image:
+        description: "Push image to docker hub"
+        required: false
+        type: boolean
+        default: false
+      push-description:
+        description: "Update docker hub description"
+        required: false
+        type: boolean
+        default: false
+      tag:
+        description: "Tag for the docker image"
+        required: false
+        default: "workflow-dispatch"
+
 
 jobs:
   build:
@@ -27,11 +50,11 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          tags: aiod/metadata_catalogue:latest
+          tags: aiod/metadata_catalogue:ci
           outputs: type=docker,dest=/tmp/aiod_mc_image.tar
           cache-from: type=gha
           cache-to: type=gha,mode=min
-      # We store the image as an artifact so it can be used by the `test` step,
+      # We store the image as an artifact, so it can be used by the `test` step
       # and inspected manually if needed (download it through Github Actions UI)
       - name: Store Image
         uses: actions/upload-artifact@v4
@@ -44,6 +67,7 @@ jobs:
     needs: [build]
     steps:
       # We need to check out the repository, so that we have the `scripts` directory to mount.
+      # This is required to run the backup script tests.
       - uses: actions/checkout@v4
       - name: Retrieve Image
         uses: actions/download-artifact@v4
@@ -56,13 +80,23 @@ jobs:
           docker image ls -a
       - name: Run pytest from docker
         run: |
-          docker run -v ./scripts:/scripts -e KEYCLOAK_CLIENT_SECRET="mocked_secret" --entrypoint "" aiod/metadata_catalogue sh -c "pip install \".[dev]\" && pytest tests -s"
+          docker run -v ./scripts:/scripts -e KEYCLOAK_CLIENT_SECRET="mocked_secret" --entrypoint "" aiod/metadata_catalogue:ci sh -c "pip install \".[dev]\" && pytest tests -s"
 
   publish:
-    # TODO: Make conditional on being a release or manual action
     needs: [test]
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
     steps:
+      # The correct tag depends on how this workflow was invoked, see also docker-description.md
+      - name: Set Develop Tag
+        if: github.ref == 'refs/heads/develop'
+        run: echo "IMAGE_TAGS=aiod/metadata_catalogue:develop" >> "$GITHUB_ENV"
+      - name: Set Release Tag
+        if: github.event_name == 'release'
+        run: echo "IMAGE_TAGS=aiod/metadata_catalogue:latest,aiod/metadata_catalogue:${{ github.event.release.tag_name }}" >> "$GITHUB_ENV"
+      - name: Set Dispatch Tag
+        if: github.event_name == 'workflow_dispatch'
+        run: echo "IMAGE_TAGS=aiod/metadata_catalogue:${{ inputs.tag }}" >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -70,18 +104,20 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.AIOD_DOCKER_PAT }}
+      - name: Echo tags
+        run: echo $IMAGE_TAGS
       - name: Build
+        if: (github.event_name != 'workflow_dispatch') || inputs.push-image
         uses: docker/build-push-action@v5
         with:
           push: true
           context: .
           file: ./Dockerfile
-          tags: |
-            aiod/metadata_catalogue:latest
-            aiod/metadata_catalogue:${{ github.sha }}
+          tags: ${{ env.IMAGE_TAGS }}
           cache-from: type=gha
           cache-to: type=gha,mode=min
       - name: Update repository description
+        if: (github.event_name == 'release') || inputs.push-description
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
