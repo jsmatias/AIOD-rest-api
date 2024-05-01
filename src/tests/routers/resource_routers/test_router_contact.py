@@ -1,4 +1,5 @@
 import copy
+import pytest
 from unittest.mock import Mock
 
 from starlette.testclient import TestClient
@@ -8,6 +9,7 @@ from database.model.agent.contact import Contact
 from database.model.agent.email import Email
 from database.model.platform.platform import Platform
 from database.session import DbSession
+from tests.testutils.default_instances import _create_class_with_body
 
 
 def test_happy_path(client: TestClient, mocked_privileged_token: Mock, body_asset: dict):
@@ -84,29 +86,38 @@ def test_person_and_organisation_both_specified(client: TestClient, mocked_privi
     assert response.json()["detail"] == "Person and organisation cannot be both filled."
 
 
+@pytest.fixture
+def contact2(body_concept) -> Contact:
+    body = copy.copy(body_concept)
+    body["platform_resource_identifier"] = "fake:100"
+    body["email"] = ["fake@email.com", "fake2@email.com"]
+    return _create_class_with_body(Contact, body)
+
+
 def test_email_privacy(
     client: TestClient,
     mocked_privileged_token: Mock,
     contact: Contact,
+    contact2: Contact,
 ):
     keycloak_openid.introspect = mocked_privileged_token
 
     with DbSession() as session:
-        email = Email(name="fake@email.com")
-        another_email = Email(name="fake2@email.com")
-        contact.email = [email, another_email]
         session.add(contact)
+        session.add(contact2)
         session.commit()
 
-    guest_response = client.get("/contacts/v1/1")
+    guest_response = client.get("/contacts/v1")
     assert guest_response.status_code == 200, guest_response.json()
     guest_response_json = guest_response.json()
-    assert guest_response_json["email"] == ["******"]
+    assert len(guest_response_json) == 2, guest_response_json
+    for contact_json in guest_response_json:
+        assert contact_json["email"] == ["******"]
 
-    response = client.get("/contacts/v1/1", headers={"Authorization": "Fake token"})
+    response = client.get("/contacts/v1/2", headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
     response_json = response.json()
-    assert response_json["email"] == ["fake@email.com", "fake2@email.com"]
+    assert set(response_json["email"]) == {"fake2@email.com", "fake@email.com"}
 
 
 def test_email_privacy_for_drupal(

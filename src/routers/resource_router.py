@@ -213,7 +213,7 @@ class ResourceRouter(abc.ABC):
     ):
         """Fetch all resources of this platform in given schema, using pagination"""
         _raise_error_on_invalid_schema(self._possible_schemas, schema)
-        with DbSession() as session:
+        with DbSession(autoflush=False) as session:
             try:
                 convert_schema = (
                     partial(self.schema_converters[schema].convert, session)
