@@ -220,7 +220,7 @@ class ResourceRouter(abc.ABC):
                     if schema != "aiod"
                     else self.resource_class_read.from_orm
                 )
-                resources: Any = self._retrieve_resources_and_check_roles(
+                resources: Any = self._retrieve_resources_and_post_process(
                     session, pagination, user, platform
                 )
                 return self._wrap_with_headers([convert_schema(resource) for resource in resources])
@@ -237,7 +237,7 @@ class ResourceRouter(abc.ABC):
         _raise_error_on_invalid_schema(self._possible_schemas, schema)
         try:
             with DbSession(autoflush=False) as session:
-                resource: Any = self._retrieve_resource_and_check_roles(
+                resource: Any = self._retrieve_resource_and_post_process(
                     session, identifier, user, platform=platform
                 )
                 if schema != "aiod":
@@ -569,7 +569,7 @@ class ResourceRouter(abc.ABC):
         resources: Sequence = session.scalars(query).all()
         return resources
 
-    def _retrieve_resource_and_check_roles(
+    def _retrieve_resource_and_post_process(
         self,
         session: Session,
         identifier: int | str,
@@ -585,7 +585,7 @@ class ResourceRouter(abc.ABC):
         [processed_resource] = self._mask_or_filter([resource], session, user)
         return processed_resource
 
-    def _retrieve_resources_and_check_roles(
+    def _retrieve_resources_and_post_process(
         self,
         session: Session,
         pagination: Pagination,
