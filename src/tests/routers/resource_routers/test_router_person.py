@@ -1,6 +1,7 @@
 import copy
 from unittest.mock import Mock
 
+import pytest
 from starlette.testclient import TestClient
 
 from authentication import keycloak_openid
@@ -51,6 +52,18 @@ def test_happy_path(
     assert response_json["contact_details"] == 1
 
 
+@pytest.fixture(
+    params=[
+        "/persons/v1",
+        "/persons/v1/1",
+        "/platforms/drupal/persons/v1",
+        "/platforms/drupal/persons/v1/2",
+    ]
+)
+def endpoint(request) -> str:
+    return request.param
+
+
 def test_privacy_for_drupal(
     client: TestClient,
     mocked_privileged_token: Mock,
@@ -58,6 +71,7 @@ def test_privacy_for_drupal(
     platform: Platform,
     person: Person,
     contact: Contact,
+    endpoint: str,
 ):
     """Test to ensure that only authenticated users with "full_view_drupal_resources" role
     can visualise fields such as name, given_name and surname of a person migrated from
@@ -65,8 +79,6 @@ def test_privacy_for_drupal(
     """
 
     with DbSession() as session:
-        platform.name = "drupal"
-        session.add(platform)
         person.platform = "drupal"
         person.platform_resource_identifier = "2"
         person.name = "Joe Doe"
@@ -76,22 +88,24 @@ def test_privacy_for_drupal(
         session.add(contact)
         session.commit()
 
-        keycloak_openid.introspect = mocked_privileged_token
+    headers = {"Authorization": "Fake token"}
+    keycloak_openid.introspect = mocked_privileged_token
 
-        response = client.get("/persons/v1/1")
-        assert response.status_code == 200, response.json()
+    response = client.get(endpoint, headers=headers)
+    response_json = response.json()
+    response_json = [response_json] if isinstance(response_json, dict) else response_json
+    assert response.status_code == 200, response_json
+    for person_dict in response_json:
+        assert person_dict["name"] == "******"
+        assert person_dict["given_name"] == "******"
+        assert person_dict["surname"] == "******"
 
-        response_json = response.json()
-        assert response_json["name"] == "******"
-        assert response_json["given_name"] == "******"
-        assert response_json["surname"] == "******"
-
-        keycloak_openid.introspect = mocked_drupal_token
-
-        response = client.get("/persons/v1/1", headers={"Authorization": "Fake token"})
-        assert response.status_code == 200, response.json()
-
-        response_json = response.json()
-        assert response_json["name"] == "Joe Doe"
-        assert response_json["given_name"] == "Joe"
-        assert response_json["surname"] == "Doe"
+    keycloak_openid.introspect = mocked_drupal_token
+    response = client.get(endpoint, headers=headers)
+    response_json = response.json()
+    response_json = [response_json] if isinstance(response_json, dict) else response_json
+    assert response.status_code == 200, response_json
+    for person_dict in response_json:
+        assert person_dict["name"] == "Joe Doe"
+        assert person_dict["given_name"] == "Joe"
+        assert person_dict["surname"] == "Doe"

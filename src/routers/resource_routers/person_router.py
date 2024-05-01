@@ -1,6 +1,7 @@
 from typing import Sequence
 from sqlmodel import Session
 from database.model.agent.person import Person
+from database.model.platform.platform_names import PlatformName
 from routers.resource_router import ResourceRouter
 from authentication import User
 
@@ -31,7 +32,7 @@ class PersonRouter(ResourceRouter):
         see the person's sensitive information.
         """
         for person in resources:
-            if (person.platform == "drupal") and not (
+            if (person.platform == PlatformName.drupal) and not (
                 user and user.has_role("full_view_drupal_resources")
             ):
                 person.name = "******"

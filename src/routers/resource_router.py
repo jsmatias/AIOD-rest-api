@@ -236,7 +236,7 @@ class ResourceRouter(abc.ABC):
         """
         _raise_error_on_invalid_schema(self._possible_schemas, schema)
         try:
-            with DbSession() as session:
+            with DbSession(autoflush=False) as session:
                 resource: Any = self._retrieve_resource_and_check_roles(
                     session, identifier, user, platform=platform
                 )
@@ -321,8 +321,11 @@ class ResourceRouter(abc.ABC):
             ],
             pagination: Annotated[Pagination, Depends(Pagination)],
             schema: self._possible_schemas_type = "aiod",  # type:ignore
+            user: User | None = Depends(get_user_or_none),
         ):
-            resources = self.get_resources(pagination=pagination, schema=schema, platform=platform)
+            resources = self.get_resources(
+                pagination=pagination, schema=schema, user=user, platform=platform
+            )
             return resources
 
         return get_resources
@@ -368,8 +371,11 @@ class ResourceRouter(abc.ABC):
                 ),
             ],
             schema: self._possible_schemas_type = "aiod",  # type:ignore
+            user: User | None = Depends(get_user_or_none),
         ):
-            return self.get_resource(identifier=identifier, schema=schema, platform=platform)
+            return self.get_resource(
+                identifier=identifier, schema=schema, user=user, platform=platform
+            )
 
         return get_resource
 

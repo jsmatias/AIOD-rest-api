@@ -9,6 +9,7 @@ class PlatformName(str, enum.Enum):
     """
 
     aiod = "aiod"
+    drupal = "drupal"
     example = "example"
     openml = "openml"
     huggingface = "huggingface"

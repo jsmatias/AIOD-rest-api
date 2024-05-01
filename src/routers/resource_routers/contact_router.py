@@ -4,6 +4,7 @@ from database.model.agent.contact import Contact
 from database.model.agent.email import Email
 from database.model.agent.organisation import Organisation
 from database.model.agent.person import Person
+from database.model.platform.platform_names import PlatformName
 from routers.resource_router import ResourceRouter
 
 from sqlmodel import Session
@@ -47,7 +48,8 @@ class ContactRouter(ResourceRouter):
         """
         for contact in resources:
             if not user or (
-                (contact.platform == "drupal") and not user.has_role("full_view_drupal_resources")
+                (contact.platform == PlatformName.drupal)
+                and not user.has_role("full_view_drupal_resources")
             ):
                 contact.email = [Email(name="******")]
         return resources

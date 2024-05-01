@@ -94,11 +94,24 @@ def contact2(body_concept) -> Contact:
     return _create_class_with_body(Contact, body)
 
 
-def test_email_privacy(
+@pytest.fixture(
+    params=[
+        "/contacts/v1",
+        "/contacts/v1/1",
+        "/platforms/example/contacts/v1",
+        "/platforms/example/contacts/v1/fake:100",
+    ]
+)
+def endpoint_from_fixture1(request) -> str:
+    return request.param
+
+
+def test_email_mask_for_not_authenticated_user(
     client: TestClient,
     mocked_privileged_token: Mock,
     contact: Contact,
     contact2: Contact,
+    endpoint_from_fixture1: str,
 ):
     keycloak_openid.introspect = mocked_privileged_token
 
@@ -107,17 +120,66 @@ def test_email_privacy(
         session.add(contact2)
         session.commit()
 
-    guest_response = client.get("/contacts/v1")
+    guest_response = client.get(endpoint_from_fixture1)
     assert guest_response.status_code == 200, guest_response.json()
-    guest_response_json = guest_response.json()
-    assert len(guest_response_json) == 2, guest_response_json
+    guest_response_json = [guest_response.json()]
+    guest_response_json = (
+        guest_response_json[0] if isinstance(guest_response_json[0], list) else guest_response_json
+    )
+    assert len(guest_response_json) > 0, guest_response_json
     for contact_json in guest_response_json:
         assert contact_json["email"] == ["******"]
 
-    response = client.get("/contacts/v1/2", headers={"Authorization": "Fake token"})
+
+def test_email_mask_for_authenticated_user(
+    client: TestClient,
+    mocked_privileged_token: Mock,
+    contact: Contact,
+    contact2: Contact,
+):
+    keycloak_openid.introspect = mocked_privileged_token
+    headers = {"Authorization": "Fake token"}
+
+    with DbSession() as session:
+        session.add(contact)
+        session.add(contact2)
+        session.commit()
+
+    guest_response = client.get("/contacts/v1", headers=headers)
+    guest_response_json = guest_response.json()
+    assert guest_response.status_code == 200, guest_response_json
+    assert len(guest_response_json) == 2, guest_response_json
+    assert guest_response_json[0]["email"] == ["a@b.com"]
+    assert set(guest_response_json[1]["email"]) == {"fake2@email.com", "fake@email.com"}
+
+    response = client.get("/contacts/v1/2", headers=headers)
     assert response.status_code == 200, response.json()
     response_json = response.json()
     assert set(response_json["email"]) == {"fake2@email.com", "fake@email.com"}
+
+    guest_response = client.get("/platforms/example/contacts/v1", headers=headers)
+    guest_response_json = guest_response.json()
+    assert guest_response.status_code == 200, guest_response_json
+    assert len(guest_response_json) == 2, guest_response_json
+    assert guest_response_json[0]["email"] == ["a@b.com"]
+    assert set(guest_response_json[1]["email"]) == {"fake2@email.com", "fake@email.com"}
+
+    guest_response = client.get("/platforms/example/contacts/v1/fake:100", headers=headers)
+    guest_response_json = guest_response.json()
+    assert guest_response.status_code == 200, guest_response_json
+    assert set(guest_response_json["email"]) == {"fake2@email.com", "fake@email.com"}
+
+
+@pytest.fixture(
+    params=[
+        "/contacts/v1",
+        "/contacts/v1/1",
+        "/platforms/drupal/contacts/v1",
+        "/platforms/drupal/contacts/v1/fake:100",
+    ]
+)
+def endpoint_from_fixture2(request) -> str:
+    return request.param
 
 
 def test_email_privacy_for_drupal(
@@ -126,12 +188,12 @@ def test_email_privacy_for_drupal(
     mocked_drupal_token: Mock,
     contact: Contact,
     platform: Platform,
+    endpoint_from_fixture2: str,
 ):
 
     with DbSession() as session:
-        platform.name = "drupal"
-        session.add(platform)
         contact.platform = "drupal"
+        contact.platform_resource_identifier = "fake:100"
         email = Email(name="fake@email.com")
         another_email = Email(name="fake2@email.com")
         contact.email = [email, another_email]
@@ -139,15 +201,24 @@ def test_email_privacy_for_drupal(
         session.commit()
 
     keycloak_openid.introspect = mocked_privileged_token
+    headers = {"Authorization": "Fake token"}
 
-    response = client.get("/contacts/v1/1", headers={"Authorization": "Fake token"})
-    assert response.status_code == 200, response.json()
+    response = client.get(endpoint_from_fixture2, headers=headers)
     response_json = response.json()
+    if isinstance(response_json, list):
+        response_json = response_json[0]
+
+    assert response.status_code == 200, response_json
+    assert len(response_json) > 0, response_json
     assert response_json["email"] == ["******"]
 
     keycloak_openid.introspect = mocked_drupal_token
 
-    response = client.get("/contacts/v1/1", headers={"Authorization": "Fake token"})
-    assert response.status_code == 200, response.json()
+    response = client.get(endpoint_from_fixture2, headers=headers)
     response_json = response.json()
+    if isinstance(response_json, list):
+        response_json = response_json[0]
+
+    assert response.status_code == 200, response_json
+    assert len(response_json) > 0, response_json
     assert response_json["email"] == ["fake@email.com", "fake2@email.com"]
