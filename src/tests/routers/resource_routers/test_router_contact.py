@@ -144,29 +144,29 @@ def test_email_mask_for_authenticated_user(
         session.add(contact2)
         session.commit()
 
-    guest_response = client.get("/contacts/v1", headers=headers)
-    guest_response_json = guest_response.json()
-    assert guest_response.status_code == 200, guest_response_json
-    assert len(guest_response_json) == 2, guest_response_json
-    assert guest_response_json[0]["email"] == ["a@b.com"]
-    assert set(guest_response_json[1]["email"]) == {"fake2@email.com", "fake@email.com"}
+    response = client.get("/contacts/v1", headers=headers)
+    response_json = response.json()
+    assert response.status_code == 200, response_json
+    assert len(response_json) == 2, response_json
+    assert response_json[0]["email"] == ["a@b.com"]
+    assert set(response_json[1]["email"]) == {"fake2@email.com", "fake@email.com"}
 
     response = client.get("/contacts/v1/2", headers=headers)
     assert response.status_code == 200, response.json()
     response_json = response.json()
     assert set(response_json["email"]) == {"fake2@email.com", "fake@email.com"}
 
-    guest_response = client.get("/platforms/example/contacts/v1", headers=headers)
-    guest_response_json = guest_response.json()
-    assert guest_response.status_code == 200, guest_response_json
-    assert len(guest_response_json) == 2, guest_response_json
-    assert guest_response_json[0]["email"] == ["a@b.com"]
-    assert set(guest_response_json[1]["email"]) == {"fake2@email.com", "fake@email.com"}
+    response = client.get("/platforms/example/contacts/v1", headers=headers)
+    response_json = response.json()
+    assert response.status_code == 200, response_json
+    assert len(response_json) == 2, response_json
+    assert response_json[0]["email"] == ["a@b.com"]
+    assert set(response_json[1]["email"]) == {"fake2@email.com", "fake@email.com"}
 
-    guest_response = client.get("/platforms/example/contacts/v1/fake:100", headers=headers)
-    guest_response_json = guest_response.json()
-    assert guest_response.status_code == 200, guest_response_json
-    assert set(guest_response_json["email"]) == {"fake2@email.com", "fake@email.com"}
+    response = client.get("/platforms/example/contacts/v1/fake:100", headers=headers)
+    response_json = response.json()
+    assert response.status_code == 200, response_json
+    assert set(response_json["email"]) == {"fake2@email.com", "fake@email.com"}
 
 
 @pytest.fixture(
