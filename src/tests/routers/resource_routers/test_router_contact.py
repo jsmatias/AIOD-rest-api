@@ -122,10 +122,9 @@ def test_email_mask_for_not_authenticated_user(
 
     guest_response = client.get(endpoint_from_fixture1)
     assert guest_response.status_code == 200, guest_response.json()
-    guest_response_json = [guest_response.json()]
-    guest_response_json = (
-        guest_response_json[0] if isinstance(guest_response_json[0], list) else guest_response_json
-    )
+    guest_response_json = guest_response.json()
+    if not isinstance(guest_response_json, list):
+        guest_response_json = [guest_response_json]
     assert len(guest_response_json) > 0, guest_response_json
     for contact_json in guest_response_json:
         assert contact_json["email"] == ["******"]
