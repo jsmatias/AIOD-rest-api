@@ -173,25 +173,25 @@ def test_email_mask_for_authenticated_user(
     params=[
         "/contacts/v1",
         "/contacts/v1/1",
-        "/platforms/drupal/contacts/v1",
-        "/platforms/drupal/contacts/v1/fake:100",
+        "/platforms/ai4europe_cms/contacts/v1",
+        "/platforms/ai4europe_cms/contacts/v1/fake:100",
     ]
 )
 def endpoint_from_fixture2(request) -> str:
     return request.param
 
 
-def test_email_privacy_for_drupal(
+def test_email_privacy_for_ai4europe_cms(
     client: TestClient,
     mocked_privileged_token: Mock,
-    mocked_drupal_token: Mock,
+    mocked_ai4europe_cms_token: Mock,
     contact: Contact,
     platform: Platform,
     endpoint_from_fixture2: str,
 ):
 
     with DbSession() as session:
-        contact.platform = "drupal"
+        contact.platform = "ai4europe_cms"
         contact.platform_resource_identifier = "fake:100"
         email = Email(name="fake@email.com")
         another_email = Email(name="fake2@email.com")
@@ -211,7 +211,7 @@ def test_email_privacy_for_drupal(
     assert len(response_json) > 0, response_json
     assert response_json["email"] == ["******"]
 
-    keycloak_openid.introspect = mocked_drupal_token
+    keycloak_openid.introspect = mocked_ai4europe_cms_token
 
     response = client.get(endpoint_from_fixture2, headers=headers)
     response_json = response.json()
