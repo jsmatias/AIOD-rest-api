@@ -56,30 +56,30 @@ def test_happy_path(
     params=[
         "/persons/v1",
         "/persons/v1/1",
-        "/platforms/drupal/persons/v1",
-        "/platforms/drupal/persons/v1/2",
+        "/platforms/ai4europe_cms/persons/v1",
+        "/platforms/ai4europe_cms/persons/v1/2",
     ]
 )
 def endpoint(request) -> str:
     return request.param
 
 
-def test_privacy_for_drupal(
+def test_privacy_for_ai4europe_cms(
     client: TestClient,
     mocked_privileged_token: Mock,
-    mocked_drupal_token: Mock,
+    mocked_ai4europe_cms_token: Mock,
     platform: Platform,
     person: Person,
     contact: Contact,
     endpoint: str,
 ):
-    """Test to ensure that only authenticated users with "full_view_drupal_resources" role
+    """Test to ensure that only authenticated users with "full_view_ai4europe_cms_resources" role
     can visualise fields such as name, given_name and surname of a person migrated from
-    the old drupal platform.
+    the old ai4europe_cms platform.
     """
 
     with DbSession() as session:
-        person.platform = "drupal"
+        person.platform = "ai4europe_cms"
         person.platform_resource_identifier = "2"
         person.name = "Joe Doe"
         person.given_name = "Joe"
@@ -100,7 +100,7 @@ def test_privacy_for_drupal(
         assert person_dict["given_name"] == "******"
         assert person_dict["surname"] == "******"
 
-    keycloak_openid.introspect = mocked_drupal_token
+    keycloak_openid.introspect = mocked_ai4europe_cms_token
     response = client.get(endpoint, headers=headers)
     response_json = response.json()
     response_json = [response_json] if isinstance(response_json, dict) else response_json

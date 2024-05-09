@@ -28,12 +28,12 @@ class PersonRouter(ResourceRouter):
         resources: Sequence[type[Person]], session: Session, user: User | None
     ) -> Sequence[type[Person]]:
         """
-        For the old drupal platform, only users with "full_view_drupal_resources" role can
-        see the person's sensitive information.
+        For the old ai4europe_cms platform, only users with "full_view_ai4europe_cms_resources"
+        role can see the person's sensitive information.
         """
         for person in resources:
-            if (person.platform == PlatformName.drupal) and not (
-                user and user.has_role("full_view_drupal_resources")
+            if (person.platform == PlatformName.ai4europe_cms) and not (
+                user and user.has_role("full_view_ai4europe_cms_resources")
             ):
                 person.name = "******"
                 person.given_name = "******"
