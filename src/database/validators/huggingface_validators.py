@@ -1,4 +1,3 @@
-import re
 from huggingface_hub.utils import validate_repo_id
 
 def throw_error_on_invalid_identifier(platform_resource_identifier: str):
