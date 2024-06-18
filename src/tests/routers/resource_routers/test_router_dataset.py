@@ -7,7 +7,6 @@ from starlette.testclient import TestClient
 from authentication import keycloak_openid
 from database.model.agent.person import Person
 from database.session import DbSession
-from huggingface_hub.utils._validators import HFValidationError
 
 
 def test_happy_path(
@@ -67,8 +66,8 @@ def test_post_invalid_huggingface_identifier(
     assert (
         response.json()["detail"][0]["msg"]
         == "Repo id must use alphanumeric chars or '-', '_', '.', '--' and '..' are"
-            " forbidden, '-' and '.' cannot start or end the name, max length is 96:"
-            f" '{body['platform_resource_identifier']}'."
+        " forbidden, '-' and '.' cannot start or end the name, max length is 96:"
+        f" '{body['platform_resource_identifier']}'."
     )
 
 

@@ -19,16 +19,16 @@ from database.validators import huggingface_validators
         (
             "",
             ValueError(
-                "Repo id must use alphanumeric chars or '-', '_', '.', '--' and '..' are forbidden, '-' and '.' "
-                "cannot start or end the name, max length is 96: "
+                "Repo id must use alphanumeric chars or '-', '_', '.', '--' and '..' are "
+                "forbidden, '-' and '.' cannot start or end the name, max length is 96: "
                 "''."
             ),
         ),
         (
             "user/" + "a" * 200,
             ValueError(
-                "Repo id must use alphanumeric chars or '-', '_', '.', '--' and '..' are forbidden, '-' and '.' "
-                "cannot start or end the name, max length is 96: "
+                "Repo id must use alphanumeric chars or '-', '_', '.', '--' and '..' are "
+                "forbidden, '-' and '.' cannot start or end the name, max length is 96: "
                 "'user/" + "a" * 200 + "'."
             ),
         ),
@@ -40,5 +40,4 @@ def test_identifier(identifier: str, expected_error: ValueError | None):
     else:
         with pytest.raises(type(expected_error)) as exception_info:
             huggingface_validators.throw_error_on_invalid_identifier(identifier)
-        print(exception_info.value.args[0])
         assert exception_info.value.args[0] == expected_error.args[0]
