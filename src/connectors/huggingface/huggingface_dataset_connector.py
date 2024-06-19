@@ -111,9 +111,9 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
             related_resources["creator"] = [pydantic_class_contact(name=dataset.author)]
 
         description = getattr(dataset, "description", None)
-        if description and len(description) > field_length.LONG:
+        if description and len(description) > field_length.MAX_TEXT:
             text_break = " [...]"
-            description = description[: field_length.LONG - len(text_break)] + text_break
+            description = description[: field_length.MAX_TEXT - len(text_break)] + text_break
         if description:
             description = Text(plain=description)
 
@@ -128,7 +128,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                 date_published=dataset.created_at if hasattr(dataset, "created_at") else None,
                 license=ds_license,
                 distribution=distributions,
-                is_accessible_for_free=True,
+                is_accessible_for_free=not dataset.private,
                 keyword=dataset.tags,
             ),
             resource_ORM_class=Dataset,
