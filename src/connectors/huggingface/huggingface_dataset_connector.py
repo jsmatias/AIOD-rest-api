@@ -1,4 +1,5 @@
 import logging
+import math
 import typing
 
 import bibtexparser
@@ -80,7 +81,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
                 description=f"{pq_file['dataset']}. Config: {pq_file['config']}. Split: "
                 f"{pq_file['split']}",
                 content_url=pq_file["url"],
-                content_size_kb=pq_file["size"],
+                content_size_kb=math.ceil(pq_file["size"] / 1000),
             )
             for pq_file in parquet_info
         ]
