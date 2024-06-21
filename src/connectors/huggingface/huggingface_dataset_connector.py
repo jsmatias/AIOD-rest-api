@@ -41,9 +41,7 @@ class HuggingFaceDatasetConnector(ResourceConnectorOnStartUp[Dataset]):
         response_json = response.json()
         if not response.ok:
             msg = response_json["error"]
-            logging.warning(
-                f"Unable to retrieve parquet info for dataset '{dataset_id}': '{msg}'"
-            )
+            logging.warning(f"Unable to retrieve parquet info for dataset '{dataset_id}': '{msg}'")
             return []
         return response_json["parquet_files"]
 
