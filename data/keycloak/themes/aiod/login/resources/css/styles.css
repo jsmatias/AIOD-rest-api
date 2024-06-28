@@ -17,13 +17,26 @@ login-pf {
    background: transparent;
 }
 
-h1#kc-page-title {
+.pf-c-button.pf-m-control {
     color: white;
-    font-size: large;
+    background-color: var(--pf-c-button--m-primary--BackgroundColor);
+}
+
+.kc-social-gray {
+    color: white;
+}
+
+#kc-social-providers h4 {
+    font-size: medium;
+}
+
+.pf-c-button::after {
+    border: transparent;
 }
 
 h1#kc-page-title {
     color: white;
+    font-size: large;
 }
 
 #kc-content {
