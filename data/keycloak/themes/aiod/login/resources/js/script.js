@@ -8,8 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
         // Add event listener for the click event
-        toggleButton.addEventListener('click', toggleVisibility);
-
+        if (toggleButton) {
+           toggleButton.addEventListener('click', toggleVisibility);
+        }
         const inputError = document.getElementById('input-error');
         if (inputError) {
           // Call the function once when the content loads if the specific ID is present
