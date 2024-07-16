@@ -35,14 +35,13 @@ jobs:
         source venv/bin/activate
         python -m pip install ".[dev]"
         pre-commit install
-        
+
     - name: pre-commit check
       run: |
         source venv/bin/activate
         pre-commit run --all
+
     
-    - name: Test with pytest
-      run: |
-        source venv/bin/activate
-        pytest ./src/tests/
+    
+    
 

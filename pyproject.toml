@@ -1,48 +1,55 @@
 [project]
-name = "ai4eu_server_demo"
-description = "A containerized demo application for AI on demand (previously AI4EU) "
-version = "0.4.20230627"
+name = "aiod_metadata_catalogue"
+description = "A Metadata Catalogue for AI on Demand "
+version = "1.3.20240619"
 requires-python = ">=3.11"
 authors = [
-
-    { name = "Antonis Ganios"},
-    { name = "Íñigo Aréjula Aísa"},
-    { name = "Jos van der Velde", email = "j.d.v.d.velde@tue.nl"},
+    { name = "Adrián Alcolea" },
+    { name = "Antonis Ganios" },
+    { name = "Giannis Mouchakis" },
+    { name = "Íñigo Aréjula Aísa" },
+    { name = "Jean Matias" },
+    { name = "Jos van der Velde", email = "j.d.v.d.velde@tue.nl" },
     { name = "Pieter Gijsbers", email = "p.gijsbers@tue.nl"},
-    { name = "Giannis Mouchakis"},
-    {name = "Taniya Das", email = "t.das@tue.nl"}
+    { name = "Taniya Das", email = "t.das@tue.nl" }
 ]
 dependencies = [
-    "urllib3== 2.0.4",
-    "bibtexparser==1.4.0",
-    "datasets==2.14.4",
-    "fastapi==0.101.1",
-    "uvicorn==0.23.2",
+    "urllib3== 2.1.0",
+    "bibtexparser==1.4.1",
+    "huggingface_hub==0.23.4",
+    "fastapi==0.109.2",
+    "uvicorn==0.25.0",
     "requests==2.31.0",
-    "mysqlclient==2.2.0",
+    "mysqlclient==2.2.1",
     "oic==1.6.0",
-    "python-keycloak==3.3.0",
+    "python-keycloak==3.7.0",
     "python-dotenv==1.0.0",
+    "pytz==2023.3.post1",
     "pydantic_schemaorg==1.0.6",
     "python-dateutil==2.8.2",
-    "sqlmodel==0.0.8",
-    "httpx==0.24.1",
+    "ratelimit==2.2.1",
+    "sqlmodel==0.0.14",
+    "typing_inspect==0.9.0",
+    "httpx==0.26.0",
     "sickle==0.7.0",
     "xmltodict==0.13.0",
     "python-multipart==0.0.6",
-    "mysql-connector-python==8.1.0",
+    "mysql-connector-python==8.2.0",
+    "elasticsearch==8.11.1",
+    "jinja2==3.1.3",
 ]
 readme = "README.md"
 
 [project.optional-dependencies]
 dev = [
     "types-python-dateutil==2.8.19.14",
-    "pytest==7.4.0",
+    "pytest==7.4.3",
+    "pytest-asyncio==0.23.2",
     "pytest-dotenv==0.5.2",
-    "pytest-xdist==3.3.1",
-    "pre-commit==3.3.3",
-    "responses==0.23.3",
-    "starlette==0.27.0"
+    "pytest-xdist==3.5.0",
+    "pre-commit==3.7.0",
+    "responses==0.24.1",
+    "freezegun==1.4.0",
 ]
 
 [tool.setuptools]
@@ -58,7 +65,9 @@ filterwarnings = [
 env_override_existing_values = 1
 env_files = [
     "src/.env",
-    "src/tests/.env"
+    "src/tests/.env",
+    ".env",  # Only used if running from docker container
+    "tests/.env"  # Only used if running from docker container
 ]
 
 

@@ -9,25 +9,28 @@ from sqlmodel import Field
 from database.model.concept.aiod_entry import AIoDEntryORM
 from database.model.concept.concept import AIoDConcept, AIoDConceptBase
 from database.model.concept.status import Status
-from routers import ResourceRouter
+from routers.resource_router import ResourceRouter
 
 
 class TestResourceBase(AIoDConceptBase):
-    title: str = Field(max_length=250, nullable=False, unique=True)
+    title: str = Field(max_length=250, nullable=False)
 
 
 class TestResource(TestResourceBase, AIoDConcept, table=True):  # type: ignore [call-arg]
     identifier: int = Field(default=None, primary_key=True)
 
 
-def test_resource_factory(title=None, status=None, platform="example", platform_identifier="1"):
+def factory(
+    title=None, status=None, platform="example", platform_resource_identifier="1", date_deleted=None
+):
     if status is None:
         status = Status(name="draft")
     return TestResource(
         title=title,
         platform=platform,
-        platform_identifier=platform_identifier,
+        platform_resource_identifier=platform_resource_identifier,
         aiod_entry=AIoDEntryORM(status=status),
+        date_deleted=date_deleted,
     )
 
 

@@ -3,20 +3,20 @@ import importlib
 import json
 import logging
 import pathlib
-import shutil
 import sys
 from datetime import datetime
 from typing import Optional
 
-from sqlmodel import Session
+from sqlmodel import select, Session
 
-import routers
 from connectors.abstract.resource_connector import ResourceConnector, RESOURCE
 from connectors.record_error import RecordError
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model.concept.concept import AIoDConcept
-from database.setup import _create_or_fetch_related_objects, _get_existing_resource, sqlmodel_engine
-from routers import ResourceRouter
+from database.session import DbSession
+from database.setup import _create_or_fetch_related_objects, _get_existing_resource
+from routers import ResourceRouter, resource_routers, enum_routers
+from setup_logger import setup_logger
 
 RELATIVE_PATH_STATE_JSON = pathlib.Path("state.json")
 RELATIVE_PATH_ERROR_CSV = pathlib.Path("errors.csv")
@@ -51,7 +51,7 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--from-date",
-        type=lambda d: datetime.strptime(d, "%Y-%m-%d").date(),
+        type=lambda d: datetime.strptime(d, "%Y-%m-%d"),
         help="The start date. Only relevant for the first run of date-based connectors. "
         "In subsequent runs, date-based connectors will synchronize from the previous "
         "end-time. Format: YYYY-MM-DD",
@@ -107,9 +107,9 @@ def save_to_database(
         session.rollback()
         id_ = None
         if isinstance(item, AIoDConcept):
-            id_ = item.platform_identifier
+            id_ = item.platform_resource_identifier
         elif isinstance(item, ResourceWithRelations):
-            id_ = item.resource.platform_identifier
+            id_ = item.resource.platform_resource_identifier
         elif isinstance(item, RecordError):
             id_ = item.identifier
         return RecordError(identifier=id_, error=e)  # type:ignore
@@ -120,16 +120,7 @@ def save_to_database(
 def main():
     args = _parse_args()
 
-    working_dir = pathlib.Path(args.working_dir)
-    if args.remove_state and working_dir.exists():
-        shutil.rmtree(working_dir)
-    working_dir.mkdir(parents=True, exist_ok=True)
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
+    setup_logger()
     sys.excepthook = exception_handler
 
     module_path = ".".join(args.connector.split(".")[0:-1])
@@ -137,34 +128,41 @@ def main():
     module = importlib.import_module(module_path)
     connector: ResourceConnector = getattr(module, connector_cls_name)()
 
+    working_dir = pathlib.Path(args.working_dir)
     error_path = working_dir / RELATIVE_PATH_ERROR_CSV
     state_path = working_dir / RELATIVE_PATH_STATE_JSON
-    error_path.parents[0].mkdir(parents=True, exist_ok=True)
-    state_path.parents[0].mkdir(parents=True, exist_ok=True)
+    if args.remove_state and working_dir.exists():
+        state_path.unlink(missing_ok=True)
+        error_path.unlink(missing_ok=True)
+
+    working_dir.mkdir(parents=True, exist_ok=True)
+
     first_run = not state_path.exists()
 
-    if first_run:
+    with DbSession() as session:
+        db_empty = session.scalars(select(connector.resource_class)).first() is None
+
+    if first_run or db_empty:
         state = {}
+        state_path.unlink(missing_ok=True)
+        error_path.unlink(missing_ok=True)
     else:
         with open(state_path, "r") as f:
             state = json.load(f)
-
     items = connector.run(
         state=state,
         from_identifier=args.from_identifier,
-        from_date=args.from_date,
+        from_incl=args.from_date,
         limit=args.limit,
     )
 
     (router,) = [
         router
-        for router in routers.resource_routers
+        for router in resource_routers.router_list + enum_routers.router_list
         if router.resource_class == connector.resource_class
     ]
 
-    engine = sqlmodel_engine(rebuild_db="never")
-
-    with Session(engine) as session:
+    with DbSession() as session:
         for i, item in enumerate(items):
             error = save_to_database(router=router, connector=connector, session=session, item=item)
             if error:
@@ -184,9 +182,7 @@ def main():
                 logging.info(f"Saving state after handling {i}th result: {json.dumps(state)}")
                 with open(state_path, "w") as f:
                     json.dump(state, f, indent=4)
-                session.commit()
     with open(state_path, "w") as f:
-        session.commit()
         json.dump(state, f, indent=4)
     logging.info("Done")
 

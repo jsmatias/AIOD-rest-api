@@ -11,16 +11,17 @@ from pydantic import create_model
 from sqlmodel import SQLModel, Field
 from sqlmodel.main import FieldInfo
 
-from database.model.helper_functions import all_annotations, get_relationships
+from database.model.annotations import all_annotations
+from database.model.helper_functions import get_relationships
 from database.model.serializers import create_getter_dict
 
 if TYPE_CHECKING:
     from database.model.concept.concept import AIoDConcept
-    from database.model.relationships import ResourceRelationshipInfo
+    from database.model.relationships import _ResourceRelationship
 
 
 def _get_field_definitions_read(
-    resource_class: Type["AIoDConcept"], relationships: dict[str, "ResourceRelationshipInfo"]
+    resource_class: Type["AIoDConcept"], relationships: dict[str, "_ResourceRelationship"]
 ) -> dict[str, Tuple[Type, FieldInfo]]:
     if not hasattr(resource_class, "RelationshipConfig"):
         return {}
@@ -37,7 +38,7 @@ def _get_field_definitions_read(
 
 
 def _get_field_definitions_create(
-    resource_class: Type["AIoDConcept"], relationships: dict[str, "ResourceRelationshipInfo"]
+    resource_class: Type["AIoDConcept"], relationships: dict[str, "_ResourceRelationship"]
 ) -> dict[str, Tuple[Type, FieldInfo]]:
     if not hasattr(resource_class, "RelationshipConfig"):
         return {}
@@ -68,7 +69,6 @@ def resource_create(resource_class: Type["AIoDConcept"]) -> Type[SQLModel]:
     """
     relationships = get_relationships(resource_class)
     field_definitions = _get_field_definitions_create(resource_class, relationships)
-
     model = create_model(
         resource_class.__name__ + "Create", __base__=resource_class.__base__, **field_definitions
     )
@@ -90,12 +90,11 @@ def resource_read(resource_class: Type["AIoDConcept"]) -> Type[SQLModel]:
     relationships = get_relationships(resource_class)
     field_definitions = _get_field_definitions_read(resource_class, relationships)
     field_definitions.update({"identifier": (int, Field())})
-    resource_class_read = create_model(
+    model = create_model(
         resource_class.__name__ + "Read", __base__=resource_class.__base__, **field_definitions
     )
-    _update_model_serialization(resource_class, resource_class_read)
-    relationships.items()
-    return resource_class_read
+    _update_model_serialization(resource_class, model)
+    return model
 
 
 def _update_model_serialization(resource_class: Type[SQLModel], resource_class_read):

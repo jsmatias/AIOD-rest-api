@@ -1,75 +1,49 @@
 """
 Utility functions for initializing the database and tables through SQLAlchemy.
 """
-
 from operator import and_
 
-from sqlalchemy import text
-from sqlalchemy.engine import Engine
-from sqlmodel import create_engine, Session, SQLModel, select
+import sqlmodel
+from sqlalchemy import text, create_engine
+from sqlmodel import SQLModel, select
 
-import routers
 from config import DB_CONFIG
 from connectors.resource_with_relations import ResourceWithRelations
 from database.model.concept.concept import AIoDConcept
+from database.model.named_relation import NamedRelation
 from database.model.platform.platform_names import PlatformName
+from database.session import db_url
+from routers import resource_routers
 
 
-def connect_to_database(
-    url: str = "mysql://root:ok@127.0.0.1:3307/aiod",
-    create_if_not_exists: bool = True,
-    delete_first: bool = False,
-) -> Engine:
-    """Connect to server, optionally creating the database if it does not exist.
-
-    Params
-    ------
-    url: URL to the database, see https://docs.sqlalchemy.org/en/20/core/engines.html#backend-specific-urls # noqa
-    create_if_not_exists: create the database if it does not exist
-    delete_first: drop the database before creating it again, to start with an empty database.
-        IMPORTANT: Using `delete_first` means ALL data in that database will be lost permanently.
-
-    Returns
-    -------
-    engine: Engine SQLAlchemy Engine configured with a database connection
-    """
-
-    if delete_first or create_if_not_exists:
-        drop_or_create_database(url, delete_first)
-    engine = create_engine(url, echo=False, pool_recycle=3600)
-
+def drop_or_create_database(delete_first: bool):
+    url = db_url(including_db=False)
+    engine = create_engine(url, echo=False)  # Temporary engine, not connected to a database
     with engine.connect() as connection:
-        AIoDConcept.metadata.create_all(connection, checkfirst=True)
-        connection.commit()
-    return engine
-
-
-def drop_or_create_database(url: str, delete_first: bool):
-    server, database = url.rsplit("/", 1)
-    engine = create_engine(server, echo=False)  # Temporary engine, not connected to a database
-
-    with engine.connect() as connection:
+        database = DB_CONFIG.get("database", "aiod")
         if delete_first:
             connection.execute(text(f"DROP DATABASE IF EXISTS {database}"))
         connection.execute(text(f"CREATE DATABASE IF NOT EXISTS {database}"))
-        connection.commit()
-    engine.dispose()
 
 
 def _get_existing_resource(
-    session: Session, resource: AIoDConcept, clazz: type[SQLModel]
+    session: sqlmodel.Session, resource: AIoDConcept, clazz: type[SQLModel]
 ) -> AIoDConcept | None:
-    """Selecting a resource based on platform and platform_identifier"""
-    query = select(clazz).where(
-        and_(
-            clazz.platform == resource.platform,
-            clazz.platform_identifier == resource.platform_identifier,
+    """Selecting a resource based on platform and platform_resource_identifier"""
+    is_enum = NamedRelation in clazz.__mro__
+    if is_enum:
+        query = select(clazz).where(clazz.name == resource)
+    else:
+        query = select(clazz).where(
+            and_(
+                clazz.platform == resource.platform,
+                clazz.platform_resource_identifier == resource.platform_resource_identifier,
+            )
         )
-    )
     return session.scalars(query).first()
 
 
-def _create_or_fetch_related_objects(session: Session, item: ResourceWithRelations):
+def _create_or_fetch_related_objects(session: sqlmodel.Session, item: ResourceWithRelations):
     """
     For all resources in the `related_resources`, get the identifier, by either
     inserting them in the database, or retrieving the existing values, and put the identifiers
@@ -85,7 +59,7 @@ def _create_or_fetch_related_objects(session: Session, item: ResourceWithRelatio
             if (
                 resource.platform is not None
                 and resource.platform != PlatformName.aiod
-                and resource.platform_identifier is not None
+                and resource.platform_resource_identifier is not None
             ):
                 # Get the router of this resource. The difficulty is, that the resource will be a
                 # ResourceRead (e.g. a DatasetRead). So we search for the router for which the
@@ -94,7 +68,7 @@ def _create_or_fetch_related_objects(session: Session, item: ResourceWithRelatio
                 resource_read_str = type(resource).__name__  # E.g. DatasetRead
                 (router,) = [
                     router
-                    for router in routers.resource_routers
+                    for router in resource_routers.router_list
                     if resource_read_str.startswith(router.resource_class.__name__)
                     # E.g. "DatasetRead".startswith("Dataset")
                 ]
@@ -110,20 +84,3 @@ def _create_or_fetch_related_objects(session: Session, item: ResourceWithRelatio
             item.resource.__setattr__(field_name, id_)  # E.g. Dataset.license_identifier = 1
         else:
             item.resource.__setattr__(field_name, identifiers)  # E.g. Dataset.keywords = [1, 4]
-
-
-def sqlmodel_engine(rebuild_db: str) -> Engine:
-    """
-    Return a SQLModel engine, backed by the MySql connection as configured in the configuration
-    file.
-    """
-    username = DB_CONFIG.get("name", "root")
-    password = DB_CONFIG.get("password", "ok")
-    host = DB_CONFIG.get("host", "demodb")
-    port = DB_CONFIG.get("port", 3306)
-    database = DB_CONFIG.get("database", "aiod")
-
-    db_url = f"mysql://{username}:{password}@{host}:{port}/{database}"
-
-    delete_before_create = rebuild_db == "always"
-    return connect_to_database(db_url, delete_first=delete_before_create)

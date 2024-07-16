@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, ForeignKey
 from sqlmodel import Field
 
 from database.model.ai_asset.distribution import DistributionBase
-from database.model.field_length import NORMAL, DESCRIPTION
+from database.model.field_length import NORMAL, LONG
 
 
 class RunnableDistributionBase(DistributionBase):
@@ -19,7 +19,7 @@ class RunnableDistributionBase(DistributionBase):
     installation: str | None = Field(
         description="A human readable explanation of the installation, primarily meant as "
         "alternative for when there is no installation script.",
-        max_length=DESCRIPTION,
+        max_length=LONG,
         default=None,
         schema_extra={"example": "Build the Dockerfile"},
     )
@@ -37,7 +37,7 @@ class RunnableDistributionBase(DistributionBase):
     deployment: str | None = Field(
         description="A human readable explanation of the deployment, primarily meant as "
         "alternative for when there is no installation script.",
-        max_length=DESCRIPTION,
+        max_length=LONG,
         default=None,
         schema_extra={
             "example": "You can run the run.py file using python3. See README.md for "
@@ -66,6 +66,12 @@ class RunnableDistributionBase(DistributionBase):
         default=None,
         schema_extra={"example": "4GB RAM; 100MB storage; 1GHz processor with 8 cores."},
     )
+    # Made content_url optional for ML Models because it could just be a script,
+    # not necessary to have a url.
+    content_url: str | None = Field(
+        max_length=NORMAL,
+        schema_extra={"example": "https://www.example.com/mlmodel/file.csv"},
+    )  # type: ignore
 
 
 def runnable_distribution_factory(table_from: str, distribution_name="distribution") -> Type:

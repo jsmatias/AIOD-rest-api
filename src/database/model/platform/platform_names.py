@@ -9,7 +9,9 @@ class PlatformName(str, enum.Enum):
     """
 
     aiod = "aiod"
+    ai4europe_cms = "ai4europe_cms"
     example = "example"
     openml = "openml"
     huggingface = "huggingface"
     zenodo = "zenodo"
+    ai4experiments = "ai4experiments"

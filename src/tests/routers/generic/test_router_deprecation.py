@@ -37,9 +37,9 @@ class DeprecatedRouter(RouterTestResource):
 def test_deprecated_router(
     engine_test_resource_filled: Engine, verb: str, url: str, mocked_privileged_token: Mock
 ):
-    keycloak_openid.userinfo = mocked_privileged_token
+    keycloak_openid.introspect = mocked_privileged_token
     app = FastAPI()
-    app.include_router(DeprecatedRouter().create(engine_test_resource_filled, ""))
+    app.include_router(DeprecatedRouter().create(""))
     client = TestClient(app)
 
     kwargs = {}
@@ -47,7 +47,7 @@ def test_deprecated_router(
         kwargs["json"] = {
             "title": "Another title",
             "platform": "example",
-            "platform_identifier": "2",
+            "platform_resource_identifier": "2",
         }
 
     if verb in ("post", "put", "delete"):
