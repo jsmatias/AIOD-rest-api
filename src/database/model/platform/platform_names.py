@@ -15,3 +15,4 @@ class PlatformName(str, enum.Enum):
     huggingface = "huggingface"
     zenodo = "zenodo"
     ai4experiments = "ai4experiments"
+    aibuilder = "aibuilder"
