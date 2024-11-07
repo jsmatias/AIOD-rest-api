@@ -95,36 +95,34 @@ def test_restore_happy_path(tmp_path: Path):
     cycle_length = 2
     data_name = "original"
 
-    data_dir = tmp_path / Path("data")
-    original_dir = tmp_path / Path("data") / data_name
-    backup_dir = tmp_path / Path("backups")
+    file_directory = tmp_path / "data" / data_name
+    file_directory.mkdir(parents=True)
+    backup_dir = tmp_path / "backups"
+    backup_dir.mkdir(parents=True)
+
     env = os.environ.copy()
     env["ENV_MODE"] = "testing"
-    env["DATA_PATH"] = str(data_dir)
+    env["DATA_PATH"] = str(tmp_path / "data")
     env["BACKUP_PATH"] = str(backup_dir)
 
-    os.makedirs(original_dir)
-    os.makedirs(backup_dir)
-    create_test_files(original_dir, ["file1.txt", "file2.txt"])
+    file1 = file_directory / "file1.txt"
+    file1.write_text("Content of file1.txt\n")
+    file2 = file_directory / "file2.txt"
+    file2.write_text("Content of file2.txt\n")
 
-    file1 = original_dir / "file1.txt"
-    file2 = original_dir / "file2.txt"
-
-    backup_command = ["bash", SCRIPTS_PATH / "backup.sh", data_name, str(cycle_length)]
-    restore_command = ["bash", SCRIPTS_PATH / "restore.sh", data_name, "0"]
+    backup_command = ["bash", str(SCRIPTS_PATH / "backup.sh"), data_name, str(cycle_length)]
+    restore_command = ["bash", str(SCRIPTS_PATH / "restore.sh"), data_name, "0"]
 
     call_backup_command(backup_command, env)
-    os.remove(file1)
-    with open(original_dir / "file2.txt", "w") as f:
-        f.write("Content of new file\n")
-    call_backup_command(backup_command, env)
+    file1.unlink()
+    file2.write_text("Content of new file\n")
 
+    call_backup_command(backup_command, env)
     call_restore_command(restore_command, env)
+
     assert not file1.exists(), f"{file1} shouldn't be here."
     assert file2.exists(), f"{file2} should be here."
-    with open(file2, "r") as f:
-        file_content = f.read()
-    assert "Content of new file\n" in file_content
+    assert "Content of new file\n" in file2.read_text()
 
     call_restore_command(restore_command + ["--level", "0"], env)
     assert file1.exists(), f"{file1} should be here."
