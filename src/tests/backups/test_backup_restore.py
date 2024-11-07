@@ -63,6 +63,17 @@ def data_environment(tmp_path) -> Iterator[DataEnvironment]:
     """Sets up a temporary directory with files, and provides backup/restore commands.
 
     The directory structure created looks like:
+      - temporary directory/
+        - data/
+          - original/
+            - file1.txt (content: "Content of file1.txt\n")
+            - file2.txt (content: "Content of file2.txt\n")
+        - backups/
+
+    The files are accessible as `file1` and `file2`.
+    The `backup()` function calls the backup script with no arguments and environment variables set.
+    The `restore(level)` function calls the restore script, optionally for a specific level,
+      with environment variables set.
     """
     cycle_length = 2
     data_name = "original"
@@ -144,6 +155,9 @@ def test_restore_happy_path(data_environment: DataEnvironment):
     `bash restore.sh <data to restore:str> <cycle label:int> [--level|-l <level:int>]`
     """
     backup, restore, file1, file2 = data_environment
+
+    assert file1.read_text() == "Content of file1.txt\n"
+    assert file2.read_text() == "Content of file2.txt\n"
 
     backup()
     file1.unlink()
