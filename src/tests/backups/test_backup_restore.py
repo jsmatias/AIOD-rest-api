@@ -86,50 +86,49 @@ def test_backup_happy_path():
             assert backup_file.exists()
 
 
-def test_restore_happy_path():
+def test_restore_happy_path(tmp_path: Path):
     """
     Test if the restore.sh script restores the files properly.
     Usage:
     `bash restore.sh <data to restore:str> <cycle label:int> [--level|-l <level:int>]`
     """
-    with TemporaryDirectory() as tmpdir:
-        cycle_length = 2
-        data_name = "original"
+    cycle_length = 2
+    data_name = "original"
 
-        data_dir = tmpdir / Path("data")
-        original_dir = tmpdir / Path("data") / data_name
-        backup_dir = tmpdir / Path("backups")
-        env = os.environ.copy()
-        env["ENV_MODE"] = "testing"
-        env["DATA_PATH"] = str(data_dir)
-        env["BACKUP_PATH"] = str(backup_dir)
+    data_dir = tmp_path / Path("data")
+    original_dir = tmp_path / Path("data") / data_name
+    backup_dir = tmp_path / Path("backups")
+    env = os.environ.copy()
+    env["ENV_MODE"] = "testing"
+    env["DATA_PATH"] = str(data_dir)
+    env["BACKUP_PATH"] = str(backup_dir)
 
-        os.makedirs(original_dir)
-        os.makedirs(backup_dir)
-        create_test_files(original_dir, ["file1.txt", "file2.txt"])
+    os.makedirs(original_dir)
+    os.makedirs(backup_dir)
+    create_test_files(original_dir, ["file1.txt", "file2.txt"])
 
-        file1 = original_dir / "file1.txt"
-        file2 = original_dir / "file2.txt"
+    file1 = original_dir / "file1.txt"
+    file2 = original_dir / "file2.txt"
 
-        backup_command = ["bash", SCRIPTS_PATH / "backup.sh", data_name, str(cycle_length)]
-        restore_command = ["bash", SCRIPTS_PATH / "restore.sh", data_name, "0"]
+    backup_command = ["bash", SCRIPTS_PATH / "backup.sh", data_name, str(cycle_length)]
+    restore_command = ["bash", SCRIPTS_PATH / "restore.sh", data_name, "0"]
 
-        call_backup_command(backup_command, env)
-        os.remove(file1)
-        with open(original_dir / "file2.txt", "w") as f:
-            f.write("Content of new file\n")
-        call_backup_command(backup_command, env)
+    call_backup_command(backup_command, env)
+    os.remove(file1)
+    with open(original_dir / "file2.txt", "w") as f:
+        f.write("Content of new file\n")
+    call_backup_command(backup_command, env)
 
-        call_restore_command(restore_command, env)
-        assert not file1.exists(), f"{file1} shouldn't be here."
-        assert file2.exists(), f"{file2} should be here."
-        with open(file2, "r") as f:
-            file_content = f.read()
-        assert "Content of new file\n" in file_content
+    call_restore_command(restore_command, env)
+    assert not file1.exists(), f"{file1} shouldn't be here."
+    assert file2.exists(), f"{file2} should be here."
+    with open(file2, "r") as f:
+        file_content = f.read()
+    assert "Content of new file\n" in file_content
 
-        call_restore_command(restore_command + ["--level", "0"], env)
-        assert file1.exists(), f"{file1} should be here."
-        assert file2.exists(), f"{file2} should be here."
+    call_restore_command(restore_command + ["--level", "0"], env)
+    assert file1.exists(), f"{file1} should be here."
+    assert file2.exists(), f"{file2} should be here."
 
-        call_restore_command(restore_command + ["-l", "1"], env)
-        assert not file1.exists(), f"{file1} shouldn't be here."
+    call_restore_command(restore_command + ["-l", "1"], env)
+    assert not file1.exists(), f"{file1} shouldn't be here."
