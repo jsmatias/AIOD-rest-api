@@ -4,6 +4,8 @@ prior to the execution of the backup.sh and restore.sh scripts.
 """
 
 import os
+from typing import NamedTuple, Callable, Iterator, Protocol
+
 import pytest
 import subprocess
 
@@ -42,6 +44,55 @@ def call_backup_command(command: list[str], env: dict) -> subprocess.CompletedPr
 
 def call_restore_command(command: list[str], env: dict) -> subprocess.CompletedProcess:
     return subprocess.run(command, env=env, input="y\n", text=True, check=True)
+
+
+class RestoreFunc(Protocol):
+    def __call__(self, level: int | None = None) -> subprocess.CompletedProcess:
+        ...
+
+
+class DataEnvironment(NamedTuple):
+    backup: Callable[[], subprocess.CompletedProcess]
+    restore: RestoreFunc
+    file1: Path
+    file2: Path
+
+
+@pytest.fixture
+def data_environment(tmp_path) -> Iterator[DataEnvironment]:
+    """Sets up a temporary directory with files, and provides backup/restore commands.
+
+    The directory structure created looks like:
+    """
+    cycle_length = 2
+    data_name = "original"
+
+    backup_command = ["bash", str(SCRIPTS_PATH / "backup.sh"), data_name, str(cycle_length)]
+    restore_command = ["bash", str(SCRIPTS_PATH / "restore.sh"), data_name, "0"]
+
+    file_directory = tmp_path / "data" / data_name
+    file_directory.mkdir(parents=True)
+    backup_dir = tmp_path / "backups"
+    backup_dir.mkdir(parents=True)
+
+    env = os.environ.copy()
+    env["ENV_MODE"] = "testing"
+    env["DATA_PATH"] = str(tmp_path / "data")
+    env["BACKUP_PATH"] = str(backup_dir)
+
+    def backup() -> subprocess.CompletedProcess:
+        return call_backup_command(backup_command, env)
+
+    def restore(level: int | None = None) -> subprocess.CompletedProcess:
+        level_args = ["--level", str(level)] if level is not None else []
+        return call_restore_command(restore_command + level_args, env)
+
+    file1 = file_directory / "file1.txt"
+    file1.write_text("Content of file1.txt\n")
+    file2 = file_directory / "file2.txt"
+    file2.write_text("Content of file2.txt\n")
+
+    yield DataEnvironment(backup, restore, file1, file2)
 
 
 def test_backup_happy_path():
@@ -86,47 +137,28 @@ def test_backup_happy_path():
             assert backup_file.exists()
 
 
-def test_restore_happy_path(tmp_path: Path):
+def test_restore_happy_path(data_environment: DataEnvironment):
     """
     Test if the restore.sh script restores the files properly.
     Usage:
     `bash restore.sh <data to restore:str> <cycle label:int> [--level|-l <level:int>]`
     """
-    cycle_length = 2
-    data_name = "original"
+    backup, restore, file1, file2 = data_environment
 
-    file_directory = tmp_path / "data" / data_name
-    file_directory.mkdir(parents=True)
-    backup_dir = tmp_path / "backups"
-    backup_dir.mkdir(parents=True)
-
-    env = os.environ.copy()
-    env["ENV_MODE"] = "testing"
-    env["DATA_PATH"] = str(tmp_path / "data")
-    env["BACKUP_PATH"] = str(backup_dir)
-
-    file1 = file_directory / "file1.txt"
-    file1.write_text("Content of file1.txt\n")
-    file2 = file_directory / "file2.txt"
-    file2.write_text("Content of file2.txt\n")
-
-    backup_command = ["bash", str(SCRIPTS_PATH / "backup.sh"), data_name, str(cycle_length)]
-    restore_command = ["bash", str(SCRIPTS_PATH / "restore.sh"), data_name, "0"]
-
-    call_backup_command(backup_command, env)
+    backup()
     file1.unlink()
     file2.write_text("Content of new file\n")
 
-    call_backup_command(backup_command, env)
-    call_restore_command(restore_command, env)
+    backup()
+    restore()
 
     assert not file1.exists(), f"{file1} shouldn't be here."
     assert file2.exists(), f"{file2} should be here."
     assert "Content of new file\n" in file2.read_text()
 
-    call_restore_command(restore_command + ["--level", "0"], env)
+    restore(level=0)
     assert file1.exists(), f"{file1} should be here."
     assert file2.exists(), f"{file2} should be here."
 
-    call_restore_command(restore_command + ["-l", "1"], env)
+    restore(level=1)
     assert not file1.exists(), f"{file1} shouldn't be here."
