@@ -3,35 +3,39 @@ This module knows how to load an AIBuilder object from their API and to
 convert the AIBuilder response to the AIoD MLModel format.
 """
 
-#import dateutil.parser
-#import requests
-#import logging
+import os
+import logging
+import requests
 
-#from requests.exceptions import HTTPError
-#
-#from typing import Iterator, Any
-
-#
-#
-#from database.model import field_length
-#from database.model.ai_resource.text import Text
-#from database.model.concept.aiod_entry import AIoDEntryCreate
-
-
-#from database.model.agent.contact import Contact
-#from database.model.models_and_experiments.runnable_distribution import RunnableDistribution
-#
-#from database.model.resource_read_and_create import resource_create
-#
-
+from requests.exceptions import HTTPError
 from sqlmodel import SQLModel
+from datetime import datetime
+from ratelimit import limits, sleep_and_retry
+from typing import Iterator, Tuple, Any
+
+from config import REQUEST_TIMEOUT
 
 from database.model.models_and_experiments.ml_model import MLModel
 from database.model.platform.platform_names import PlatformName
+from database.model.ai_resource.text import Text
+from database.model import field_length
+from database.model.models_and_experiments.runnable_distribution import RunnableDistribution
+from database.model.resource_read_and_create import resource_create
+from database.model.agent.contact import Contact
+from database.model.concept.aiod_entry import AIoDEntryCreate
 
-from connectors.abstract.resource_connector_by_id import ResourceConnectorByDate
+from connectors.abstract.resource_connector_by_date import ResourceConnectorByDate
 from connectors.resource_with_relations import ResourceWithRelations
 from connectors.record_error import RecordError
+
+from .aibuilder_mappings import mlmodel_mapping
+
+TOKEN = os.getenv("API_TOKEN", "")
+API_URL = "https://aiexp-dev.ai4europe.eu/federation"
+GLOBAL_MAX_CALLS_MINUTE = 60
+GLOBAL_MAX_CALLS_HOUR = 2000
+ONE_MINUTE = 60
+ONE_HOUR = 3600
 
 class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
     @property
@@ -42,144 +46,217 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
     def platform_name(self) -> PlatformName:
         return PlatformName.aibuilder
 
-    def retry(self, identifier: int) -> ResourceWithRelations[SQLModel] | RecordError:
-        return self.fetch_record(identifier)
+    def retry(self, identifier: int) -> ResourceWithRelations[MLModel] | RecordError:
+        raise NotImplementedError("Not implemented.")
 
-
-
-
-
-
-
-
-    def fetch_record(self, identifier: int) -> ResourceWithRelations[MLModel] | RecordError:
-        url_mlmodel = f"https://www.openml.org/api/v1/json/flow/{identifier}"
-        response = requests.get(url_mlmodel)
+    @sleep_and_retry
+    @limits(calls=GLOBAL_MAX_CALLS_MINUTE, period=ONE_MINUTE)
+    @limits(calls=GLOBAL_MAX_CALLS_HOUR, period=ONE_HOUR)
+    def get_response(self, url) -> requests.Response | RecordError:
+        response = requests.get(url, timeout=REQUEST_TIMEOUT)
         if not response.ok:
-            msg = response.json()["error"]["message"]
-            return RecordError(
-                identifier=str(identifier),
-                error=f"Error while fetching flow from OpenML: '{msg}'.",
-            )
-        mlmodel_json = response.json()["flow"]
+            status_code = response.status_code
+            msg = response.json()['error']['message']
+            err_msg = (f"Error while fetching {url} from AIBuilder: ({status_code}) {msg}")
+            logging.error(err_msg)
+            err = HTTPError(err_msg)
+            return RecordError(identifier=None, error=err)
+        return response
 
-        description_or_error = _description(mlmodel_json, identifier)
-        if isinstance(description_or_error, RecordError):
-            return description_or_error
-        description = description_or_error
+    def _is_aware(self, date):
+        return date.tzinfo is not None and date.tzinfo.utcoffset(date) is not None
 
-        distribution = _distributions(mlmodel_json)
+    def _mlmodel_from_solution(
+        self, solution: dict, id: str, url: str
+    ) -> ResourceWithRelations[MLModel] | RecordError:
 
-        openml_creator = _as_list(mlmodel_json.get("creator", None))
-        openml_contributor = _as_list(mlmodel_json.get("contributor", None))
-        pydantic_class_contact = resource_create(Contact)
-        creator_names = [
-            pydantic_class_contact(name=name) for name in openml_creator + openml_contributor
-        ]
+        if not set(mlmodel_mapping.values()) <= set(solution.keys()):
+            err_msg = "Bad structure on the received solution."
+            return RecordError(identifier=id, error=err_msg)
 
-        tags = _as_list(mlmodel_json.get("tag", None))
+        identifier = ""
+        if 'platform_resource_identifier' in mlmodel_mapping.keys():
+            identifier = solution[mlmodel_mapping['platform_resource_identifier']]
+
+        if not identifier:
+            err_msg = "The platform identifier is mandatory."
+            return RecordError(identifier=id, error=err_msg)
+
+        if identifier != id:
+            err_msg = f"The identifier {identifier} does not correspond with the fetched solution."
+            return RecordError(identifier=id, error=err_msg)
+
+        name = ""
+        if 'name' in mlmodel_mapping.keys():
+            name = solution[mlmodel_mapping['name']]
+
+        if not name:
+            err_msg = "The name field is mandatory."
+            return RecordError(identifier=id, error=err_msg)
+
+        date_published = ""
+        if 'date_published' in mlmodel_mapping.keys():
+            date_published = solution[mlmodel_mapping['date_published']]
+
+        # TODO: Review the AIBuilder schema to map version
+        version = ""
+        if 'version' in mlmodel_mapping.keys():
+            version = solution[mlmodel_mapping['version']]
+
+        description = ""
+        if 'description' in mlmodel_mapping.keys():
+            description = _description_format(solution[mlmodel_mapping['description']])
+
+        # TODO: Review the AIBuilder schema to map distribution
+        distribution = []
+        if 'distribution' in mlmodel_mapping.keys():
+            distribution = _distributions_format(solution[mlmodel_mapping['distribution']])
+
+        tags = []
+        if 'keyword' in mlmodel_mapping.keys():
+            tags = solution[mlmodel_mapping['keyword']]
+
+        # TODO: Review the AIBuilder schema to map license
+        license = ""
+        if 'license' in mlmodel_mapping.keys():
+            license = solution[mlmodel_mapping['license']]
+
+        related_resources = {}
+
+        if 'contact' in mlmodel_mapping.keys():
+            pydantic_class_contact = resource_create(Contact)
+            contact_names = [
+                pydantic_class_contact(name=name)
+                for name in _as_list(solution[mlmodel_mapping['contact']])
+            ]
+            related_resources['contact'] = contact_names
+
+        if 'creator' in mlmodel_mapping.keys():
+            pydantic_class_creator = resource_create(Contact)
+            creator_names = [
+                pydantic_class_creator(name=name)
+                for name in _as_list(solution[mlmodel_mapping['creator']])
+            ]
+            related_resources['creator'] = creator_names
 
         pydantic_class = resource_create(MLModel)
         mlmodel = pydantic_class(
-            aiod_entry=AIoDEntryCreate(
-                status="published",
-            ),
+            platform="aibuilder",
             platform_resource_identifier=identifier,
-            platform=self.platform_name,
-            name=mlmodel_json["name"],
-            same_as=url_mlmodel,
-            description=description,
-            date_published=dateutil.parser.parse(mlmodel_json["upload_date"]),
-            license=mlmodel_json.get("licence", None),
-            distribution=distribution,
+            name=name,
+            date_published=date_published,
+            same_as=url, # TODO: Review the concept of having the TOKEN inside the url!!!
             is_accessible_for_free=True,
-            keyword=[tag for tag in tags] if tags else [],
-            version=mlmodel_json["version"],
+            version=version,
+            aiod_entry=AIoDEntryCreate(status="published",),
+            description=description,
+            distribution=distribution,
+            keyword=tags,
+            license=license,
         )
 
         return ResourceWithRelations[pydantic_class](  # type:ignore
             resource=mlmodel,
             resource_ORM_class=MLModel,
-            related_resources={"creator": creator_names},
+            related_resources=related_resources,
         )
 
     def fetch(
-        self, offset: int, from_identifier: int
-    ) -> Iterator[ResourceWithRelations[SQLModel] | RecordError]:
-        url_mlmodel = (
-            "https://www.openml.org/api/v1/json/flow/list/"
-            f"limit/{self.limit_per_iteration}/offset/{offset}"
-        )
-        response = requests.get(url_mlmodel)
+        self, from_incl: datetime, to_excl: datetime
+    ) -> Iterator[Tuple[datetime | None, MLModel | ResourceWithRelations[MLModel] | RecordError]]:
+        """
+        It fetches the entire list of catalogs and, for each catalog, the entire list of solutions.
+        Then it filters by date and fetches every solution within [`from_incl`, `to_excl`).
+        """
+        # TODO: The AIBuilder API will soon include date search for the catalog list of solutions.
 
-        if not response.ok:
-            status_code = response.status_code
-            msg = response.json()["error"]["message"]
-            err_msg = f"Error while fetching {url_mlmodel} from OpenML: ({status_code}) {msg}"
-            logging.error(err_msg)
-            err = HTTPError(err_msg)
-            yield RecordError(identifier=None, error=err)
+        self.is_concluded = False
+        
+        if not self._is_aware(from_incl):
+            from_incl = from_incl.replace(tzinfo=pytz.UTC)
+        if not self._is_aware(to_excl):
+            to_excl = to_excl.replace(tzinfo=pytz.UTC)
+
+        url_get_catalog_list = f"{API_URL}/get_catalog_list?apiToken={TOKEN}"
+        response = self.get_response(url_get_catalog_list).json()
+        if isinstance(response, RecordError):
+            self.is_concluded = True
+            yield None, response
             return
 
         try:
-            mlmodel_summaries = response.json()["flows"]["flow"]
+            catalog_list = [catalog['catalogId'] for catalog in response]
         except Exception as e:
-            yield RecordError(identifier=None, error=e)
+            self.is_concluded = True
+            yield None, RecordError(identifier=None, error=e)
             return
 
-        for summary in mlmodel_summaries:
-            identifier = None
-            # ToDo: discuss how to accommodate pipelines. Excluding sklearn pipelines for now.
-            # Note: weka doesn't have a standard method to define pipeline.
-            # There are no mlr pipelines in OpenML.
-            identifier = summary["id"]
-            if "sklearn.pipeline" not in summary["name"]:
+        if len(catalog_list) == 0:
+            self.is_concluded = True
+            yield None, RecordError(identifier=None, error="Empty catalog list.")
+            return
+
+        for num_catalog, catalog in enumerate(catalog_list):
+            url_get_catalog_solutions = (
+                f"{API_URL}/get_catalog_solutions?catalogId={catalog}&apiToken={TOKEN}"
+            )
+            response = self.get_response(url_get_catalog_solutions).json()
+            if isinstance(response, RecordError):
+                self.is_concluded = num_catalog == len(catalog_list)
+                yield None, response
+                return
+
+            try:
+                solutions_list = [
+                    solution['fullId'] for solution in response
+                    if from_incl <= datetime.fromisoformat(solution['lastModified']) < to_excl
+                ]
+            except Exception as e:
+                self.is_concluded = num_catalog == len(catalog_list)
+                yield None, RecordError(identifier=None, error=e)
+                return
+
+            if len(solutions_list) == 0:
+                self.is_concluded = num_catalog == len(catalog_list)
+                yield None, RecordError(identifier=None, error="Empty solutions list.")
+                return
+
+            for num_solution, solution in enumerate(solutions_list):
+                url_get_solution = f"{API_URL}/get_solution?fullId={solution}&apiToken={TOKEN}"
+                response = self.get_response(url_get_solution).json()
+                if isinstance(response, RecordError):
+                    self.is_concluded = (
+                        num_catalog == len(catalog_list) and num_solution == len(solutions_list)
+                    )
+                    yield None, response
+                    return
+
                 try:
-                    if identifier < from_identifier:
-                        yield RecordError(identifier=identifier, error="Id too low", ignore=True)
-                    if from_identifier is None or identifier >= from_identifier:
-                        yield self.fetch_record(identifier)
+                    self.is_concluded = (
+                        num_catalog == len(catalog_list) and num_solution == len(solutions_list)
+                    )
+                    yield (
+                        datetime.fromisoformat(response['lastModified']),
+                        self._mlmodel_from_solution(response, solution, url_get_solution)
+                    )
                 except Exception as e:
-                    yield RecordError(identifier=identifier, error=e)
-            else:
-                yield RecordError(identifier=identifier, error="Sklearn pipeline not processed!")
+                    self.is_concluded = (
+                        num_catalog == len(catalog_list) and num_solution == len(solutions_list)
+                    )
+                    yield None, RecordError(identifier=solution, error=e)
+                    return
 
-
-def _description(mlmodel_json: dict[str, Any], identifier: int) -> Text | None | RecordError:
-    description = (
-        mlmodel_json["full_description"]
-        if mlmodel_json.get("full_description", None)
-        else mlmodel_json.get("description", None)
-    )
-    if isinstance(description, type(None)):
-        return None
-    if isinstance(description, list) and len(description) == 0:
-        return None
-    elif not isinstance(description, str):
-        return RecordError(identifier=str(identifier), error="Description of unknown format.")
+def _description_format(description: str) -> Text:
+    if not description:
+        description = ""
     if len(description) > field_length.LONG:
         text_break = " [...]"
-        description = description[: field_length.LONG - len(text_break)] + text_break
-    if description:
-        return Text(plain=description)
-    return None
+        description = description[:field_length.LONG-len(text_break)] + text_break
+    return Text(plain=description)
 
-
-def _distributions(mlmodel_json) -> list[RunnableDistribution]:
-    if (
-        (mlmodel_json.get("installation_notes") is None)
-        and (mlmodel_json.get("dependencies") is None)
-        and (mlmodel_json.get("binary_url") is None)
-    ):
-        return []
-    return [
-        RunnableDistribution(
-            dependency=mlmodel_json.get("dependencies", None),
-            installation=mlmodel_json.get("installation_notes", None),
-            content_url=mlmodel_json.get("binary_url", None),
-        )
-    ]
-
+# TODO: Review the AIBuilder schema to map distribution
+def _distribution_format(distribution) -> list[RunnableDistribution]:
+    return []
 
 def _as_list(value: Any | list[Any]) -> list[Any]:
     """Wrap it with a list, if it is not a list"""

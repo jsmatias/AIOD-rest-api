@@ -120,6 +120,26 @@ services:
       app:
         condition: service_healthy
 
+  aibuilder-connector:
+    profiles: ["aibuilder"]
+    build:
+      context: connectors/aibuilder
+      dockerfile: Dockerfile
+    image: aiod_aibuilder_connector
+    container_name: aibuilder-connector
+    env_file: .env
+    environment:
+      - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
+    volumes:
+      - ./src:/app
+      - ${DATA_PATH}/connectors:/opt/connectors/data
+      - ./connectors/aibuilder/:/opt/connectors/script
+    command: >
+      /bin/bash -c "/opt/connectors/script/entry.sh"
+    depends_on:
+      app:
+        condition: service_healthy
+
   sqlserver:
     image: mysql:8.3.0
     container_name: sqlserver
