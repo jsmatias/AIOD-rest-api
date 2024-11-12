@@ -137,6 +137,10 @@ docker compose --profile examples --profile huggingface-datasets --profile openm
 Make sure you use the same profile for `up` and `down`, otherwise some containers might keep 
 running.
 
+#### Configuring AIBuilder connector
+To access the AIBuilder API you need to provide a valid API token though the `API_TOKEN` variable. \
+Use the `override.env` file for that as explained above.
+
 #### Local Installation
 
 If you want to run the server locally, you need **Python 3.11**.

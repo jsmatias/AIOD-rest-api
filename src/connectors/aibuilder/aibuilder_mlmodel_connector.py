@@ -202,9 +202,8 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
             )
             response = self.get_response(url_get_catalog_solutions).json()
             if isinstance(response, RecordError):
-                self.is_concluded = num_catalog == len(catalog_list)
+                self.is_concluded = num_catalog == len(catalog_list) - 1
                 yield None, response
-                return
 
             try:
                 solutions_list = [
@@ -212,28 +211,27 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
                     if from_incl <= datetime.fromisoformat(solution['lastModified']) < to_excl
                 ]
             except Exception as e:
-                self.is_concluded = num_catalog == len(catalog_list)
+                self.is_concluded = num_catalog == len(catalog_list) - 1
                 yield None, RecordError(identifier=None, error=e)
-                return
 
             if len(solutions_list) == 0:
-                self.is_concluded = num_catalog == len(catalog_list)
-                yield None, RecordError(identifier=None, error="Empty solutions list.")
-                return
+                self.is_concluded = num_catalog == len(catalog_list) - 1
+                yield None, RecordError(identifier=None, error="Empty solution list.", ignore=True)
 
             for num_solution, solution in enumerate(solutions_list):
                 url_get_solution = f"{API_URL}/get_solution?fullId={solution}&apiToken={TOKEN}"
                 response = self.get_response(url_get_solution).json()
                 if isinstance(response, RecordError):
                     self.is_concluded = (
-                        num_catalog == len(catalog_list) and num_solution == len(solutions_list)
+                        num_catalog == len(catalog_list) - 1 and
+                        num_solution == len(solutions_list) - 1
                     )
                     yield None, response
-                    return
 
                 try:
                     self.is_concluded = (
-                        num_catalog == len(catalog_list) and num_solution == len(solutions_list)
+                        num_catalog == len(catalog_list) - 1 and
+                        num_solution == len(solutions_list) - 1
                     )
                     yield (
                         datetime.fromisoformat(response['lastModified']),
@@ -241,10 +239,10 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
                     )
                 except Exception as e:
                     self.is_concluded = (
-                        num_catalog == len(catalog_list) and num_solution == len(solutions_list)
+                        num_catalog == len(catalog_list) - 1 and
+                        num_solution == len(solutions_list) - 1
                     )
                     yield None, RecordError(identifier=solution, error=e)
-                    return
 
 def _description_format(description: str) -> Text:
     if not description:
