@@ -23,7 +23,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.add_column(
         table_name="news",
-        column=Column("source", String(LONG)),
+        column=Column("source", String(LONG), nullable=True),
     )
 
 
