@@ -5,12 +5,13 @@ from unittest.mock import Mock
 
 import pytest
 from fastapi import FastAPI
-from pytest_asyncio.plugin import SubRequest
+from pytest import FixtureRequest
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from sqlmodel import create_engine, SQLModel, Session, select
 from starlette.testclient import TestClient
 
+from authentication import keycloak_openid
 from database.deletion.triggers import create_delete_triggers
 from database.model.concept.concept import AIoDConcept
 from database.model.platform.platform import Platform
@@ -118,7 +119,14 @@ def _user_with_roles(*roles: str) -> dict[str, Any]:
 
 
 @pytest.fixture()
-def mocked_token(request: SubRequest) -> Mock:
+def overwrites_keycloak_token():
+    original = keycloak_openid.introspect
+    yield
+    keycloak_openid.introspect = original
+
+
+@pytest.fixture()
+def mocked_token(request: FixtureRequest, overwrites_keycloak_token: None):
     """
     Return a mocked function that returns a user, to mock the authentication.
 
@@ -130,21 +138,13 @@ def mocked_token(request: SubRequest) -> Mock:
         if hasattr(request, "param")
         else ["offline_access", "uma_authorization", "default-roles-aiod"]
     )
-    return Mock(return_value=_user_with_roles(*roles))
+    keycloak_openid.introspect = Mock(return_value=_user_with_roles(*roles))
 
 
 @pytest.fixture()
-def mocked_privileged_token() -> Mock:
+def mocked_privileged_token(mocked_token: Mock, overwrites_keycloak_token: None):
     roles = ["offline_access", "uma_authorization", "default-roles-aiod", "edit_aiod_resources"]
-    return Mock(return_value=_user_with_roles(*roles))
+    keycloak_openid.introspect = Mock(return_value=_user_with_roles(*roles))
 
 
-@pytest.fixture()
-def mocked_ai4europe_cms_token() -> Mock:
-    roles = [
-        "offline_access",
-        "uma_authorization",
-        "default-roles-aiod",
-        "full_view_ai4europe_cms_resources",
-    ]
-    return Mock(return_value=_user_with_roles(*roles))
+AI4EUROPE_CMS_TOKEN = Mock(return_value=_user_with_roles("full_view_ai4europe_cms_resources"))
