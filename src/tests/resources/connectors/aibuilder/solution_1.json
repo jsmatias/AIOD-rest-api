@@ -1,0 +1,31 @@
+{
+    "fullId": "1",
+    "name": "Mocking Full Solution 1",
+    "description": "The mocked full solution 1.",
+    "toolkitType": "SK",
+    "category": "PR",
+    "lastModified": "2023-09-01T00:00:00Z",
+    "created": "2023-09-01T00:00:00Z",
+    "publisher": "The mocked publisher 1.",
+    "authors": [
+        "The mocker author 1"
+    ],
+    "artifacts": [
+        {
+            "artifactId": "1",
+            "artifactTypeCode": "PJ",
+            "name": "Mocking artifact 1",
+            "description": "The mocked artifact 1.",
+            "uri": "mocked_artifact_file_1.json",
+            "filename": "mocked_artifact_file_1.json",
+            "version": "1.0.0",
+            "size": 1,
+            "metadata": null,
+            "lastModified": "2023-09-01T00:00:00Z",
+            "created": "2023-09-01T00:00:00Z"
+        }
+    ],
+    "tags": [
+        "Mocked tag 1."
+    ]
+}
