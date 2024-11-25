@@ -106,6 +106,7 @@ mysql> SHOW DATABASES;
 
 Now, you can visit the server from your browser at `localhost:8000/docs`.
 
+
 ### Changing the configuration
 You may need to change the configuration locally, for example if you want different ports to be used.
 Do not change files, instead add overrides.
@@ -119,6 +120,7 @@ AIOD_LOGSTASH_PORT=5001
 Then also specify this when you invoke docker compose, e.g.:
 `docker compose --env-file=.env --env-file=override.env up`
 Note that **order is important**, later environment files will override earlier ones.
+You may also use the `./scripts/up.sh` script to achieve this (see ["Shorthands"](#shorthands) below).
 
 #### Config.toml
 The main application supports configuration options through a `toml` file.
@@ -134,8 +136,19 @@ docker compose --profile examples --profile huggingface-datasets --profile openm
 docker compose --profile examples --profile huggingface-datasets --profile openml --profile zenodo-datasets down
 ```
 
-Make sure you use the same profile for `up` and `down`, otherwise some containers might keep 
-running.
+Make sure you use the same profile for `up` and `down`, or use `./scripts/down.sh` (see below),
+otherwise some containers might keep running.
+
+### Shorthands
+We provide two auxiliary scripts for launching docker containers and bringing them down.
+The first, `./scripts/up.sh` invokes `docker compose up -d` and takes any number of profiles to launch as parameters.
+It will also ensure that the changes of the configurations (see above) are observed.
+If `USE_LOCAL_DEV` is set to `true` (e.g., in `override.env`) then your local source code will be mounted on the containers,
+this is useful for local development but should not be used in production.
+E.g., with `USE_LOCAL_DEV` set to `true`, `./scripts/up.sh` resolves to:
+`docker compose --env-file=.env --env-file=override.env -f docker-compose.yaml -f docker-compose.dev.yaml --profile examples  up -d`
+
+The second script is a convenience for bringing down all services, including all profiles: `./scripts/down.sh`
 
 #### Configuring AIBuilder connector
 To access the AIBuilder API you need to provide a valid API token though the `API_TOKEN` variable. \
@@ -200,7 +213,7 @@ Checkin is strict - as it should be. On our development keycloak, any redirectio
 accepted, so that it works on local host or wherever you deploy. This should never be the case 
 for a production instance.
 
-See [authentication README](authentication/README.md) for more information.
+See [authentication README](developer/auth.md) for more information.
 
 ### Creating the Database
 
@@ -234,14 +247,14 @@ start-up work (e.g., populating the database).
 
 #### Database Structure
 
-The Python classes that define the database tables are found in [src/database/model/](src/database/model/). 
+The Python classes that define the database tables are found in [src/database/model/](../src/database/model/). 
 The structure is based on the 
-[metadata schema](https://docs.google.com/spreadsheets/d/1n2DdSmzyljvTFzQzTLMAmuo3IVNx8yposdPLItBta68/edit?usp=sharing).
+[metadata schema](https://github.com/aiondemand/metadata-schema).
 
 
 ## Adding resources
 
-See [src/README.md](src/README.md).
+See [src/README.md](developer/code.md).
 
 ## Backups and Restoration
 
@@ -304,5 +317,5 @@ To create a new release,
    - Check which services currently work (before the update). It's a sanity check for if a service _doesn't_ work later.
    - Update the code on the server by checking out the release
    - Merge configurations as necessary
-   - Make sure the latest database migrations are applied: see ["Schema Migrations"](alembic/readme.md#update-the-database)
+   - Make sure the latest database migrations are applied: see ["Schema Migrations"](developer/migration.md#update-the-database)
 9. Notify everyone (e.g., in the API channel in Slack). 
