@@ -4,6 +4,7 @@ prior to the execution of the backup.sh and restore.sh scripts.
 """
 
 import os
+import time
 from typing import NamedTuple, Callable, Iterator, Protocol
 
 import pytest
@@ -165,6 +166,7 @@ def test_restore_happy_path(i, data_environment: DataEnvironment):
     file2.write_text("Content of new file\n")
 
     backup()
+    time.sleep(1)
     restore()
 
     assert not file1.exists(), f"{file1} shouldn't be here."
