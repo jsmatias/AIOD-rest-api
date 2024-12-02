@@ -166,7 +166,8 @@ def test_restore_happy_path(i, data_environment: DataEnvironment):
     file2.write_text("Content of new file\n")
 
     backup()
-    time.sleep(1)
+    one_ms = 10**-6
+    time.sleep(one_ms)
     restore()
 
     assert not file1.exists(), f"{file1} shouldn't be here."
