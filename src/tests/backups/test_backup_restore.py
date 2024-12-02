@@ -149,8 +149,7 @@ def test_backup_happy_path():
             assert backup_file.exists()
 
 
-@pytest.mark.parametrize("i", range(100))
-def test_restore_happy_path(i, data_environment: DataEnvironment):
+def test_restore_happy_path(data_environment: DataEnvironment):
     """
     Test if the restore.sh script restores the files properly.
     Usage:
@@ -166,8 +165,8 @@ def test_restore_happy_path(i, data_environment: DataEnvironment):
     file2.write_text("Content of new file\n")
 
     backup()
-    one_ms = 10**-6
-    time.sleep(one_ms)
+    microsecond = 10**-6
+    time.sleep(microsecond)
     restore()
 
     assert not file1.exists(), f"{file1} shouldn't be here."
