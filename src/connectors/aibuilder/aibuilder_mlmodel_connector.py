@@ -4,11 +4,11 @@ convert the AIBuilder response to the AIoD MLModel format.
 """
 
 import os
+import pytz
 import logging
 import requests
 
 from requests.exceptions import HTTPError
-from sqlmodel import SQLModel
 from datetime import datetime
 from ratelimit import limits, sleep_and_retry
 from typing import Iterator, Tuple, Any
@@ -37,6 +37,7 @@ GLOBAL_MAX_CALLS_HOUR = 2000
 ONE_MINUTE = 60
 ONE_HOUR = 3600
 
+
 class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
     @property
     def resource_class(self) -> type[MLModel]:
@@ -56,8 +57,8 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
         response = requests.get(url, timeout=REQUEST_TIMEOUT)
         if not response.ok:
             status_code = response.status_code
-            msg = response.json()['error']['message']
-            err_msg = (f"Error while fetching {url} from AIBuilder: ({status_code}) {msg}")
+            msg = response.json()["error"]["message"]
+            err_msg = f"Error while fetching {url} from AIBuilder: ({status_code}) {msg}"
             logging.error(err_msg)
             err = HTTPError(err_msg)
             return RecordError(identifier=None, error=err)
@@ -75,8 +76,8 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
             return RecordError(identifier=id, error=err_msg)
 
         identifier = ""
-        if 'platform_resource_identifier' in mlmodel_mapping.keys():
-            identifier = solution[mlmodel_mapping['platform_resource_identifier']]
+        if "platform_resource_identifier" in mlmodel_mapping.keys():
+            identifier = solution[mlmodel_mapping["platform_resource_identifier"]]
 
         if not identifier:
             err_msg = "The platform identifier is mandatory."
@@ -87,57 +88,57 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
             return RecordError(identifier=id, error=err_msg)
 
         name = ""
-        if 'name' in mlmodel_mapping.keys():
-            name = solution[mlmodel_mapping['name']]
+        if "name" in mlmodel_mapping.keys():
+            name = solution[mlmodel_mapping["name"]]
 
         if not name:
             err_msg = "The name field is mandatory."
             return RecordError(identifier=id, error=err_msg)
 
         date_published = ""
-        if 'date_published' in mlmodel_mapping.keys():
-            date_published = solution[mlmodel_mapping['date_published']]
+        if "date_published" in mlmodel_mapping.keys():
+            date_published = solution[mlmodel_mapping["date_published"]]
 
         # TODO: Review the AIBuilder schema to map version
         version = ""
-        if 'version' in mlmodel_mapping.keys():
-            version = solution[mlmodel_mapping['version']]
+        if "version" in mlmodel_mapping.keys():
+            version = solution[mlmodel_mapping["version"]]
 
         description = ""
-        if 'description' in mlmodel_mapping.keys():
-            description = _description_format(solution[mlmodel_mapping['description']])
+        if "description" in mlmodel_mapping.keys():
+            description = _description_format(solution[mlmodel_mapping["description"]])
 
         # TODO: Review the AIBuilder schema to map distribution
         distribution = []
-        if 'distribution' in mlmodel_mapping.keys():
-            distribution = _distributions_format(solution[mlmodel_mapping['distribution']])
+        if "distribution" in mlmodel_mapping.keys():
+            distribution = _distribution_format(solution[mlmodel_mapping["distribution"]])
 
         tags = []
-        if 'keyword' in mlmodel_mapping.keys():
-            tags = solution[mlmodel_mapping['keyword']]
+        if "keyword" in mlmodel_mapping.keys():
+            tags = solution[mlmodel_mapping["keyword"]]
 
         # TODO: Review the AIBuilder schema to map license
         license = ""
-        if 'license' in mlmodel_mapping.keys():
-            license = solution[mlmodel_mapping['license']]
+        if "license" in mlmodel_mapping.keys():
+            license = solution[mlmodel_mapping["license"]]
 
         related_resources = {}
 
-        if 'contact' in mlmodel_mapping.keys():
+        if "contact" in mlmodel_mapping.keys():
             pydantic_class_contact = resource_create(Contact)
             contact_names = [
                 pydantic_class_contact(name=name)
-                for name in _as_list(solution[mlmodel_mapping['contact']])
+                for name in _as_list(solution[mlmodel_mapping["contact"]])
             ]
-            related_resources['contact'] = contact_names
+            related_resources["contact"] = contact_names
 
-        if 'creator' in mlmodel_mapping.keys():
+        if "creator" in mlmodel_mapping.keys():
             pydantic_class_creator = resource_create(Contact)
             creator_names = [
                 pydantic_class_creator(name=name)
-                for name in _as_list(solution[mlmodel_mapping['creator']])
+                for name in _as_list(solution[mlmodel_mapping["creator"]])
             ]
-            related_resources['creator'] = creator_names
+            related_resources["creator"] = creator_names
 
         pydantic_class = resource_create(MLModel)
         mlmodel = pydantic_class(
@@ -145,10 +146,12 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
             platform_resource_identifier=identifier,
             name=name,
             date_published=date_published,
-            same_as=url, # TODO: Review the concept of having the TOKEN inside the url!!!
+            same_as=url,  # TODO: Review the concept of having the TOKEN inside the url!!!
             is_accessible_for_free=True,
             version=version,
-            aiod_entry=AIoDEntryCreate(status="published",),
+            aiod_entry=AIoDEntryCreate(
+                status="published",
+            ),
             description=description,
             distribution=distribution,
             keyword=tags,
@@ -171,7 +174,7 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
         # TODO: The AIBuilder API will soon include date search for the catalog list of solutions.
 
         self.is_concluded = False
-        
+
         if not self._is_aware(from_incl):
             from_incl = from_incl.replace(tzinfo=pytz.UTC)
         if not self._is_aware(to_excl):
@@ -185,7 +188,7 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
             return
 
         try:
-            catalog_list = [catalog['catalogId'] for catalog in response]
+            catalog_list = [catalog["catalogId"] for catalog in response]
         except Exception as e:
             self.is_concluded = True
             yield None, RecordError(identifier=None, error=e)
@@ -207,8 +210,9 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
 
             try:
                 solutions_list = [
-                    solution['fullId'] for solution in response
-                    if from_incl <= datetime.fromisoformat(solution['lastModified']) < to_excl
+                    solution["fullId"]
+                    for solution in response
+                    if from_incl <= datetime.fromisoformat(solution["lastModified"]) < to_excl
                 ]
             except Exception as e:
                 self.is_concluded = num_catalog == len(catalog_list) - 1
@@ -223,38 +227,41 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
                 response = self.get_response(url_get_solution).json()
                 if isinstance(response, RecordError):
                     self.is_concluded = (
-                        num_catalog == len(catalog_list) - 1 and
-                        num_solution == len(solutions_list) - 1
+                        num_catalog == len(catalog_list) - 1
+                        and num_solution == len(solutions_list) - 1
                     )
                     yield None, response
 
                 try:
                     self.is_concluded = (
-                        num_catalog == len(catalog_list) - 1 and
-                        num_solution == len(solutions_list) - 1
+                        num_catalog == len(catalog_list) - 1
+                        and num_solution == len(solutions_list) - 1
                     )
                     yield (
-                        datetime.fromisoformat(response['lastModified']),
-                        self._mlmodel_from_solution(response, solution, url_get_solution)
+                        datetime.fromisoformat(response["lastModified"]),
+                        self._mlmodel_from_solution(response, solution, url_get_solution),
                     )
                 except Exception as e:
                     self.is_concluded = (
-                        num_catalog == len(catalog_list) - 1 and
-                        num_solution == len(solutions_list) - 1
+                        num_catalog == len(catalog_list) - 1
+                        and num_solution == len(solutions_list) - 1
                     )
                     yield None, RecordError(identifier=solution, error=e)
+
 
 def _description_format(description: str) -> Text:
     if not description:
         description = ""
     if len(description) > field_length.LONG:
         text_break = " [...]"
-        description = description[:field_length.LONG-len(text_break)] + text_break
+        description = description[: field_length.LONG - len(text_break)] + text_break
     return Text(plain=description)
+
 
 # TODO: Review the AIBuilder schema to map distribution
 def _distribution_format(distribution) -> list[RunnableDistribution]:
     return []
+
 
 def _as_list(value: Any | list[Any]) -> list[Any]:
     """Wrap it with a list, if it is not a list"""

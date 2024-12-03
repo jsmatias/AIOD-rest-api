@@ -12,9 +12,10 @@ from database.model.platform.platform_names import PlatformName
 from tests.testutils.paths import path_test_resources
 from database.model.ai_resource.text import Text
 
+
 def test_fetch_happy_path():
     connector = AIBuilderMLModelConnector()
-    test_resources_path = os.path.join(path_test_resources, "connectors", "aibuilder")
+    test_resources_path = os.path.join(path_test_resources(), "connectors", "aibuilder")
     catalog_list_path = os.path.join(test_resources_path, "catalog_list.json")
     catalog_list_url = f"{API_URL}/get_catalog_list?apiToken={TOKEN}"
     catalog_solutions_path = os.path.join(test_resources_path, "catalog_solutions.json")
@@ -28,30 +29,31 @@ def test_fetch_happy_path():
     expected_resources = []
     fetched_resources = []
     with responses.RequestsMock() as mocked_requests:
-        with open(catalog_list_path, 'r') as f:
+        with open(catalog_list_path, "r") as f:
             response = json.load(f)
         mocked_requests.add(responses.GET, catalog_list_url, json=response, status=200)
-        with open(catalog_solutions_path, 'r') as f:
+        with open(catalog_solutions_path, "r") as f:
             response = json.load(f)
         mocked_requests.add(responses.GET, catalog_solutions_url, json=response, status=200)
-        with open(solution_1_path, 'r') as f:
+        with open(solution_1_path, "r") as f:
             response = json.load(f)
             expected_resources.append(response)
         mocked_requests.add(responses.GET, solution_1_url, json=response, status=200)
-        with open(solution_2_path, 'r') as f:
+        with open(solution_2_path, "r") as f:
             response = json.load(f)
             expected_resources.append(response)
         mocked_requests.add(responses.GET, solution_2_url, json=response, status=200)
         fetched_resources = list(connector.fetch(mocked_datetime_from, mocked_datetime_to))
 
     assert len(fetched_resources) == len(expected_resources)
-    for i, (datetime, mlmodel) in enumerate(fetched_resources):
-        assert datetime == mocked_datetime_from
-        assert type(mlmodel) == ResourceWithRelations[MLModel]
-        assert mlmodel.platform == PlatformName.aibuilder
-        assert mlmodel.platform_resource_identifier == str(i)
-        assert mlmodel.name == f"Mocking Full Solution {i}"
-        assert mlmodel.date_published == "2023-09-01T00:00:00Z"
-        assert mlmodel.description == Text(plain=f"The mocked full solution {i}.")
-        assert set(mlmodel.keyword) == {f"Mocked tag {i}."}
-        assert mlmodel.is_accessible_for_free
+    for i, (last_modified, mlmodel) in enumerate(fetched_resources):
+        assert last_modified == mocked_datetime_from
+        assert type(mlmodel) == ResourceWithRelations
+        assert mlmodel.resource_ORM_class == MLModel
+        assert mlmodel.resource.platform == PlatformName.aibuilder
+        assert mlmodel.resource.platform_resource_identifier == str(i + 1)
+        assert mlmodel.resource.name == f"Mocking Full Solution {i + 1}"
+        assert mlmodel.resource.date_published == mocked_datetime_from
+        assert mlmodel.resource.description == Text(plain=f"The mocked full solution {i + 1}.")
+        assert set(mlmodel.resource.keyword) == {f"Mocked tag {i + 1}."}
+        assert mlmodel.resource.is_accessible_for_free
