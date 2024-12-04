@@ -207,6 +207,7 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
             if isinstance(response, RecordError):
                 self.is_concluded = num_catalog == len(catalog_list) - 1
                 yield None, response
+                continue
 
             try:
                 solutions_list = [
@@ -217,10 +218,12 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
             except Exception as e:
                 self.is_concluded = num_catalog == len(catalog_list) - 1
                 yield None, RecordError(identifier=None, error=e)
+                continue
 
             if len(solutions_list) == 0:
                 self.is_concluded = num_catalog == len(catalog_list) - 1
                 yield None, RecordError(identifier=None, error="Empty solution list.", ignore=True)
+                continue
 
             for num_solution, solution in enumerate(solutions_list):
                 url_get_solution = f"{API_URL}/get_solution?fullId={solution}&apiToken={TOKEN}"
@@ -231,6 +234,7 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
                         and num_solution == len(solutions_list) - 1
                     )
                     yield None, response
+                    continue
 
                 try:
                     self.is_concluded = (
