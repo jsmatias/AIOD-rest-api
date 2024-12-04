@@ -172,8 +172,6 @@ def test_catalog_solutions_http_error():
     assert resource.identifier is None
     assert type(resource.error) == HTTPError
     assert str(resource.error) == err_msg
-    # TODO: assert continuation when just one instance of several catalogs fails
-    #       (not connector.is_concluded and next resources)
 
 
 def test_catalog_solutions_format_error():
@@ -198,8 +196,6 @@ def test_catalog_solutions_format_error():
     assert resource.identifier is None
     assert type(resource.error) == KeyError
     assert str(resource.error) == "'fullId'"
-    # TODO: assert continuation when just one instance of several catalogs fails
-    #       (not connector.is_concluded and next resources)
 
 
 def test_empty_catalog_solutions():
@@ -221,8 +217,6 @@ def test_empty_catalog_solutions():
     assert type(resource) == RecordError
     assert resource.identifier is None
     assert resource.error == "Empty solution list."
-    # TODO: assert continuation when just one instance of several catalogs fails
-    #       (not connector.is_concluded and next resources)
 
 
 def test_solution_http_error():
