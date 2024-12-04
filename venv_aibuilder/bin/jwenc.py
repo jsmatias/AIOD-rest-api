@@ -4,7 +4,7 @@ import argparse
 
 import sys
 
-__author__ = 'rohe0002'
+__author__ = "rohe0002"
 
 import requests
 from jwkest.jwk import load_jwks_from_url, RSAKey
@@ -35,28 +35,21 @@ def lrequest(url, method="GET", **kwargs):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', dest='debug', action='store_true',
-                        help="Print debug information")
-    parser.add_argument('-v', dest='verbose', action='store_true',
-                        help="Print runtime information")
-    parser.add_argument('-x', dest="x509_file",
-                        help="File containing a X509 certificate")
-    parser.add_argument('-X', dest="x509_url",
-                        help="URL pointing to a file containing a X509 "
-                             "certificate")
-    parser.add_argument('-j', dest="jwk_file",
-                        help="File containing a JWK")
-    parser.add_argument('-J', dest="jwk_url",
-                        help="URL pointing to a file containing a JWK")
-    parser.add_argument('-r', dest="rsa_file",
-                        help="A file containing a RSA key")
-    parser.add_argument('-a', dest="alg",
-                        help="The encryption algorithm")
+    parser.add_argument("-d", dest="debug", action="store_true", help="Print debug information")
+    parser.add_argument("-v", dest="verbose", action="store_true", help="Print runtime information")
+    parser.add_argument("-x", dest="x509_file", help="File containing a X509 certificate")
+    parser.add_argument(
+        "-X", dest="x509_url", help="URL pointing to a file containing a X509 " "certificate"
+    )
+    parser.add_argument("-j", dest="jwk_file", help="File containing a JWK")
+    parser.add_argument("-J", dest="jwk_url", help="URL pointing to a file containing a JWK")
+    parser.add_argument("-r", dest="rsa_file", help="A file containing a RSA key")
+    parser.add_argument("-a", dest="alg", help="The encryption algorithm")
     parser.add_argument("-e", dest="enc", help="The encryption method")
-    parser.add_argument("-m", dest="mode", default="public",
-                        help="Whether a public or private key should be used")
-    parser.add_argument("-f", dest="file",
-                        help="File to be encrypted")
+    parser.add_argument(
+        "-m", dest="mode", default="public", help="Whether a public or private key should be used"
+    )
+    parser.add_argument("-f", dest="file", help="File to be encrypted")
     parser.add_argument("message", nargs="?", help="The message to encrypt")
 
     args = parser.parse_args()
@@ -68,8 +61,7 @@ if __name__ == "__main__":
         keys = load_jwks(open(args.jwk_file).read())
     elif args.x509_url:
         # load_x509_cert returns list of 2-tuples
-        keys = [RSAKey(key=x) for x, y in load_x509_cert(lrequest,
-                                                         args.x509_url)]
+        keys = [RSAKey(key=x) for x, y in load_x509_cert(lrequest, args.x509_url)]
         for key in keys:
             key.serialize()
     elif args.x509_file:
@@ -95,8 +87,7 @@ if __name__ == "__main__":
         exit()
 
     if args.alg not in SUPPORTED["alg"]:
-        print("Encryption algorithm %s not supported", args.alg,
-              file=sys.stderr)
+        print("Encryption algorithm %s not supported", args.alg, file=sys.stderr)
         print("Algorithms supported: %s", SUPPORTED["alg"], file=sys.stderr)
         exit()
 

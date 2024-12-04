@@ -5,14 +5,12 @@ from jwkest.jwk import RSAKey
 from jwkest.jwk import rsa_load
 from jwkest.jwk import dump_jwks
 
-__author__ = 'rolandh'
+__author__ = "rolandh"
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-n', dest="name", default="pyoidc",
-                    help="file names")
-parser.add_argument('-p', dest="path", default=".",
-                    help="Path to the directory for the files")
-parser.add_argument('-k', dest="key", help="Key file")
+parser.add_argument("-n", dest="name", default="pyoidc", help="file names")
+parser.add_argument("-p", dest="path", default=".", help="Path to the directory for the files")
+parser.add_argument("-k", dest="key", help="Key file")
 
 args = parser.parse_args()
 

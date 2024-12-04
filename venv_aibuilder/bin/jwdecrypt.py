@@ -1,7 +1,7 @@
 #!/Users/adrian/Documents/Repositorios/AIOD_aibuilder/venv_aibuilder/bin/python
 import sys
 
-__author__ = 'rohe0002'
+__author__ = "rohe0002"
 
 import argparse
 import requests
@@ -29,21 +29,16 @@ def lrequest(url, method="GET", **kwargs):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', dest='debug', action='store_true',
-                        help="Print debug information")
+    parser.add_argument("-d", dest="debug", action="store_true", help="Print debug information")
     #    parser.add_argument('-v', dest='verbose', action='store_true',
     #                        help="Print runtime information")
-    parser.add_argument('-x', dest="x509_file",
-                        help="File containing a X509 certificate")
-    parser.add_argument('-X', dest="x509_url",
-                        help="URL pointing to a file containing a X509 "
-                             "certificate")
-    parser.add_argument('-j', dest="jwk_file",
-                        help="File containing a JWK")
-    parser.add_argument('-J', dest="jwk_url",
-                        help="URL pointing to a file containing a JWK")
-    parser.add_argument('-r', dest="rsa_file",
-                        help="A file containing a RSA key")
+    parser.add_argument("-x", dest="x509_file", help="File containing a X509 certificate")
+    parser.add_argument(
+        "-X", dest="x509_url", help="URL pointing to a file containing a X509 " "certificate"
+    )
+    parser.add_argument("-j", dest="jwk_file", help="File containing a JWK")
+    parser.add_argument("-J", dest="jwk_url", help="URL pointing to a file containing a JWK")
+    parser.add_argument("-r", dest="rsa_file", help="A file containing a RSA key")
     parser.add_argument("-i", dest="int", help="Integrity method")
     parser.add_argument("-f", dest="file", help="File with the message")
     parser.add_argument("message", nargs="?", help="The message to encrypt")

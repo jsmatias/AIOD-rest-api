@@ -5,7 +5,7 @@ import argparse
 import os
 from jwkest.jwk import RSAKey
 
-__author__ = 'rolandh'
+__author__ = "rolandh"
 
 
 def create_and_store_rsa_key_pair(name="pyoidc", path=".", size=1024):
@@ -30,15 +30,13 @@ def create_and_store_rsa_key_pair(name="pyoidc", path=".", size=1024):
 
     return key
 
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', dest="name", default="pyoidc",
-                        help="file names")
-    parser.add_argument('-p', dest="path", default=".",
-                        help="Path to the directory for the files")
-    parser.add_argument('-s', dest="size", default=1024,
-                        help="Key size", type=int)
+    parser.add_argument("-n", dest="name", default="pyoidc", help="file names")
+    parser.add_argument("-p", dest="path", default=".", help="Path to the directory for the files")
+    parser.add_argument("-s", dest="size", default=1024, help="Key size", type=int)
 
     args = parser.parse_args()
 

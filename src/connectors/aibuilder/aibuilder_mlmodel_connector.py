@@ -62,7 +62,7 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
             logging.error(err_msg)
             err = HTTPError(err_msg)
             return RecordError(identifier=None, error=err)
-        return response
+        return response.json()
 
     def _is_aware(self, date):
         return date.tzinfo is not None and date.tzinfo.utcoffset(date) is not None
@@ -181,7 +181,7 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
             to_excl = to_excl.replace(tzinfo=pytz.UTC)
 
         url_get_catalog_list = f"{API_URL}/get_catalog_list?apiToken={TOKEN}"
-        response = self.get_response(url_get_catalog_list).json()
+        response = self.get_response(url_get_catalog_list)
         if isinstance(response, RecordError):
             self.is_concluded = True
             yield None, response
@@ -203,7 +203,7 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
             url_get_catalog_solutions = (
                 f"{API_URL}/get_catalog_solutions?catalogId={catalog}&apiToken={TOKEN}"
             )
-            response = self.get_response(url_get_catalog_solutions).json()
+            response = self.get_response(url_get_catalog_solutions)
             if isinstance(response, RecordError):
                 self.is_concluded = num_catalog == len(catalog_list) - 1
                 yield None, response
@@ -224,7 +224,7 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
 
             for num_solution, solution in enumerate(solutions_list):
                 url_get_solution = f"{API_URL}/get_solution?fullId={solution}&apiToken={TOKEN}"
-                response = self.get_response(url_get_solution).json()
+                response = self.get_response(url_get_solution)
                 if isinstance(response, RecordError):
                     self.is_concluded = (
                         num_catalog == len(catalog_list) - 1

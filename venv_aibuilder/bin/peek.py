@@ -3,7 +3,7 @@ import sys
 from jwkest import jwe
 from jwkest import jws
 
-__author__ = 'roland'
+__author__ = "roland"
 
 jwt = sys.argv[1]
 
