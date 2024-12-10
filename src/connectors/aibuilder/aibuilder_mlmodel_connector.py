@@ -241,6 +241,7 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
 
             for num_solution, solution in enumerate(solutions_list):
                 url_get_solution = f"{API_URL}/get_solution?fullId={solution}&apiToken={TOKEN}"
+                url_to_show = f"{API_URL}/get_solution?fullId={solution}&apiToken=API_TOKEN"
                 response = self.get_response(url_get_solution)
                 if isinstance(response, RecordError):
                     self.is_concluded = (
@@ -257,7 +258,7 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
                     )
                     yield (
                         datetime.fromisoformat(response["lastModified"]),
-                        self._mlmodel_from_solution(response, solution, url_get_solution),
+                        self._mlmodel_from_solution(response, solution, url_to_show),
                     )
                 except Exception as e:
                     self.is_concluded = (
