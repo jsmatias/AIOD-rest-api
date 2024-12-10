@@ -255,7 +255,8 @@ class SearchRouter(Generic[RESOURCE], abc.ABC):
         }
         resource = read_class(**kwargs)
         resource.aiod_entry = AIoDEntryRead(
-            date_modified=resource_dict["date_modified"], status=None
+            date_modified=resource_dict["date_modified"],
+            status=resource_dict["status"],
         )
         resource.description = {
             "plain": resource_dict["description_plain"],

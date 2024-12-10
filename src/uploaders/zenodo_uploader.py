@@ -13,7 +13,7 @@ from config import REQUEST_TIMEOUT
 from database.model.agent.contact import Contact
 from database.model.ai_asset.license import License
 from database.model.ai_resource.text import TextORM
-from database.model.concept.status import Status
+from database.model.concept.aiod_entry import EntryStatus
 from database.model.dataset.dataset import Dataset
 from database.model.platform.platform_names import PlatformName
 from database.session import DbSession
@@ -58,7 +58,7 @@ class ZenodoUploader(Uploader):
                 repo_id = platform_resource_id.split(":")[-1]
                 zenodo_metadata = self._get_metadata_from_zenodo(repo_id, token)
 
-                if dataset.aiod_entry.status and dataset.aiod_entry.status.name == "published":
+                if dataset.aiod_entry.status and dataset.aiod_entry.status == "published":
                     raise HTTPException(
                         status_code=status.HTTP_409_CONFLICT,
                         detail=(
@@ -77,10 +77,7 @@ class ZenodoUploader(Uploader):
                 record_url = new_zenodo_metadata["links"]["record"]
                 distribution = self._get_distribution(repo_id, token, record_url)
 
-                new_status = session.query(Status).filter(
-                    Status.name == "published"
-                ).first() or Status(name="published")
-                dataset.aiod_entry.status = new_status
+                dataset.aiod_entry.status = EntryStatus.PUBLISHED
                 dataset.date_published = datetime.utcnow()
             else:
                 distribution = self._get_distribution(repo_id, token)

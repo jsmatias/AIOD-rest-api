@@ -1,17 +1,23 @@
 from starlette.testclient import TestClient
 
-from database.model.concept.status import Status
 from database.session import DbSession
+from database.model.concept.aiod_entry import EntryStatus
 from tests.testutils.test_resource import factory
 
 
-def test_get_all_happy_path(client_test_resource: TestClient, draft: Status):
+def test_get_all_happy_path(client_test_resource: TestClient):
     with DbSession() as session:
         session.add_all(
             [
-                factory(title="my_test_resource_1", status=draft, platform_resource_identifier="2"),
                 factory(
-                    title="My second test resource", status=draft, platform_resource_identifier="3"
+                    title="my_test_resource_1",
+                    status=EntryStatus.DRAFT,
+                    platform_resource_identifier="2",
+                ),
+                factory(
+                    title="My second test resource",
+                    status=EntryStatus.DRAFT,
+                    platform_resource_identifier="3",
                 ),
             ]
         )

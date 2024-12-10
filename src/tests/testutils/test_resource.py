@@ -6,9 +6,8 @@ from typing import Type
 
 from sqlmodel import Field
 
-from database.model.concept.aiod_entry import AIoDEntryORM
+from database.model.concept.aiod_entry import AIoDEntryORM, EntryStatus
 from database.model.concept.concept import AIoDConcept, AIoDConceptBase
-from database.model.concept.status import Status
 from routers.resource_router import ResourceRouter
 
 
@@ -24,7 +23,7 @@ def factory(
     title=None, status=None, platform="example", platform_resource_identifier="1", date_deleted=None
 ):
     if status is None:
-        status = Status(name="draft")
+        status = EntryStatus.DRAFT
     return TestResource(
         title=title,
         platform=platform,

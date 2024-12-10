@@ -4,24 +4,29 @@ from starlette.testclient import TestClient
 
 from database.model.agent.contact import Contact
 from database.model.agent.person import Person
-from database.model.concept.aiod_entry import AIoDEntryORM
-from database.model.concept.status import Status
+from database.model.concept.aiod_entry import AIoDEntryORM, EntryStatus
 from database.model.knowledge_asset.publication import Publication
 from database.session import DbSession
 from tests.testutils.test_resource import factory
 
 
-def test_get_count_happy_path(client_test_resource: TestClient, draft: Status):
+def test_get_count_happy_path(client_test_resource: TestClient):
     with DbSession() as session:
         session.add_all(
             [
-                factory(title="my_test_resource_1", status=draft, platform_resource_identifier="1"),
                 factory(
-                    title="My second test resource", status=draft, platform_resource_identifier="2"
+                    title="my_test_resource_1",
+                    status=EntryStatus.DRAFT,
+                    platform_resource_identifier="1",
+                ),
+                factory(
+                    title="My second test resource",
+                    status=EntryStatus.DRAFT,
+                    platform_resource_identifier="2",
                 ),
                 factory(
                     title="My third test resource",
-                    status=draft,
+                    status=EntryStatus.DRAFT,
                     platform_resource_identifier="3",
                     date_deleted=datetime.datetime.now(),
                 ),
@@ -36,30 +41,36 @@ def test_get_count_happy_path(client_test_resource: TestClient, draft: Status):
     assert "deprecated" not in response.headers
 
 
-def test_get_count_detailed_happy_path(client_test_resource: TestClient, draft: Status):
+def test_get_count_detailed_happy_path(client_test_resource: TestClient):
     with DbSession() as session:
         session.add_all(
             [
-                factory(title="my_test_resource_1", status=draft, platform_resource_identifier="1"),
                 factory(
-                    title="My second test resource", status=draft, platform_resource_identifier="2"
+                    title="my_test_resource_1",
+                    status=EntryStatus.DRAFT,
+                    platform_resource_identifier="1",
+                ),
+                factory(
+                    title="My second test resource",
+                    status=EntryStatus.DRAFT,
+                    platform_resource_identifier="2",
                 ),
                 factory(
                     title="My third test resource",
-                    status=draft,
+                    status=EntryStatus.DRAFT,
                     platform_resource_identifier="3",
                     date_deleted=datetime.datetime.now(),
                     platform="openml",
                 ),
                 factory(
                     title="My third test resource",
-                    status=draft,
+                    status=EntryStatus.DRAFT,
                     platform_resource_identifier="4",
                     platform="openml",
                 ),
                 factory(
                     title="My fourth test resource",
-                    status=draft,
+                    status=EntryStatus.DRAFT,
                     platform=None,
                     platform_resource_identifier=None,
                 ),
