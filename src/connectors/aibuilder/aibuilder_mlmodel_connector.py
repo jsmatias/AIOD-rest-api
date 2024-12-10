@@ -39,6 +39,11 @@ ONE_HOUR = 3600
 
 
 class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
+    """The class that implements the AIBuilder MLModel Connector.
+    It inheritates from `ResourceConnectorByDate` because the AIBuilder
+    platform entities have a `lastModified` field.
+    """
+
     @property
     def resource_class(self) -> type[MLModel]:
         return MLModel
@@ -53,7 +58,11 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
     @sleep_and_retry
     @limits(calls=GLOBAL_MAX_CALLS_MINUTE, period=ONE_MINUTE)
     @limits(calls=GLOBAL_MAX_CALLS_HOUR, period=ONE_HOUR)
-    def get_response(self, url) -> requests.Response | RecordError:
+    def get_response(self, url) -> dict | list | RecordError:
+        """
+        Performs the `url` request checking for correctness and returns the
+        `list` or `dict`structure received or a `RecordError`.
+        """
         response = requests.get(url, timeout=REQUEST_TIMEOUT)
         if not response.ok:
             status_code = response.status_code
@@ -65,11 +74,16 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
         return response.json()
 
     def _is_aware(self, date):
+        """Returns True if `date` is a timezone-aware `datetime`."""
         return date.tzinfo is not None and date.tzinfo.utcoffset(date) is not None
 
     def _mlmodel_from_solution(
         self, solution: dict, id: str, url: str
     ) -> ResourceWithRelations[MLModel] | RecordError:
+        """
+        Generates an fills a `ResourceWithRelations` object with the `MlModel`
+        attributes received in a `dict`.
+        """
 
         if not set(mlmodel_mapping.values()) <= set(solution.keys()):
             err_msg = "Bad structure on the received solution."
@@ -254,6 +268,7 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
 
 
 def _description_format(description: str) -> Text:
+    """Generates a `Text` class with a plain text description from a `str`."""
     if not description:
         description = ""
     if len(description) > field_length.LONG:
