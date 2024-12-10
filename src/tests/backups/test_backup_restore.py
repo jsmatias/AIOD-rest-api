@@ -166,6 +166,8 @@ def test_restore_happy_path(data_environment: DataEnvironment):
     time.sleep(0.1)  # See #387
 
     backup()
+    microsecond = 10**-6
+    time.sleep(microsecond)  # See #387
     restore()
 
     assert not file1.exists(), f"{file1} shouldn't be here."
