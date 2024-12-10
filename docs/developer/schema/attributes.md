@@ -1,6 +1,6 @@
 # Working with Attributes
 In the metadata schema, every object has attributes that are represented by simple types like strings and numbers. 
-For example,`News` objects have a `source` and `Publication`s have a `title`.
+For example,`News` objects have a `source` and `Publication` objects have a `title`.
 This page details how to change attributes on existing metadata types.
 
 Here is an example of the code that defines the `start_time` attribute of the `Event` class:
@@ -14,7 +14,7 @@ class EventBase(AIResourceBase):
     )
 ```
 Let's unpack this statement. 
-The `start_date: datetime` defines the name of the attribute (`start_date`) and the type of the attribute (`datetime`).
+The `start_date: datetime` defines the name of the attribute (`start_date`) and the type of the attribute (`datetime | None`, an optional datetime object).
 [Python type hints](https://docs.python.org/3/library/typing.html) are used by `Pydantic` to do input validation, and by `SQLAlchemy` to infer column types in the database - this all happens "under the hood" by `SQLModel`.
 The `Field` object allows to define additional information about the attribute:
 
@@ -37,6 +37,29 @@ This guide will discuss them in order, using the example of adding a `source` at
 ### Updating the schema in Python
 
 Navigate to the asset definition you want to change. For simple attributes this is the class that ends in "Base", e.g., "NewsBase". There, add the attribute and define its metadata through adding type hints and setting it to a [SQLModel Field](https://sqlmodel.tiangolo.com/tutorial/create-db-and-table/#define-the-fields-columns). There are already examples in the code base of many different types of constraints (e.g., string minimum or maximum lengths, specifying defaults, and so on).
+
+???- info "Working with Strings"
+
+    In Python there is no limit to the amount of characters in a string. 
+    However, when working with a database it may be wise to put constraints on the length of the string.
+    This is more efficient and may in some cases lead to avoiding unwanted mistakes.
+    When picking a string length, please choose from the pre-existing options in `src.database.model.field_length.py`.
+    If in doubt, go for a larger size.
+
+    ???- note "Example: event name"
+    
+        Assume that we wanted to add a "name" field to `Event` to store its name. 
+        We might consider a few examples names, such as "Hacktoberfest" or "Forty-Second International Conference on Machine Learning".
+        Both fall under 64 characters (`SHORT`), but the latter is already cutting it close.
+        In that case, it's probably smart to go one bigger: 256 characters (`NORMAL`).
+
+        ```python
+        from database.model.field_length import NORMAL
+
+        class Event(...):
+            name: str = Field(max_length=NORMAL, schema_extra={"example": "The name of this event."})
+        ```
+
 
 ### Adding or updating tests that reflect the change
 Most of the time, it should be sufficient to navigate to the tests of the resource router for the resource you are trying to edit. In many cases, there is only one such test in a file named `test_router_ASSET_TYPE.py` where `ASSET_TYPE` is e.g., "news", and the one test is called "test_happy_path". Here, you may add or update a line that tests setting the specific attribute that is added.
@@ -64,22 +87,28 @@ Below, you'll find some examples.
 
     ```python
     def upgrade() -> None:
-        pass
+        op.add_column(
+            table_name="news",
+            column=Column("source", String(LONG), nullable=True),
+        )
 
 
     def downgrade() -> None:
-        pass
+        op.drop_column(table_name="news", column_name="source")
     ```
 
 === "Required Integer"
 
     ```python
     def upgrade() -> None:
-        pass
+        op.add_column(
+            table_name="event",
+            column=Column("max_participants", int, nullable=False),
+        )
 
 
     def downgrade() -> None:
-        pass
+        op.drop_column(table_name="event", column_name="max_participants")
     ```
 
 
@@ -87,3 +116,5 @@ Pay attention to:
   - Specifying whether or not the column is nullable. `sqlalchemy.Column`s are nullable by default. We strongly encourage you to make this explicit.
   - The name of the column. Getting the name of the table wrong should result in an error during migration, but getting the name of the column wrong will simply lead to unexpected errors in the REST API.
   - Any other constraints, such as the maximum length of a string.
+
+Note that downgrading procedures may lead to a loss of data. This is unavoidable.
