@@ -132,12 +132,16 @@ It follows the same structure as the default file, but you only need to specify 
 You can specify different connectors using
 
 ```bash
-docker compose --profile examples --profile huggingface-datasets --profile openml --profile zenodo-datasets up -d
-docker compose --profile examples --profile huggingface-datasets --profile openml --profile zenodo-datasets down
+docker compose --profile aibuilder --profile examples --profile huggingface-datasets --profile openml --profile zenodo-datasets up -d
+docker compose --profile aibuilder --profile examples --profile huggingface-datasets --profile openml --profile zenodo-datasets down
 ```
 
 Make sure you use the same profile for `up` and `down`, or use `./scripts/down.sh` (see below),
 otherwise some containers might keep running.
+
+##### Configuring AIBuilder connector
+To access the AIBuilder API you need to provide a valid API token though the `API_TOKEN` variable. \
+Use the `override.env` file for that as explained above.
 
 ### Shorthands
 We provide two auxiliary scripts for launching docker containers and bringing them down.
@@ -149,10 +153,6 @@ E.g., with `USE_LOCAL_DEV` set to `true`, `./scripts/up.sh` resolves to:
 `docker compose --env-file=.env --env-file=override.env -f docker-compose.yaml -f docker-compose.dev.yaml --profile examples  up -d`
 
 The second script is a convenience for bringing down all services, including all profiles: `./scripts/down.sh`
-
-#### Configuring AIBuilder connector
-To access the AIBuilder API you need to provide a valid API token though the `API_TOKEN` variable. \
-Use the `override.env` file for that as explained above.
 
 #### Local Installation
 
