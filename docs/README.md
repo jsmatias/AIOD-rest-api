@@ -140,8 +140,10 @@ Make sure you use the same profile for `up` and `down`, or use `./scripts/down.s
 otherwise some containers might keep running.
 
 ##### Configuring AIBuilder connector
-To access the AIBuilder API you need to provide a valid API token though the `API_TOKEN` variable. \
+To access the AIBuilder API you need to provide a valid API token trhough the `API_TOKEN` variable. \
 Use the `override.env` file for that as explained above.
+Please note that for using the url of the `same_as` field of the AIBuilder models, you will need to \
+substitute `API_TOKEN` on the url for your actual API token value.
 
 ### Shorthands
 We provide two auxiliary scripts for launching docker containers and bringing them down.
