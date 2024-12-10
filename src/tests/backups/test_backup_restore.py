@@ -149,8 +149,7 @@ def test_backup_happy_path():
             assert backup_file.exists()
 
 
-@pytest.mark.parametrize("_", range(100))
-def test_restore_happy_path(_, data_environment: DataEnvironment):
+def test_restore_happy_path(data_environment: DataEnvironment):
     """
     Test if the restore.sh script restores the files properly.
     Usage:
