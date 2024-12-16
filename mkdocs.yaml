@@ -6,6 +6,7 @@ theme:
     - content.code.copy
 
 nav:
+  - Home: README.md
   - Using the API: Using.md
   - Hosting the API: Hosting.md
   - 'Developer Resources':
