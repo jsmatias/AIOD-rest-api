@@ -3,7 +3,7 @@ In the metadata schema, every object has attributes that are represented by simp
 For example,`News` objects have a `source` and `Publication` objects have a `title`.
 This page details how to change attributes on existing metadata types.
 
-Here is an example of the code that defines the `start_time` attribute of the `Event` class:
+Here is an example of the code that defines the `start_date` attribute of the `Event` class:
 ```python
 class EventBase(AIResourceBase):
     start_date: datetime | None = Field(
