@@ -14,6 +14,7 @@ def test_happy_path(
     body["alternative_headline"] = "An alternative headline."
     body["category"] = ["research: education", "research: awards", "business: health"]
     body["content"] = {"plain": "plain content"}
+    body["source"] = "https://tailor-network.eu/shaping-the-future-of-ai-within-the-eu/"
 
     response = client.post("/news/v1", json=body, headers={"Authorization": "Fake token"})
     assert response.status_code == 200, response.json()
@@ -24,6 +25,10 @@ def test_happy_path(
     response_json = response.json()
     assert response_json["headline"] == "A headline to show on top of the page."
     assert response_json["alternative_headline"] == "An alternative headline."
+    assert (
+        response_json["source"]
+        == "https://tailor-network.eu/shaping-the-future-of-ai-within-the-eu/"
+    )
     assert set(response_json["category"]) == {
         "research: education",
         "research: awards",
