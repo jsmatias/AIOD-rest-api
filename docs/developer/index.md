@@ -1,4 +1,10 @@
-# AIoD API 
+# Metadata Catalogue API 
+
+!!! note
+    
+    This page was the old readme. Re-organizing and updating it into our structured documentation
+    pages is work in progress. This page will serve as an overview page that serves as a 
+    "getting started" page and quick reference, with references to pages with in-depth information.
 
 This repository contains the AI on Demand (AIoD) REST API. It is built with 
 [FastAPI](https://fastapi.tiangolo.com/)
@@ -34,19 +40,6 @@ Note that this synchronization process between the platform and the database, is
 the synchronization between database instances. The latter is under discussion in the AIoD 
 Synchronization Meetings. 
 
-### AIoD Metadata
-
-The models are found in `src/database/model`. The AIoD Metadata team is responsible for 
-determining the fields of the metadata, whereafter the classes are implemented in this metadata 
-catalogue. To check the existing fields, the easiest way it to start this application (see 
-"Using Docker Compose") and check the automatically generated swagger documentation 
-(http://localhost:8000/docs).
-
-We use inheritance to make sure that generic fields, such as name and description, are present 
-and consistent over all resources. A partial overview of the metadata model can be found in the 
-following figure:
-
-![AIoD Metadata model](../media/AIoD_Metadata_Model.drawio.png)
 
 ## Prerequisites
 - Linux/MacOS/Windows (should all work)
@@ -258,60 +251,3 @@ We provide several scripts to facilitate the scheduling of backups and the manua
 
 ## Releases
 
-### Breaking changes
-Breaking changes of a resource include deleting a field, changing the name of an existing field, 
-or changing the datatype of a field. Adding new fields is not a breaking change.
-
-On a breaking change for a resource (e.g. for Dataset), a new router with a new version should 
-be created. The existing router should be deprecated, and rewritten so that it can handle the 
-new metadata of the database. This deprecation of a router will be visible in the Swagger 
-documentation. Calls to a deprecated router will still work, but a response header "Deprecated" 
-will be added with the deprecation date. The deprecated router will then be deleted on the next 
-release.
-
-On non-breaking changes of a resource, a new version is not needed for the corresponding router.
-
-Example:
-- Start www.aiod.eu/api/datasets/v0
-- Release 1: www.aiod.eu/api/datasets/v0 (no breaking changes)
-- Release 2:
-  - www.aiod.eu/api/datasets/v0 (deprecated)
-  - www.aiod.eu/api/datasets/v1
-- Release 3: www.aiod.eu/api/datasets/v1
-
-### Database migration
-
-The database should always be up-to-date with the latest version of the metadata. As database 
-migration tool, [Alembic](https://alembic.sqlalchemy.org/en/latest/) is the default choice for
-SQLAlchemy. The setup of this db migration for AIOD remains a TODO for now. 
-
-### Changelog
-
-As changelog we use the Github tags. For each release, a release branch should be created with a 
-bumped version in the pyproject.toml, and merged with the master. The tag should contain a 
-message detailing all the breaking and non-breaking changes. This message should adhere to the 
-guiding principles as described in https://keepachangelog.com/. 
-
-- Show all tags: https://github.com/aiondemand/AIOD-rest-api/tags
-- Show a specific tag: https://github.com/aiondemand/AIOD-rest-api/releases/tag/0.3.20220501
-
-This information can also be extracted using the Github REST API.
-
-
-### Create a release
-To create a new release, 
-1. Make sure all requested functionality is merged with the `develop` branch.
-2. From develop: `git checkout -b release/[VERSION]`. Example of version: `1.1.20231129`
-3. Update the version in `pyproject.toml`.
-4. Test all (most of) the functionality. Checkout the project in a new directory and remove all 
-   your local images, and make sure it works out-of-the box.
-5. Go to https://github.com/aiondemand/AIOD-rest-api/releases and draft a new release from the 
-   release branch. Look at all closed PRs and create a changelog
-6. Create a PR from release branch to master
-7. After that's merged, create a PR from master to develop
-8. Deploy on the server(s):
-   - Check which services currently work (before the update). It's a sanity check for if a service _doesn't_ work later.
-   - Update the code on the server by checking out the release
-   - Merge configurations as necessary
-   - Make sure the latest database migrations are applied: see ["Schema Migrations"](developer/migration.md#update-the-database)
-9. Notify everyone (e.g., in the API channel in Slack). 

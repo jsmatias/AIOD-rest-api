@@ -15,6 +15,7 @@ nav:
           - 'Attributes': developer/schema/attributes.md
           - 'Relationships': developer/schema/relationships.md
           - 'Objects': developer/schema/objects.md
+  - 'Contributing': Contributing.md
   - 'Unorganized Docs':
       - 'Code Advice': developer/code.md
       - 'Keycloak': developer/auth.md

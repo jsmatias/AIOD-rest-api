@@ -10,18 +10,32 @@ created by the developer of FASTApi, the framework we use for routing.
 
 SQLModel makes it possible to define only a single model instead of defining the database-layer
 (SQLAlchemy) and the logic-layer (Pydantic) separately.
+Our implementation relies on inheritance to follow the same class hierarchy as defined in the [metadata schema](https://github.com/aiondemand/metadata-schema),
+this makes sure that generic fields, such as name and description, are present and consistent over all resources,
+and changes to the conceptual model and the model implementation should be similar.
+
+A partial overview of the metadata model can be found in the
+following figure:
+
+![AIoD Metadata model](../../media/AIoD_Metadata_Model.drawio.png)
+
 
 ## Reading the Conceptual Metadata Schema
-Documentation and/or a reference to how to interpret the metadata schema hosted at the dedicated repository are to be added (after meeting Thursday 12 Dec 2024).
+Tools and documentation on how to read the conceptual metadata model are currently being written.
+This section will be updated at a later date (as of 16-12-2024).
 
 ## Reading the Metadata Schema Implementation
-Documentation to be added.
+This section will be updated at a later date (as of 16-12-2024) and will describe:
+ - The use various class variants, such as `XBase`, `XORM`, `XCreate`, with a link to the ["objects"](objects.md) page.
+ - A brief discussion on how to read an attribute definition, with a link to the ["attributes"](attributes.md) page.
+ - A brief discussion on how to relationships an attribute definition, with a link to the ["relationships"](relationships.md) page.
 
 ## Changing the Metadata Schema Implementation
 On a high level, changes to the metadata schema implementation consist of three steps: 
-updating the schema implementation in [`src/database/model`](https://github.com/aiondemand/AIOD-rest-api/tree/develop/src/database/model),
-updating or adding tests which test those changes,
-and adding a [database migration script]() which updates the database accordingly.
+ 
+ * updating the schema implementation in [`src/database/model`](https://github.com/aiondemand/AIOD-rest-api/tree/develop/src/database/model),
+ * updating or adding tests which test those changes, and
+ * adding a [database migration script]() which updates the database accordingly.
 
 This last step isn't needed during development, where you may recreate a database anytime to model changes.
 However, to deploy the changed schema in production we need to be able to change the database,
