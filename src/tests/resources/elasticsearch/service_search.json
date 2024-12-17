@@ -21,7 +21,6 @@
         "_source" : {
           "identifier" : 1,
           "date_modified" : "2023-09-01T00:00:00.000Z",
-          "status": "draft",
           "name" : "A name.",
           "platform" : "A platform.",
           "description_plain" : "A plain text description.",

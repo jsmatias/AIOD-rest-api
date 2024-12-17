@@ -4,8 +4,7 @@ TEMPLATE_SQL_SYNC = """SELECT
     {{entity_name}}.platform,
     text.plain as 'description_plain',
     text.html as 'description_html',
-    aiod_entry.date_modified as 'date_modified',
-    aiod_entry.status{{extra_fields}}{{linked_fields}}
+    aiod_entry.date_modified as 'date_modified'{{extra_fields}}{{linked_fields}}
 FROM aiod.{{entity_name}}
 INNER JOIN aiod.aiod_entry ON aiod.{{entity_name}}.aiod_entry_identifier=aiod.aiod_entry.identifier
 LEFT JOIN aiod.text ON aiod.{{entity_name}}.description_identifier\
