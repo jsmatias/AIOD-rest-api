@@ -119,11 +119,10 @@ services:
     env_file: .env
     environment:
       - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
-      - API_TOKEN=$API_TOKEN
+      - AIBUILDER_API_TOKEN=$AIBUILDER_API_TOKEN
     volumes:
       - ./src:/app
       - ${DATA_PATH}/connectors:/opt/connectors/data
-      - ./connectors/aibuilder/:/opt/connectors/script
     command: >
       /bin/bash -c "/opt/connectors/script/entry.sh"
     depends_on:

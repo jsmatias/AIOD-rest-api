@@ -30,7 +30,7 @@ from connectors.record_error import RecordError
 
 from .aibuilder_mappings import mlmodel_mapping
 
-TOKEN = os.getenv("API_TOKEN", "")
+TOKEN = os.getenv("AIBUILDER_API_TOKEN", "")
 API_URL = "https://aiexp-dev.ai4europe.eu/federation"
 GLOBAL_MAX_CALLS_MINUTE = 60
 GLOBAL_MAX_CALLS_HOUR = 2000
@@ -44,6 +44,13 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
     platform entities have a `lastModified` field.
     """
 
+    def __init__(self, token=TOKEN):
+        self.token = token
+        if self.token == "":
+            raise ValueError(
+                "You need to asign a value to AIBUILDER_API_TOKEN environment variable."
+            )
+
     @property
     def resource_class(self) -> type[MLModel]:
         return MLModel
@@ -55,6 +62,9 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
     def retry(self, identifier: int) -> ResourceWithRelations[MLModel] | RecordError:
         raise NotImplementedError("Not implemented.")
 
+    def set_token(self, token: str):
+        token = token
+
     @sleep_and_retry
     @limits(calls=GLOBAL_MAX_CALLS_MINUTE, period=ONE_MINUTE)
     @limits(calls=GLOBAL_MAX_CALLS_HOUR, period=ONE_HOUR)
@@ -63,7 +73,10 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
         Performs the `url` request checking for correctness and returns the
         `list` or `dict`structure received or a `RecordError`.
         """
-        response = requests.get(url, timeout=REQUEST_TIMEOUT)
+        try:
+            response = requests.get(url, timeout=REQUEST_TIMEOUT)
+        except Exception as e:
+            return RecordError(identifier=None, error=e)
         if not response.ok:
             status_code = response.status_code
             msg = response.json()["error"]["message"]
@@ -194,7 +207,7 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
         if not self._is_aware(to_excl):
             to_excl = to_excl.replace(tzinfo=pytz.UTC)
 
-        url_get_catalog_list = f"{API_URL}/get_catalog_list?apiToken={TOKEN}"
+        url_get_catalog_list = f"{API_URL}/get_catalog_list?apiToken={self.token}"
         response = self.get_response(url_get_catalog_list)
         if isinstance(response, RecordError):
             self.is_concluded = True
@@ -215,7 +228,7 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
 
         for num_catalog, catalog in enumerate(catalog_list):
             url_get_catalog_solutions = (
-                f"{API_URL}/get_catalog_solutions?catalogId={catalog}&apiToken={TOKEN}"
+                f"{API_URL}/get_catalog_solutions?catalogId={catalog}&apiToken={self.token}"
             )
             response = self.get_response(url_get_catalog_solutions)
             if isinstance(response, RecordError):
@@ -240,8 +253,10 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
                 continue
 
             for num_solution, solution in enumerate(solutions_list):
-                url_get_solution = f"{API_URL}/get_solution?fullId={solution}&apiToken={TOKEN}"
-                url_to_show = f"{API_URL}/get_solution?fullId={solution}&apiToken=API_TOKEN"
+                url_get_solution = f"{API_URL}/get_solution?fullId={solution}&apiToken={self.token}"
+                url_to_show = (
+                    f"{API_URL}/get_solution?fullId={solution}&apiToken=AIBUILDER_API_TOKEN"
+                )
                 response = self.get_response(url_get_solution)
                 if isinstance(response, RecordError):
                     self.is_concluded = (

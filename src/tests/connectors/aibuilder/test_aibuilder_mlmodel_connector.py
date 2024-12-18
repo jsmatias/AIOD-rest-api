@@ -6,7 +6,7 @@ from datetime import datetime
 from requests.exceptions import HTTPError
 
 from connectors.aibuilder.aibuilder_mlmodel_connector import AIBuilderMLModelConnector
-from connectors.aibuilder.aibuilder_mlmodel_connector import API_URL, TOKEN
+from connectors.aibuilder.aibuilder_mlmodel_connector import API_URL
 from connectors.resource_with_relations import ResourceWithRelations
 from connectors.record_error import RecordError
 from database.model.models_and_experiments.ml_model import MLModel
@@ -14,7 +14,8 @@ from database.model.platform.platform_names import PlatformName
 from tests.testutils.paths import path_test_resources
 from database.model.ai_resource.text import Text
 
-connector = AIBuilderMLModelConnector()
+TOKEN = "TEST_AIBUILDER_API_TOKEN"
+connector = AIBuilderMLModelConnector(f"{TOKEN}")
 test_resources_path = os.path.join(path_test_resources(), "connectors", "aibuilder")
 catalog_list_url = f"{API_URL}/get_catalog_list?apiToken={TOKEN}"
 catalog_solutions_url = f"{API_URL}/get_catalog_solutions?catalogId=1&apiToken={TOKEN}"
