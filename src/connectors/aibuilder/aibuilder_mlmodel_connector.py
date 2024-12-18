@@ -62,9 +62,6 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
     def retry(self, identifier: int) -> ResourceWithRelations[MLModel] | RecordError:
         raise NotImplementedError("Not implemented.")
 
-    def set_token(self, token: str):
-        token = token
-
     @sleep_and_retry
     @limits(calls=GLOBAL_MAX_CALLS_MINUTE, period=ONE_MINUTE)
     @limits(calls=GLOBAL_MAX_CALLS_HOUR, period=ONE_HOUR)
