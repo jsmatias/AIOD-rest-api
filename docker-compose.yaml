@@ -116,7 +116,6 @@ services:
       dockerfile: Dockerfile
     image: aiod_aibuilder_connector
     container_name: aibuilder-connector
-    env_file: .env
     environment:
       - KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
       - AIBUILDER_API_TOKEN=$AIBUILDER_API_TOKEN
