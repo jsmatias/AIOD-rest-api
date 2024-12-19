@@ -99,6 +99,24 @@ def test_fetch_happy_path_unaware_datetime():
         assert resource.resource.is_accessible_for_free
 
 
+def test_unautorized_token_error():
+    error = {"error": {"message": "Unauthorized token."}}
+    err_msg = f"Error while fetching {catalog_list_url} from AIBuilder: (401) Unauthorized token."
+    fetched_resources = []
+    with responses.RequestsMock() as mocked_requests:
+        mocked_requests.add(responses.GET, catalog_list_url, json=error, status=401)
+        fetched_resources = list(connector.fetch(mocked_datetime_from, mocked_datetime_to))
+
+    assert len(fetched_resources) == 1
+    last_modified, resource = fetched_resources[0]
+    assert last_modified is None
+    assert type(resource) == RecordError
+    assert resource.identifier is None
+    assert type(resource.error) == HTTPError
+    assert str(resource.error) == err_msg
+    assert connector.is_concluded
+
+
 def test_catalog_list_http_error():
     error = {"error": {"message": "HTTP Error."}}
     err_msg = f"Error while fetching {catalog_list_url} from AIBuilder: (500) Internal Server Error"
