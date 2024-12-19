@@ -4,7 +4,7 @@ from sqlmodel import Field, Relationship
 
 from database.model.ai_resource.resource import AbstractAIResource, AIResourceBase
 from database.model.ai_resource.text import TextORM, Text
-from database.model.field_length import NORMAL
+from database.model.field_length import NORMAL, LONG
 from database.model.helper_functions import many_to_many_link_factory
 from database.model.news.news_category import NewsCategory
 from database.model.relationships import ManyToMany, OneToOne
@@ -25,6 +25,13 @@ class NewsBase(AIResourceBase):
         description="An alternative headline given to this news item.",
         max_length=NORMAL,
         schema_extra={"example": "An alternative headline."},
+    )
+    source: str | None = Field(
+        description="Location where the news item was originally published.",
+        max_length=LONG,
+        schema_extra={
+            "example": "https://tailor-network.eu/shaping-the-future-of-ai-within-the-eu/"
+        },
     )
 
 
