@@ -9,6 +9,7 @@ import logging
 import requests
 
 from requests.exceptions import HTTPError
+from starlette import status
 from datetime import datetime
 from ratelimit import limits, sleep_and_retry
 from typing import Iterator, Tuple, Any
@@ -74,14 +75,18 @@ class AIBuilderMLModelConnector(ResourceConnectorByDate[MLModel]):
             response = requests.get(url, timeout=REQUEST_TIMEOUT)
         except Exception as e:
             return RecordError(identifier=None, error=e)
-        if not response.ok:
+        if response.status_code == status.HTTP_200_OK:
+            return response.json()
+        else:
             status_code = response.status_code
-            msg = response.json()["error"]["message"]
+            if status_code == status.HTTP_401_UNAUTHORIZED:
+                msg = "Unauthorized token."
+            else:
+                msg = response.reason
             err_msg = f"Error while fetching {url} from AIBuilder: ({status_code}) {msg}"
             logging.error(err_msg)
             err = HTTPError(err_msg)
             return RecordError(identifier=None, error=err)
-        return response.json()
 
     def _is_aware(self, date):
         """Returns True if `date` is a timezone-aware `datetime`."""

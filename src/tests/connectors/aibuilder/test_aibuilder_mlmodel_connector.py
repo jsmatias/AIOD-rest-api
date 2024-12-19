@@ -101,7 +101,7 @@ def test_fetch_happy_path_unaware_datetime():
 
 def test_catalog_list_http_error():
     error = {"error": {"message": "HTTP Error."}}
-    err_msg = f"Error while fetching {catalog_list_url} from AIBuilder: (500) HTTP Error."
+    err_msg = f"Error while fetching {catalog_list_url} from AIBuilder: (500) Internal Server Error"
     fetched_resources = []
     with responses.RequestsMock() as mocked_requests:
         mocked_requests.add(responses.GET, catalog_list_url, json=error, status=500)
@@ -157,7 +157,9 @@ def test_empty_catalog_list():
 def test_catalog_solutions_http_error():
     catalog_list_path = os.path.join(test_resources_path, "catalog_list.json")
     error = {"error": {"message": "HTTP Error."}}
-    err_msg = f"Error while fetching {catalog_solutions_url} from AIBuilder: (500) HTTP Error."
+    err_msg = (
+        f"Error while fetching {catalog_solutions_url} from AIBuilder: (500) Internal Server Error"
+    )
     fetched_resources = []
     with responses.RequestsMock() as mocked_requests:
         with open(catalog_list_path, "r") as f:
@@ -224,7 +226,7 @@ def test_solution_http_error():
     catalog_list_path = os.path.join(test_resources_path, "catalog_list.json")
     catalog_solutions_path = os.path.join(test_resources_path, "catalog_solutions.json")
     error = {"error": {"message": "HTTP Error."}}
-    err_msg = f"Error while fetching {solution_1_url} from AIBuilder: (500) HTTP Error."
+    err_msg = f"Error while fetching {solution_1_url} from AIBuilder: (500) Internal Server Error"
     solution_2_path = os.path.join(test_resources_path, "solution_2.json")
     fetched_resources = []
     with responses.RequestsMock() as mocked_requests:
