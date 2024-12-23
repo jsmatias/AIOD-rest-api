@@ -51,6 +51,10 @@ dev = [
     "responses==0.25.3",
     "freezegun==1.5.1",
 ]
+docs = [
+    "mkdocs-material",
+    "mkdocs-section-index",
+]
 
 [tool.setuptools]
 py-modules = []

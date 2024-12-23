@@ -6,9 +6,17 @@ theme:
     - content.code.copy
 
 nav:
+  - Home: README.md
   - Using the API: Using.md
   - Hosting the API: Hosting.md
-  - 'Developer Resources': README.md
+  - 'Developer Resources':
+      - developer/index.md
+      - 'Metadata Schema':
+          - developer/schema/index.md
+          - 'Attributes': developer/schema/attributes.md
+          - 'Relationships': developer/schema/relationships.md
+          - 'Objects': developer/schema/objects.md
+  - 'Contributing': Contributing.md
   - 'Unorganized Docs':
       - 'Code Advice': developer/code.md
       - 'Keycloak': developer/auth.md
@@ -23,3 +31,6 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
+
+plugins:
+  - section-index

@@ -1,6 +1,7 @@
 # Hosting the Metadata Catalogue
 This page has information on how to host your own metadata catalogue.
-If you plan to locally develop the REST API, please follow the installation procedure in ["Contributing"](../contributing) instead.
+If you plan to locally develop the REST API, please follow the installation procedure in ["Contributing"](../contributing) 
+after following the instructions on this page.
 
 ## Prerequisites
 The platform is tested on Linux, but should also work on Windows and MacOS.
@@ -16,6 +17,10 @@ However, we do need to fetch files the latest release of the repository:
     ```commandline
     git clone https://github.com/aiondemand/AIOD-rest-api.git
     ```
+
+    It is also possible to clone using [SSH](https://docs.github.com/en/authentication/connecting-to-github-with-ssh).
+    If you plan to develop the metadata catalogue, check the ["Contributing"](Contributing.md#cloning) page
+    for more information on this step.  
 
 === "UI (browser)"
     
@@ -146,4 +151,4 @@ Make sure that the specified `--network` is the docker network that has the `sql
 The alembic directory is mounted to ensure the latest migrations are available,
 the src directory is mounted so the migration scripts can use defined classes and variable from the project.
 
-[//]: # (TODO: Write documentation for when some of the migrations are not applicable. E.g., when a database was created in a new release.)
+[//]: # (TODO: Write documentation for when some of the migrations are not applicable. E.g., when a table was created in a new release.)
