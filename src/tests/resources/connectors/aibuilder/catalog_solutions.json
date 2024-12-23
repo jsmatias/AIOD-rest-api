@@ -1,0 +1,14 @@
+[
+    {
+        "fullId": "1",
+        "name": "Mocking Solution 1",
+        "toolkitType": "SK",
+        "lastModified": "2023-09-01T00:00:00Z"
+    },
+    {
+        "fullId": "2",
+        "name": "Mocking Solution 2",
+        "toolkitType": "CP",
+        "lastModified": "2023-09-01T00:00:00Z"
+    }
+]
