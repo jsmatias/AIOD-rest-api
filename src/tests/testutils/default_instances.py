@@ -13,7 +13,6 @@ from sqlalchemy.engine import Engine
 from database.model.agent.contact import Contact
 from database.model.agent.organisation import Organisation
 from database.model.agent.person import Person
-from database.model.concept.status import Status
 from database.model.dataset.dataset import Dataset
 from database.model.knowledge_asset.publication import Publication
 from database.model.models_and_experiments.experiment import Experiment
@@ -22,11 +21,6 @@ from database.model.resource_read_and_create import resource_create
 from database.model.serializers import deserialize_resource_relationships
 from database.session import DbSession
 from tests.testutils.paths import path_test_resources
-
-
-@pytest.fixture
-def draft() -> Status:
-    return Status(name="draft")
 
 
 @pytest.fixture(scope="session")

@@ -1,7 +1,9 @@
-from connectors.example.enum import EnumConnectorStatus
+from connectors.example.enum import EnumConnectorEventMode
 
 
 def test_fetch_happy_path():
-    connector = EnumConnectorStatus()
+    connector = EnumConnectorEventMode()
     resources = list(connector.fetch())
-    assert set(resources) == {"published", "draft", "rejected"}
+
+    allowed_modes = {"offline", "online", "hybrid"}
+    assert set(resources) == allowed_modes

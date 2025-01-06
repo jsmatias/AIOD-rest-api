@@ -3,8 +3,8 @@ from unittest.mock import Mock
 import pytest
 from starlette.testclient import TestClient
 
-from database.model.concept.status import Status
 from database.session import DbSession
+from database.model.concept.aiod_entry import EntryStatus
 from tests.testutils.test_resource import factory
 
 
@@ -13,7 +13,6 @@ def test_happy_path(
     client_test_resource: TestClient,
     identifier: int,
     mocked_privileged_token: Mock,
-    draft: Status,
 ):
     with DbSession() as session:
         session.add_all(
@@ -22,13 +21,13 @@ def test_happy_path(
                     title="my_test_resource",
                     platform="example",
                     platform_resource_identifier=1,
-                    status=draft,
+                    status=EntryStatus.DRAFT,
                 ),
                 factory(
                     title="second_test_resource",
                     platform="example",
                     platform_resource_identifier=2,
-                    status=draft,
+                    status=EntryStatus.DRAFT,
                 ),
             ]
         )
@@ -49,7 +48,6 @@ def test_non_existent(
     client_test_resource: TestClient,
     identifier: int,
     mocked_privileged_token: Mock,
-    draft: Status,
 ):
     with DbSession() as session:
         session.add_all(
@@ -58,13 +56,13 @@ def test_non_existent(
                     title="my_test_resource",
                     platform="example",
                     platform_resource_identifier=1,
-                    status=draft,
+                    status=EntryStatus.DRAFT,
                 ),
                 factory(
                     title="second_test_resource",
                     platform="example",
                     platform_resource_identifier=2,
-                    status=draft,
+                    status=EntryStatus.DRAFT,
                 ),
             ]
         )

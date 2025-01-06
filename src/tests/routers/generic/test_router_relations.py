@@ -6,9 +6,8 @@ from fastapi import FastAPI
 from sqlmodel import Field, Relationship, SQLModel
 from starlette.testclient import TestClient
 
-from database.model.concept.aiod_entry import AIoDEntryORM
+from database.model.concept.aiod_entry import AIoDEntryORM, EntryStatus
 from database.model.concept.concept import AIoDConceptBase, AIoDConcept
-from database.model.concept.status import Status
 from database.model.named_relation import NamedRelation
 from database.model.relationships import ManyToOne, ManyToMany
 from database.model.serializers import (
@@ -135,7 +134,7 @@ def client_with_testobject() -> TestClient:
     with DbSession() as session:
         named1, named2 = TestEnum(name="named_string1"), TestEnum(name="named_string2")
         enum1, enum2, enum3 = TestEnum2(name="1"), TestEnum2(name="2"), TestEnum2(name="3")
-        draft = Status(name="draft")
+        draft = EntryStatus.DRAFT
         session.add_all(
             [
                 TestObject(

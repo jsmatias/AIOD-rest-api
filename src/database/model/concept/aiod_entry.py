@@ -1,15 +1,16 @@
+import enum
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+import sqlalchemy
+from sqlalchemy import Column
 from sqlmodel import SQLModel, Field, Relationship
 
-from database.model.concept.status import Status
 from database.model.helper_functions import many_to_many_link_factory
-from database.model.relationships import ManyToOne, ManyToMany
+from database.model.relationships import ManyToMany
 from database.model.serializers import (
     AttributeSerializer,
     create_getter_dict,
-    FindByNameDeserializer,
 )
 
 if TYPE_CHECKING:
@@ -19,6 +20,13 @@ if TYPE_CHECKING:
 class AIoDEntryBase(SQLModel):
     """Metadata of the metadata: when was the metadata last updated, with what identifiers is it
     known on other platforms, etc."""
+
+
+class EntryStatus(enum.StrEnum):
+    DRAFT = enum.auto()
+    PUBLISHED = enum.auto()
+    REJECTED = enum.auto()  # Not used, for historical reasons
+    SUBMITTED = enum.auto()
 
 
 class AIoDEntryORM(AIoDEntryBase, table=True):  # type: ignore [call-arg]
@@ -31,8 +39,9 @@ class AIoDEntryORM(AIoDEntryBase, table=True):  # type: ignore [call-arg]
     editor: list["Person"] = Relationship(
         link_model=many_to_many_link_factory("aiod_entry", "person", table_prefix="editor"),
     )
-    status_identifier: int | None = Field(foreign_key=Status.__tablename__ + ".identifier")
-    status: Status | None = Relationship()
+    status: EntryStatus = Field(
+        sa_column=Column(sqlalchemy.Enum(EntryStatus)), default=EntryStatus.DRAFT
+    )
 
     # date_modified is updated in the resource_router
     date_modified: datetime = Field(default_factory=datetime.utcnow)
@@ -40,11 +49,6 @@ class AIoDEntryORM(AIoDEntryBase, table=True):  # type: ignore [call-arg]
 
     class RelationshipConfig:
         editor: list[int] = ManyToMany()  # No deletion triggers: "orphan" Persons should be kept
-        status: str | None = ManyToOne(
-            example="draft",
-            identifier_name="status_identifier",
-            deserializer=FindByNameDeserializer(Status),
-        )
 
 
 class AIoDEntryCreate(AIoDEntryBase):
@@ -53,10 +57,10 @@ class AIoDEntryCreate(AIoDEntryBase):
         default_factory=list,
         schema_extra={"example": []},
     )
-    status: str | None = Field(
-        description="Status of the entry (published, draft, rejected)",
-        schema_extra={"example": "published"},
-        default="draft",
+    status: EntryStatus = Field(
+        description="Status of the entry. One of {', '.join(EntryStatus)}.",
+        default=EntryStatus.DRAFT,
+        schema_extra={"example": EntryStatus.DRAFT},
     )
 
 
@@ -66,10 +70,9 @@ class AIoDEntryRead(AIoDEntryBase):
         default_factory=list,
         schema_extra={"example": []},
     )
-    status: str | None = Field(
-        description="Status of the entry (published, draft, rejected)",
-        schema_extra={"example": "published"},
-        default="draft",
+    status: EntryStatus = Field(
+        description="Status of the entry ({', '.join(EntryStatus)}).",
+        schema_extra={"example": EntryStatus.PUBLISHED},
     )
     date_modified: datetime | None = Field(
         description="The datetime on which the metadata was last updated in the AIoD platform,"
@@ -86,6 +89,4 @@ class AIoDEntryRead(AIoDEntryBase):
     )
 
     class Config:
-        getter_dict = create_getter_dict(
-            {"editor": AttributeSerializer("identifier"), "status": AttributeSerializer("name")}
-        )
+        getter_dict = create_getter_dict({"editor": AttributeSerializer("identifier")})
