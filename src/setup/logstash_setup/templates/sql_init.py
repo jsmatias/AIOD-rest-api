@@ -9,5 +9,5 @@ FROM aiod.{{entity_name}}
 INNER JOIN aiod.aiod_entry ON aiod.{{entity_name}}.aiod_entry_identifier=aiod.aiod_entry.identifier
 LEFT JOIN aiod.text ON aiod.{{entity_name}}.description_identifier\
 =aiod.text.identifier{{linked_joins}}
-WHERE aiod.{{entity_name}}.date_deleted IS NULL{{group_by}}
+WHERE aiod.{{entity_name}}.date_deleted IS NULL AND aiod.aiod_entry.status='PUBLISHED'{{group_by}}
 """
