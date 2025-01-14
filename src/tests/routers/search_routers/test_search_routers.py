@@ -1,4 +1,5 @@
 import json
+from http import HTTPStatus
 from unittest.mock import Mock
 
 import pytest
@@ -6,12 +7,12 @@ from elasticsearch import Elasticsearch
 from starlette.testclient import TestClient
 
 import routers.search_routers as sr
+from database.model.concept.aiod_entry import EntryStatus
 from routers.search_routers.elasticsearch import ElasticsearchSingleton
 from tests.testutils.paths import path_test_resources
 
 
-# @pytest.mark.parametrize("search_router", sr.router_list)
-@pytest.mark.skip("Separate out ES updates for next commit")
+@pytest.mark.parametrize("search_router", sr.router_list)
 def test_search_happy_path(client: TestClient, search_router):
     mock_elasticsearch(filename_mock=f"{search_router.es_index}_search.json")
 
@@ -28,7 +29,7 @@ def test_search_happy_path(client: TestClient, search_router):
     assert resource["description"]["plain"] == "A plain text description."
     assert resource["description"]["html"] == "An html description."
     assert resource["aiod_entry"]["date_modified"] == "2023-09-01T00:00:00+00:00"
-    assert resource["aiod_entry"]["status"] == "draft"
+    assert resource["aiod_entry"]["status"] == EntryStatus.PUBLISHED
 
     global_fields = {"name", "description_plain", "description_html"}
     extra_fields = list(search_router.indexed_fields ^ global_fields)
@@ -53,8 +54,11 @@ def test_search_happy_path_get_all(client: TestClient, mocked_privileged_token: 
 
     assert resource["identifier"] == 1
     assert resource["name"] == "A name."
-    assert resource["aiod_entry"]["status"] == "draft"
     assert set(resource["keyword"]) == {"keyword1", "keyword2"}
+    # Note: because the response from elastic search is mocked, and the default state of
+    # an uploaded entity is 'draft', there is now draft data in the response.
+    # Normal workflow wouldn't index this.
+    assert resource["aiod_entry"]["status"] == "draft"
 
 
 def test_search_get_all_not_found_in_db(client: TestClient):
@@ -64,7 +68,7 @@ def test_search_get_all_not_found_in_db(client: TestClient):
     params = {"search_query": "description", "get_all": True}
     response = client.get(search_service, params=params)
 
-    assert response.status_code == 404, response.json()
+    assert response.status_code == HTTPStatus.NOT_FOUND, response.json()
     assert (
         response.json()["detail"]
         == "Some resources, with identifiers 1, could not be found in the database."
@@ -80,7 +84,7 @@ def test_search_bad_platform(client: TestClient, search_router):
     params = {"search_query": "description", "platforms": ["bad_platform"]}
     response = client.get(search_service, params=params)
 
-    assert response.status_code == 400, response.json()
+    assert response.status_code == HTTPStatus.BAD_REQUEST, response.json()
     err_msg = "The available platforms are"
     assert response.json()["detail"][: len(err_msg)] == err_msg
 
@@ -94,7 +98,7 @@ def test_search_bad_fields(client: TestClient, search_router):
     params = {"search_query": "description", "search_fields": ["bad_field"]}
     response = client.get(search_service, params=params)
 
-    assert response.status_code == 422, response.json()
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY, response.json()
 
     assert response.json()["detail"][0]["msg"].startswith("unexpected value; permitted: ")
 
@@ -108,7 +112,7 @@ def test_search_bad_limit(client: TestClient, search_router):
     params = {"search_query": "description", "limit": 1001}
     response = client.get(search_service, params=params)
 
-    assert response.status_code == 422, response.json()
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY, response.json()
     assert response.json()["detail"] == [
         {
             "ctx": {"limit_value": 1000},
@@ -128,7 +132,7 @@ def test_search_bad_offset(client: TestClient, search_router):
     params = {"search_query": "description", "offset": -1}
     response = client.get(search_service, params=params)
 
-    assert response.status_code == 422, response.json()
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY, response.json()
     assert response.json()["detail"] == [
         {
             "ctx": {"limit_value": 0},
