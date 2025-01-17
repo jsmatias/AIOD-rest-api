@@ -256,7 +256,8 @@ class SearchRouter(Generic[RESOURCE], abc.ABC):
         resource = read_class(**kwargs)
         resource.aiod_entry = AIoDEntryRead(
             date_modified=resource_dict["date_modified"],
-            status=EntryStatus.PUBLISHED,
+            # ES should only ever index PUBLISHED assets, so we can set it directly.
+            status=resource_dict.get("status", EntryStatus.PUBLISHED),
         )
         resource.description = {
             "plain": resource_dict["description_plain"],
