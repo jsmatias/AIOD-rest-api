@@ -10,5 +10,6 @@ INNER JOIN aiod.aiod_entry ON aiod.{{entity_name}}.aiod_entry_identifier=aiod.ai
 LEFT JOIN aiod.text ON aiod.{{entity_name}}.description_identifier\
 =aiod.text.identifier{{linked_joins}}
 WHERE aiod.{{entity_name}}.date_deleted IS NULL \
-AND aiod.aiod_entry.date_modified > :sql_last_value{{group_by}}
+AND aiod.aiod_entry.date_modified > :sql_last_value \
+AND aiod.aiod_entry.status='PUBLISHED'{{group_by}}
 """

@@ -7,7 +7,7 @@ from pydantic.generics import GenericModel
 from sqlmodel import SQLModel, select, Field
 from starlette import status
 
-from database.model.concept.aiod_entry import AIoDEntryRead
+from database.model.concept.aiod_entry import AIoDEntryRead, EntryStatus
 from database.model.concept.concept import AIoDConcept
 from database.model.platform.platform import Platform
 from database.model.resource_read_and_create import resource_read
@@ -256,7 +256,8 @@ class SearchRouter(Generic[RESOURCE], abc.ABC):
         resource = read_class(**kwargs)
         resource.aiod_entry = AIoDEntryRead(
             date_modified=resource_dict["date_modified"],
-            status=resource_dict["status"],
+            # ES should only ever index PUBLISHED assets, so we can set it directly.
+            status=resource_dict.get("status", EntryStatus.PUBLISHED),
         )
         resource.description = {
             "plain": resource_dict["description_plain"],
